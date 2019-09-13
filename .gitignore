@@ -59,3 +59,12 @@ typings/
 
 # next.js build output
 .next
+
+.vscode/
+
+# 本地测试文件
+/config/
+/auth/
+/controllers/
+/models/
+/sample.js
