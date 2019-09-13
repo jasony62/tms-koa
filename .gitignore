@@ -68,3 +68,6 @@ typings/
 /controllers/
 /models/
 /sample.js
+/tests/
+/ecosystem.config.js
+/.eslintrc.json
