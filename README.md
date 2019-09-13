@@ -1,16 +1,19 @@
 # tms-koa
 
-#应用
+# 配置信息
 
-/config/app.json
+在项目的根目录下建立文件`/config/app.js`，指定下列信息：
 
-```
-{
-    "name":"" // 引用的名称，会用于redis中的key
+```javascript
+module.exports = {
+  port: "3000",
+  name: "tms-koa-0"
 }
 ```
 
 #鉴权机制
+
+在项目的根目录下建立文件`/auth/index.js`
 
 获得 token
 
@@ -38,26 +41,26 @@ routers
 
 配置信息
 
-/config/db.json
+/config/db.js
 
-```
-{
-    "master": {
-        "connectionLimit": 2,
-        "host": "localhost",
-        "port": "3306",
-        "user": "root",
-        "password": "",
-        "database": "xxt"
-    },
-    "write": {
-        "connectionLimit": 1,
-        "host": "localhost",
-        "port": "3306",
-        "user": "root",
-        "password": "",
-        "database": "xxt"
-    }
+```javascript
+module.exports = {
+  master: {
+    connectionLimit: 10,
+    host: "localhost",
+    port: "3306",
+    user: "root",
+    password: "",
+    database: ""
+  },
+  write: {
+    connectionLimit: 10,
+    host: "localhost",
+    port: "3306",
+    user: "root",
+    password: "",
+    database: ""
+  }
 }
 ```
 

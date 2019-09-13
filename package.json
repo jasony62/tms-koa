@@ -1,7 +1,7 @@
 {
     "name": "tms-koa",
-    "version": "0.0.1",
-    "description": "基于koa的api服务框架",
+    "version": "0.0.2",
+    "description": "基于koa的API服务框架",
     "main": "lib/app.js",
     "dependencies": {
         "koa": "^2.8.1",
