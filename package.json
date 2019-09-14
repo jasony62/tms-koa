@@ -3,6 +3,7 @@
     "version": "0.0.2",
     "description": "基于koa的API服务框架",
     "main": "lib/app.js",
+    "files": ["lib/*"],
     "dependencies": {
         "koa": "^2.8.1",
         "koa-router": "^7.4.0",

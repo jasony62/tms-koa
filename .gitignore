@@ -63,11 +63,6 @@ typings/
 .vscode/
 
 # 本地测试文件
-/config/
-/auth/
-/controllers/
-/models/
-/sample.js
-/tests/
-/ecosystem.config.js
-/.eslintrc.json
+/config/app.js
+/config/redis.js
+/config/db.js
