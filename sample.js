@@ -1,3 +1,5 @@
-const { startup } = require("./lib/app")
+const { TmsKoa } = require("./lib/app")
 
-startup()
+const tmsKoa = new TmsKoa()
+
+tmsKoa.startup()

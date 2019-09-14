@@ -15,9 +15,14 @@
 ```javascript
 module.exports = {
   port: 3000,
-  name: "tms-koa-0"
+  name: "tms-koa-0",
+  router: {
+    prefix: "" // 接口调用url的前缀
+  }
 }
 ```
+
+https://www.npmjs.com/package/koa-router
 
 在项目的根目录下建立文件`/config/redis.js`，指定下列 Redis 连接信息：
 
@@ -27,6 +32,8 @@ module.exports = {
   port: "6379"
 }
 ```
+
+https://www.npmjs.com/package/redis
 
 在项目的根目录下建立文件`/config/db.js`，指定下列 MySQL 数据库连接信息：
 
@@ -51,6 +58,8 @@ module.exports = {
 }
 ```
 
+https://www.npmjs.com/package/mysql
+
 # 鉴权机制
 
 在项目的根目录下建立文件`/auth/client.js`，实现一个根据 http 请求 返回`Clinet`对象的方法。
@@ -68,3 +77,7 @@ module.exports = {
 项目根目录下创建`models`目录
 
 需要从 DbModel 继承
+
+# 静态文件
+
+项目根目录下创建`public`目录

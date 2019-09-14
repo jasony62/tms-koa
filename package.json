@@ -1,12 +1,15 @@
 {
     "name": "tms-koa",
-    "version": "0.0.2",
+    "version": "0.0.4",
     "description": "基于koa的API服务框架",
     "main": "lib/app.js",
-    "files": ["lib/*"],
+    "files": [
+        "lib/*"
+    ],
     "dependencies": {
         "koa": "^2.8.1",
         "koa-router": "^7.4.0",
+        "koa-static": "^5.0.0",
         "mysql": "^2.17.1",
         "redis": "^2.8.0",
         "uuid": "^3.3.3"
