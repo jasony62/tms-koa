@@ -17,7 +17,12 @@ module.exports = {
   port: 3000,
   name: "tms-koa-0",
   router: {
-    prefix: "" // 接口调用url的前缀
+    auth: {
+      prefix: "" // 接口调用url的前缀
+    },
+    controllers: {
+      prefix: "" // 接口调用url的前缀
+    }
   }
 }
 ```

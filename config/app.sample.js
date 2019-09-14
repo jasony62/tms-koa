@@ -1,7 +1,12 @@
 module.exports = {
     port: 3001,
-    name: "tms-koa-0",
+    name: 'tms-koa-0',
     router: {
-        prefix: ''
+        auth: {
+            prefix: ''
+        },
+        controllers: {
+            prefix: ''
+        }
     }
 }
