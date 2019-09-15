@@ -86,30 +86,27 @@ https://www.npmjs.com/package/mysql
 
 模型必须从 DbModel 继承。
 
-必须在导出包中提供一个 create 方法，用户创建模型的实例。
+必须在导出包中提供一个用户创建实例的`create`方法。`DbModel`类中已经内置一个创建实例的方法的`create`方法，它的子类可参照下面的例子进行调用。
 
 ```javascript
 const { DbModel } = require("tms-koa")
-class Test extends DbModel {
-  constructor() {
-    super("test")
+
+class Template extends DbModel {
+  constructor({ db = null, debug = false } = {}) {
+    super("template", { db, debug })
   }
 }
-// 必须提供一个创建函数
-function create() {
-  return new Test()
-}
 
-module.exports = { Test, create }
+module.exports = { Template, create: Template.create.bind(Template) }
 ```
 
 # 静态文件
 
-项目根目录下创建`public`目录
+项目根目录下创建`public`目录。
 
 # 记录控制器事物
 
-在连接的数据库中执行下面的脚本
+在连接的数据库中执行下面的脚本。
 
 ```sql
 CREATE TABLE `tms_transaction` (
