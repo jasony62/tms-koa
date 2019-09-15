@@ -1,11 +1,11 @@
-describe("#tms", function() {
+describe("#model", function() {
     describe("#db.js", function() {
+        let { DbContext, create: fnCreateDb } = require("../../../lib/model/db")
         let db
-        test("connect", () => {
-            let { Db, create: fnCreate } = require("../../tms/db")
-            return Db.getConnection().then(conn => {
-                db = fnCreate({ conn })
-                expect(db.conn).not.toBe(false)
+        beforeAll(() => {
+            return DbContext.getConnection().then(conn => {
+                let context = new DbContext({ conn })
+                db = fnCreateDb({ context })
             })
         })
         describe("#Where", function() {
@@ -50,48 +50,64 @@ describe("#tms", function() {
                 expect(where.sql).toBe(`f='a' and f in('a','b','c') and f not in('a','b','c') and f between 1 and 2 and f not between 1 and 2 and exists('select c from t') and (a=1 and b=2) and (a=1 or b=2)`)
             })
         })
-        describe("#Select", function() {
-            let select
-            beforeAll(() => {
-                select = db.newSelect('account_group', 'group_id,group_name')
-                select.where.fieldMatch('group_id', '=', 1);
-            })
-            test("sql", () => {
-                expect(select.sql).toMatch(/^select group_id,group_name from account_group where group_id='1'$/i)
-            })
-            test("execute", async () => {
-                return select.exec().then(result => {
-                    expect(result[0].group_name).toBe('初级用户')
-                })
-            })
-        })
         describe("#Insert", function() {
             let insAct;
             beforeAll(() => {
-                insAct = db.newInsert('xxt_log', {
-                    siteid: 1,
-                    create_at: 1,
-                    method: 'insert',
-                    data: '测试数据'
+                insAct = db.newInsert('tms_transaction', {
+                    begin_at: 1000,
+                    end_at: 1001,
+                    userid: 'anyuserid'
                 })
             })
             test("sql", () => {
-                expect(insAct.sql).toBe(`insert into xxt_log(siteid,create_at,method,data) values('1','1','insert','测试数据')`)
+                expect(insAct.sql).toMatch(/^insert into tms_transaction\(begin_at,end_at,userid\) values\('1000','1001','anyuserid'\)$/i)
             })
-            test("execute", () => {
+            test("execute-获得自增id", () => {
                 return insAct.exec({ isAutoIncId: true }).then(autoIncId => {
                     expect(autoIncId).toBeGreaterThan(0)
+                })
+            })
+        })
+        describe("#Select", function() {
+            let select
+            beforeAll(() => {
+                select = db.newSelect('tms_transaction', 'id,begin_at,end_at')
+                select.where.fieldMatch('userid', '=', 'anyuserid');
+            })
+            test("sql", () => {
+                expect(select.sql).toMatch(/^select id,begin_at,end_at from tms_transaction where userid='anyuserid'$/i)
+            })
+            test("execute", async () => {
+                return select.exec().then(result => {
+                    expect(result[0].begin_at).toBe(1000)
+                    expect(result[0].end_at).toBe(1001)
+                })
+            })
+        })
+        describe("#Update", function() {
+            let updAct
+            beforeAll(() => {
+                updAct = db.newUpdate('tms_transaction')
+                updAct.where.fieldMatch('userid', '=', 'anyuserid')
+            })
+            test("sql", () => {
+                updAct.data.userid = 'anotheruserid'
+                expect(updAct.sql).toMatch(/^update tms_transaction set userid='anotheruserid' where userid='anyuserid'$/i)
+            })
+            test("execute", () => {
+                return updAct.exec().then(result => {
+                    expect(result).toBe(1)
                 })
             })
         })
         describe("#Delete", function() {
             let delAct
             beforeAll(() => {
-                delAct = db.newDelete('xxt_log')
-                delAct.where.fieldMatch('siteid', '=', 1)
+                delAct = db.newDelete('tms_transaction')
+                delAct.where.fieldMatch('userid', '=', 'anotheruserid')
             })
             test("sql", () => {
-                expect(delAct.sql).toBe(`delete from xxt_log where siteid='1'`)
+                expect(delAct.sql).toMatch(/^delete from tms_transaction where userid='anotheruserid'$/i)
             })
             test("execute", () => {
                 return delAct.exec().then(result => {
@@ -99,25 +115,9 @@ describe("#tms", function() {
                 })
             })
         })
-        describe("#Update", function() {
-            let updAct
-            beforeAll(() => {
-                updAct = db.newUpdate('xxt_log')
-                updAct.where.fieldMatch('siteid', '=', 1)
-            })
-            test("sql", () => {
-                updAct.data.data = '更新测试数据'
-                expect(updAct.sql).toBe(`update xxt_log set data='更新测试数据' where siteid='1'`)
-            })
-            test("execute", () => {
-                return updAct.exec().then(result => {
-                    expect(result).toBe(0)
-                })
-            })
-        })
         afterAll(done => {
             db.end(() => {
-                require("../../tms/db").Db.closePool(done)
+                DbContext.closePool(done)
             })
         })
     })
