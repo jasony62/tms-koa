@@ -1,12 +1,16 @@
 # tms-koa
 
-基于 koa 的快速开发框架，包含 MVC 中的 M 和 C 两部分，适合于实现 API 服务。
+基于`koa`的轻量级快速开发框架，包含 MVC 中的 M 和 C 两部分，适合于实现 API 服务和前后端彻底分离的应用。
 
-内置基于 access_token 的访问鉴权机制。
+内置基于 access_token 的访问鉴权机制，更容易实现 API 调用的负载分担。
 
 内置通过连接池访问 MySQL 数据库，支持进行读写分离。内置 SQL 语句的封装。
 
-为了运行系统需要安装 Redis。
+# 安装
+
+`npm install tms-koa --save`
+
+为了运行系统需要安装 MySQL 和 Redis。
 
 # 配置信息
 
