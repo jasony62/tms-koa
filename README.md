@@ -4,7 +4,7 @@
 
 内置基于 access_token 的访问鉴权机制，更容易实现 API 调用的负载分担。
 
-内置通过连接池访问 MySQL 数据库，支持进行读写分离。内置 SQL 语句的封装。
+内置通过连接池访问 MySQL 数据库，支持进行读写分离。内置 SQL 语句的封装，内置 escape 防止 sql 注入。目前 where 条件中，exists，and，or 形成的 sql 不会进行 escape 处理，需要在外部自行处理。select 中的 fields 和 table 未进行 escape 处理，不能够直接使用用户输入的内容作为字段名和表名。orderby 和 groupby 未做 escape 处理，不能够直接使用用户输入。
 
 # 安装
 
@@ -103,6 +103,8 @@ class Template extends DbModel {
 
 module.exports = { Template, create: Template.create.bind(Template) }
 ```
+
+已经在 model 层中进行 escape 处理，防止 sql 注入。关于 escape 请参考：tests/lib/model/escape.spec.js。
 
 # 静态文件
 
