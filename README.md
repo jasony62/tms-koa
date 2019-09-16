@@ -32,7 +32,7 @@ module.exports = {
 }
 ```
 
-https://www.npmjs.com/package/koa-router
+参考：https://www.npmjs.com/package/koa-router
 
 在项目的根目录下建立文件`/config/redis.js`，指定下列 Redis 连接信息：
 
@@ -68,7 +68,7 @@ module.exports = {
 }
 ```
 
-https://www.npmjs.com/package/mysql
+参考：https://www.npmjs.com/package/mysql
 
 # 鉴权机制
 
@@ -76,13 +76,33 @@ https://www.npmjs.com/package/mysql
 
 通过调用`/auth/token`获得`access_token`，它的值和`client.js`返回的对象存在一一对应的关系。
 
-`access_token`的有效期是 7200 秒。
+获得的`access_token`会存储在 Redis 中，有效期是`7200`秒。格式为`应用名称`（app.js 中的 name），`内容名AccessToken`，`token字符串`，`用户id字符串`（来源于 client.js 中指定的 id），中间用`:`分隔。
+
+`tms-koa-0:AccessToken:c89d35281105456babd15d94831424c7:userid`
+
+> 利用这个机制可以用`tms-koa`实现一个基于 token 的 api 鉴权中心。
 
 # 控制器（API）
 
 项目根目录下创建`controllers`目录，路径和 url 匹配
 
 需要从 Ctrl 类继承。
+
+```javascript
+const { Ctrl, ResultData } = require("tms-koa")
+
+class Main extends Ctrl {
+  tmsRequireTransaction() {
+    return {
+      get: true
+    }
+  }
+  get() {
+    return new ResultData("I am an api.")
+  }
+}
+module.exports = Main
+```
 
 # 模型（model）
 
@@ -130,12 +150,23 @@ CREATE TABLE `tms_transaction` (
 
 在`app.js`文件中将`tmsTransaction`设置为`true`
 
-在控制器类中添加方法，说明需要支持事物的接口
+在控制器类（Ctrl）中添加方法，说明需要支持事物的接口。
 
 ```javascript
 tmsRequireTransaction() {
     return {
         get: true
     }
+}
+```
+
+在控制器类（Ctrl）中添加方法，说明需要在调用接口前执行的代码。
+
+```javascript
+async tmsBeforeEach(method) {
+  // 返回ResultFault及其子类的对象，终止接口调用
+  // return new ResultFault('发生错误')
+
+  return true
 }
 ```
