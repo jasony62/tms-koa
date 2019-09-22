@@ -1,3 +1,7 @@
+const log4js = require('log4js')
+const logger = log4js.getLogger()
+logger.level = 'info'
+
 const { DbModel, DbContext } = require('../../../lib/model')
 class FakeDbModel extends DbModel {
     constructor({ db, debug }) {

@@ -1,3 +1,7 @@
+const log4js = require('log4js')
+const logger = log4js.getLogger()
+logger.level = 'info'
+
 describe('#model-数据库异常处理', function() {
     it('获得连接池失败-配置文件不存在', () => {
         let { DbContext } = require(process.cwd() + '/lib/model/db')
