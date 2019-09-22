@@ -72,7 +72,7 @@ describe("#model", function() {
             let select
             beforeAll(() => {
                 select = db.newSelect('tms_transaction', 'id,begin_at,end_at')
-                select.where.fieldMatch('userid', '=', 'anyuserid');
+                select.where.fieldMatch('userid', '=', 'anyuserid')
             })
             test("sql", () => {
                 expect(select.sql).toMatch(/^SELECT id,begin_at,end_at FROM tms_transaction WHERE `userid` = 'anyuserid'$/i)

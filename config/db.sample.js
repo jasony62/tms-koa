@@ -1,6 +1,7 @@
 module.exports = {
     master: {
         connectionLimit: 10,
+        waitForConnections: false,
         host: "",
         port: "",
         user: "",
@@ -9,6 +10,7 @@ module.exports = {
     },
     write: {
         connectionLimit: 10,
+        waitForConnections: true,
         host: "",
         port: "",
         user: "",
