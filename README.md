@@ -70,6 +70,16 @@ module.exports = {
 
 参考：https://www.npmjs.com/package/mysql
 
+文件管理，例如：保存上传文件
+
+```javascript
+module.exports = {
+  local: {
+    rootDir: "files" // 指定保存文件的根目录
+  }
+}
+```
+
 # 鉴权机制
 
 在项目的根目录下建立文件`/auth/client.js`，实现一个根据 http 请求 返回`Clinet`对象的方法。
@@ -170,3 +180,7 @@ async tmsBeforeEach(method) {
   return true
 }
 ```
+
+# 文件上传和下载
+
+需要在部署阶段创建程序运行后用到的`domain`，例如在`files`目录下创建`tests`目录，用于保存单元测试产生的文件。
