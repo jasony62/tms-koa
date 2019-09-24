@@ -6,8 +6,15 @@ class Main extends Ctrl {
             get: true
         }
     }
-    get() {
-        return new ResultData("I am an api.")
+    tryGet() {
+        let { value } = this.request.query
+
+        return new ResultData(`收到：${value}`)
+    }
+    tryPost() {
+        let posted = this.request.body
+
+        return new ResultData(posted)
     }
 }
 module.exports = Main
