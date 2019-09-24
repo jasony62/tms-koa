@@ -1,47 +1,46 @@
 {
-  "name": "tms-koa",
-  "version": "0.0.10",
-  "description": "基于koa的API服务框架，内置：基于token的API访问控制机制，MySQL数据库的连接管理机制和防SQL注入。",
-  "main": "lib/app.js",
-  "files": [
-    "lib/*"
-  ],
-  "dependencies": {
-    "@log4js-node/log4js-api": "^1.0.2",
-    "fs-extra": "^8.1.0",
-    "koa": "^2.8.1",
-    "koa-router": "^7.4.0",
-    "koa-static": "^5.0.0",
-    "log4js": "^5.1.0",
-    "moment": "^2.24.0",
-    "mysql": "^2.17.1",
-    "redis": "^2.8.0",
-    "sqlstring": "^2.3.1",
-    "underscore": "^1.9.1",
-    "uuid": "^3.3.3"
-  },
-  "devDependencies": {
-    "eslint": "^6.3.0",
-    "eslint-plugin-jest": "^22.17.0",
-    "eslint-plugin-node": "^10.0.0",
-    "jest": "^24.9.0"
-  },
-  "scripts": {
-    "pm2": "pm2 start ecosystem.config.js",
-    "test": "jest"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jasony62/tms-koa.git"
-  },
-  "keywords": [
-    "koa",
-    "api"
-  ],
-  "author": "jasony62",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/jasony62/tms-koa/issues"
-  },
-  "homepage": "https://github.com/jasony62/tms-koa#readme"
+    "name": "tms-koa",
+    "version": "0.0.11",
+    "description": "基于koa的API服务框架，内置：基于token的API访问控制机制，MySQL数据库的连接管理机制和防SQL注入。",
+    "main": "lib/app.js",
+    "files": [
+        "lib/*"
+    ],
+    "dependencies": {
+        "@log4js-node/log4js-api": "^1.0.2",
+        "koa": "^2.8.1",
+        "koa-body": "^4.1.1",
+        "koa-router": "^7.4.0",
+        "koa-static": "^5.0.0",
+        "log4js": "^5.1.0",
+        "mysql": "^2.17.1",
+        "redis": "^2.8.0",
+        "sqlstring": "^2.3.1",
+        "underscore": "^1.9.1",
+        "uuid": "^3.3.3"
+    },
+    "devDependencies": {
+        "eslint": "^6.3.0",
+        "eslint-plugin-jest": "^22.17.0",
+        "eslint-plugin-node": "^10.0.0",
+        "jest": "^24.9.0"
+    },
+    "scripts": {
+        "pm2": "pm2 start ecosystem.config.js",
+        "test": "jest"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/jasony62/tms-koa.git"
+    },
+    "keywords": [
+        "koa",
+        "api"
+    ],
+    "author": "jasony62",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/jasony62/tms-koa/issues"
+    },
+    "homepage": "https://github.com/jasony62/tms-koa#readme"
 }
