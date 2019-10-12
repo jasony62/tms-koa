@@ -1,11 +1,7 @@
 {
   "env": { "commonjs": true, "es6": true },
   "plugins": ["jest"],
-  "extends": [
-    "eslint:recommended",
-    "plugin:node/recommended",
-    "plugin:jest/recommended"
-  ],
+  "extends": ["eslint:recommended", "plugin:node/recommended", "plugin:jest/recommended"],
   "globals": {
     "Atomics": "readonly",
     "SharedArrayBuffer": "readonly"
@@ -28,6 +24,12 @@
     "jest/no-focused-tests": "error",
     "jest/no-identical-title": "error",
     "jest/prefer-to-have-length": "warn",
-    "jest/valid-expect": "error"
+    "jest/valid-expect": "error",
+    "node/no-missing-require": "off"
+  },
+  "settings": {
+    "import/resolver": {
+      "alias": { "map": ["@", "./"] }
+    }
   }
 }
