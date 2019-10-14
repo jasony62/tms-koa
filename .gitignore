@@ -67,3 +67,4 @@ typings/
 /config/redis.js
 /config/db.js
 files
+dump.rdb
