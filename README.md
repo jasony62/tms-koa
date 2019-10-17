@@ -10,7 +10,33 @@
 
 `npm install tms-koa --save`
 
-为了运行系统需要安装 MySQL 和 Redis。
+为了运行系统需要安装 MySQL 和 Redp m
+
+# 测试
+
+安装`pm2`（如果没装过）
+
+```
+cnpm i pm2 -g
+```
+
+通过`pm2`启动
+
+```
+npm run pm2
+```
+
+发送获得 token 的请求
+
+```
+http://localhost:3001/auth/token?userid=&name=
+```
+
+发送调用 api 的请求
+
+```
+http://localhost:3001/api/tryGet?access_token=&value=hello
+```
 
 # 配置信息
 
@@ -19,13 +45,13 @@
 ```javascript
 module.exports = {
   port: 3000,
-  name: "tms-koa-0",
+  name: 'tms-koa-0',
   router: {
     auth: {
-      prefix: "" // 接口调用url的前缀
+      prefix: '' // 接口调用url的前缀
     },
     controllers: {
-      prefix: "" // 接口调用url的前缀
+      prefix: '' // 接口调用url的前缀
     }
   },
   tmsTransaction: false
@@ -38,8 +64,8 @@ module.exports = {
 
 ```javascript
 module.exports = {
-  host: "127.0.0.1",
-  port: "6379"
+  host: '127.0.0.1',
+  port: '6379'
 }
 ```
 
@@ -51,19 +77,19 @@ https://www.npmjs.com/package/redis
 module.exports = {
   master: {
     connectionLimit: 10,
-    host: "",
-    port: "",
-    user: "",
-    password: "",
-    database: ""
+    host: '',
+    port: '',
+    user: '',
+    password: '',
+    database: ''
   },
   write: {
     connectionLimit: 10,
-    host: "",
-    port: "",
-    user: "",
-    password: "",
-    database: ""
+    host: '',
+    port: '',
+    user: '',
+    password: '',
+    database: ''
   }
 }
 ```
@@ -75,7 +101,7 @@ module.exports = {
 ```javascript
 module.exports = {
   local: {
-    rootDir: "files" // 指定保存文件的根目录
+    rootDir: 'files' // 指定保存文件的根目录
   }
 }
 ```
@@ -99,7 +125,7 @@ module.exports = {
 需要从 Ctrl 类继承。
 
 ```javascript
-const { Ctrl, ResultData } = require("tms-koa")
+const { Ctrl, ResultData } = require('tms-koa')
 
 class Main extends Ctrl {
   tmsRequireTransaction() {
@@ -108,7 +134,7 @@ class Main extends Ctrl {
     }
   }
   get() {
-    return new ResultData("I am an api.")
+    return new ResultData('I am an api.')
   }
 }
 module.exports = Main
@@ -123,18 +149,18 @@ module.exports = Main
 必须在导出包中提供一个用户创建实例的`create`方法。`DbModel`类中已经内置一个创建实例的方法的`create`方法，它的子类可参照下面的例子进行调用。
 
 ```javascript
-const { DbModel } = require("tms-koa")
+const { DbModel } = require('tms-koa')
 
 class Template extends DbModel {
   constructor({ db = null, debug = false } = {}) {
-    super("template", { db, debug })
+    super('template', { db, debug })
   }
 }
 
 module.exports = { Template, create: Template.create.bind(Template) }
 ```
 
-已经在 model 层中进行 escape 处理，防止 sql 注入。关于 escape 请参考：tests/lib/model/escape.spec.js。
+已经在 model 层中进行 escape 处理，防止 sql 注入。关于 escape 请参考：tms_db。
 
 # 静态文件
 
