@@ -6,6 +6,8 @@
 
 内置通过连接池访问 MySQL 数据库，支持进行读写分离。内置 SQL 语句的封装，内置 escape 防止 sql 注入。目前 where 条件中，exists，and，or 形成的 sql 不会进行 escape 处理，需要在外部自行处理。select 中的 fields 和 table 未进行 escape 处理，不能够直接使用用户输入的内容作为字段名和表名。orderby 和 groupby 未做 escape 处理，不能够直接使用用户输入。
 
+内置支持上传文件。
+
 # 安装
 
 `npm install tms-koa --save`
@@ -101,6 +103,8 @@ module.exports = {
 
 参考：https://www.npmjs.com/package/mysql
 
+参考：https://github.com/JoshuaWise/better-sqlite3/blob/HEAD/docs/api.md
+
 文件管理，例如：保存上传文件
 
 ```javascript
@@ -109,14 +113,29 @@ module.exports = {
     rootDir: 'files' // 指定保存文件的根目录
     database: {
       dialect: 'sqlite',
-      file_table: 'upload_files',
-      schema_table: 'upload_file_schema'
-    }
+      file_table: 'upload_files'
+    },
+    schemas: [
+      { id: 's1', type: 'shorttext', title: '信息1' },
+      { id: 's2', type: 'longtext', title: '信息2' },
+      {
+        id: 's3',
+        type: 'single',
+        title: '信息3',
+        ops: [{ v: 'v1', l: '选项1' }, { v: 'v2', l: '选项2' }, { v: 'v3', l: '选项3' }]
+      },
+      {
+        id: 's4',
+        type: 'multiple',
+        title: '信息4',
+        ops: [{ v: 'v1', l: '选项1' }, { v: 'v2', l: '选项2' }, { v: 'v3', l: '选项3' }]
+      }
+    ]
   }
 }
 ```
 
-tms-koa 支持保存上传文件的扩展信息。可以指定将信息保存在数据库中，例如：sqlite。指定的数据库需要在/config/db.js 中指定。创建表，指定 schema 的初始化工作不包含在 tms-koa 中。
+tms-koa 支持保存上传文件的扩展信息。可以指定将信息保存在数据库中，例如：sqlite。指定的数据库需要在/config/db.js 中指定。tms-koa 启动时，如果指定的`file_table`表不存在，系统会自动创建，字段包括：id，userid，path 和扩展信息字段中的 id，所有以 id 命名的字段类型都是`text`。
 
 # 鉴权机制
 
