@@ -1,6 +1,6 @@
 {
   "name": "tms-koa",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "基于koa的API服务框架，内置：基于token的API访问控制机制，MySQL数据库的连接管理机制和防SQL注入。",
   "main": "lib/app.js",
   "files": [
@@ -17,7 +17,6 @@
     "log4js": "^5.1.0",
     "moment": "^2.24.0",
     "redis": "^2.8.0",
-    "tms-db": "^0.0.3",
     "uuid": "^3.3.3"
   },
   "peerDependencies": {

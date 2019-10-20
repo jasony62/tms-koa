@@ -62,9 +62,11 @@ typings/
 
 .vscode/
 
-# 本地测试文件
+# 本地文件
 /config/app.js
 /config/redis.js
 /config/db.js
+/config/fs.js
+/config/log4js.js
 files
 dump.rdb
