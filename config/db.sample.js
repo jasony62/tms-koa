@@ -18,5 +18,8 @@ module.exports = {
       password: '',
       database: ''
     }
+  },
+  sqlite: {
+    path: ''
   }
 }

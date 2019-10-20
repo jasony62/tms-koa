@@ -71,25 +71,30 @@ module.exports = {
 
 https://www.npmjs.com/package/redis
 
-在项目的根目录下建立文件`/config/db.js`，指定下列 MySQL 数据库连接信息：
+在项目的根目录下建立文件`/config/db.js`，指定下列 MySQL 或 Sqlite 数据库（可选）连接信息：
 
 ```javascript
 module.exports = {
-  master: {
-    connectionLimit: 10,
-    host: '',
-    port: '',
-    user: '',
-    password: '',
-    database: ''
+  mysql: {
+    master: {
+      connectionLimit: 10,
+      host: '',
+      port: '',
+      user: '',
+      password: '',
+      database: ''
+    },
+    write: {
+      connectionLimit: 10,
+      host: '',
+      port: '',
+      user: '',
+      password: '',
+      database: ''
+    }
   },
-  write: {
-    connectionLimit: 10,
-    host: '',
-    port: '',
-    user: '',
-    password: '',
-    database: ''
+  sqlite: {
+    path: ''
   }
 }
 ```
@@ -102,9 +107,16 @@ module.exports = {
 module.exports = {
   local: {
     rootDir: 'files' // 指定保存文件的根目录
+    database: {
+      dialect: 'sqlite',
+      file_table: 'upload_files',
+      schema_table: 'upload_file_schema'
+    }
   }
 }
 ```
+
+tms-koa 支持保存上传文件的扩展信息。可以指定将信息保存在数据库中，例如：sqlite。指定的数据库需要在/config/db.js 中指定。创建表，指定 schema 的初始化工作不包含在 tms-koa 中。
 
 # 鉴权机制
 
