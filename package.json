@@ -20,7 +20,7 @@
     "uuid": "^3.3.3"
   },
   "peerDependencies": {
-    "tms-db": "^0.0.5"
+    "tms-db": "^0.0.7"
   },
   "devDependencies": {
     "babel-plugin-module-resolver": "^3.2.0",
