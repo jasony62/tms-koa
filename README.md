@@ -12,7 +12,7 @@
 
 `npm install tms-koa --save`
 
-为了运行系统需要安装 MySQL 和 Redp m
+为了运行系统需要安装 MySQL 和 Redis。
 
 # 测试
 
@@ -40,7 +40,9 @@ http://localhost:3001/auth/token?userid=&name=
 http://localhost:3001/api/tryGet?access_token=&value=hello
 ```
 
-# 配置信息
+# 建立新应用
+
+## 配置信息
 
 在项目的根目录下建立文件`/config/app.js`，指定下列信息：
 
@@ -53,12 +55,14 @@ module.exports = {
       prefix: '' // 接口调用url的前缀
     },
     controllers: {
-      prefix: '' // 接口调用url的前缀
+      prefix: '' // 接口调用url的前缀，例如：/api
     }
   },
   tmsTransaction: false
 }
 ```
+
+controllers 的 prefix 在 url 中出现，例如：http://localhost:3001/api/tryGet?value=hello，但是不在controller的路径中出现，例如：controllers/main.js为和url对应的控制器。
 
 参考：https://www.npmjs.com/package/koa-router
 
@@ -137,7 +141,25 @@ module.exports = {
 
 tms-koa 支持保存上传文件的扩展信息。可以指定将信息保存在数据库中，例如：sqlite。指定的数据库需要在/config/db.js 中指定。tms-koa 启动时，如果指定的`file_table`表不存在，系统会自动创建，字段包括：id，userid，path 和扩展信息字段中的 id，所有以 id 命名的字段类型都是`text`。
 
-# 鉴权机制
+## 启动代码
+
+建立文件`app.js`（可根据需要自行命名）
+
+```javascript
+const { TmsKoa } = require('tms-koa')
+
+const tmsKoa = new TmsKoa()
+
+tmsKoa.startup()
+```
+
+## API 代码
+
+建立 controllers 目录防止 API 代码，参考内置模块控制器部分。
+
+# 内置模块
+
+## 鉴权机制
 
 在项目的根目录下建立文件`/auth/client.js`，实现一个根据 http 请求 返回`Clinet`对象的方法。
 
@@ -149,7 +171,7 @@ tms-koa 支持保存上传文件的扩展信息。可以指定将信息保存在
 
 > 利用这个机制可以用`tms-koa`实现一个基于 token 的 api 鉴权中心。
 
-# 控制器（API）
+## 控制器（API）
 
 项目根目录下创建`controllers`目录，路径和 url 匹配
 
@@ -171,7 +193,7 @@ class Main extends Ctrl {
 module.exports = Main
 ```
 
-# 模型（model）
+## 模型（model）
 
 项目根目录下创建`models`目录。
 
@@ -193,11 +215,11 @@ module.exports = { Template, create: Template.create.bind(Template) }
 
 已经在 model 层中进行 escape 处理，防止 sql 注入。关于 escape 请参考：tms_db。
 
-# 静态文件
+## 静态文件
 
 项目根目录下创建`public`目录。
 
-# 记录控制器事物
+## 记录控制器事物
 
 在连接的数据库中执行下面的脚本。
 
@@ -238,6 +260,46 @@ async tmsBeforeEach(method) {
 }
 ```
 
-# 文件上传和下载
+## 文件上传和下载
 
 需要在部署阶段创建程序运行后用到的`domain`，例如在`files`目录下创建`tests`目录，用于保存单元测试产生的文件。
+
+在 controllers 目录创建文件 upload.js（可根据需要命名），用于上传文件。
+
+```javascript
+const { UploadCtrl } = require('tms-koa/controller/fs')
+
+class Upload extends UploadCtrl {
+  constructor(...args) {
+    super(...args)
+  }
+}
+
+module.exports = Upload
+```
+
+长传文件 api：http://localhost:3001/api/fs/upload/plain
+
+在 controllers 目录创建文件 browse.js（可根据需要命名），用于浏览文件。
+
+```javascript
+const { BrowseCtrl } = require('tms-koa/controller/fs')
+
+class Browse extends BrowseCtrl {
+  constructor(...args) {
+    super(...args)
+  }
+}
+
+module.exports = Browse
+```
+
+## 记录日志
+
+在启动代码中添加如下文件
+
+```javascript
+const log4jsConfig = require('./config/log4js')
+const log4js = require('log4js')
+log4js.configure(log4jsConfig)
+```
