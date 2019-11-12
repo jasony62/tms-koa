@@ -171,6 +171,8 @@ tmsKoa.startup()
 
 > 利用这个机制可以用`tms-koa`实现一个基于 token 的 api 鉴权中心。
 
+通过调用`/auth/client`用`access_token`获得用户信息。
+
 ## 控制器（API）
 
 项目根目录下创建`controllers`目录，路径和 url 匹配
