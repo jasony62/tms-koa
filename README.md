@@ -153,6 +153,20 @@ const tmsKoa = new TmsKoa()
 tmsKoa.startup()
 ```
 
+可以在 startup 中添加其他中间件（middleware），例如：
+
+控制器之前
+
+```
+tmsKoa.startup({beforeController:[]})
+```
+
+控制器之后
+
+```
+tmsKoa.startup({afterController:[]})
+```
+
 ## API 代码
 
 建立 controllers 目录防止 API 代码，参考内置模块控制器部分。
