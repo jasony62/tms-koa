@@ -66,6 +66,8 @@ controllers 的 prefix 在 url 中出现，例如：http://localhost:3001/api/tr
 
 参考：https://www.npmjs.com/package/koa-router
 
+---
+
 在项目的根目录下建立文件`/config/redis.js`，指定下列 Redis 连接信息：
 
 ```javascript
@@ -76,6 +78,8 @@ module.exports = {
 ```
 
 https://www.npmjs.com/package/redis
+
+---
 
 在项目的根目录下建立文件`/config/db.js`，指定下列 MySQL 或 Sqlite 数据库（可选）连接信息：
 
@@ -108,6 +112,35 @@ module.exports = {
 参考：https://www.npmjs.com/package/mysql
 
 参考：https://github.com/JoshuaWise/better-sqlite3/blob/HEAD/docs/api.md
+
+---
+
+在项目的根目录下建立文件`/config/mongodb.js`，指定下列 MongoDb 连接信息：
+
+```js
+module.exports = {
+  host,
+  port: 27017
+}
+```
+
+注意：如果项目要使用 mongodb，需要在项目中安装 mongodb 包。
+
+---
+
+在项目的根目录下建立文件`/config/mongoose.js`，指定下列 mongoose 连接信息：
+
+```js
+module.exports = {
+  host,
+  port: 27017,
+  database: 'test'
+}
+```
+
+注意：如果项目要使用 mongoose，需要在项目中安装 mongoose 包。
+
+---
 
 文件管理，例如：保存上传文件
 
