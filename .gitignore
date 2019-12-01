@@ -66,6 +66,7 @@ typings/
 /config/app.js
 /config/redis.js
 /config/db.js
+/config/mongodb.js
 /config/fs.js
 /config/log4js.js
 files
