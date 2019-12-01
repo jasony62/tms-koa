@@ -14,14 +14,14 @@
     "koa-router": "^7.4.0",
     "koa-static": "^5.0.0",
     "lodash": "^4.17.15",
-    "log4js": "^5.1.0",
     "moment": "^2.24.0",
-    "mongodb": "^3.3.5",
-    "redis": "^2.8.0",
     "uuid": "^3.3.3"
   },
   "peerDependencies": {
-    "tms-db": "^0.0.8"
+    "tms-db": "^0.0.8",
+    "mongodb": "^3.3.5",
+    "mongoose": "^5.7.13",
+    "redis": "^2.8.0"
   },
   "devDependencies": {
     "babel-plugin-module-resolver": "^3.2.0",
