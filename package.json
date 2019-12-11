@@ -15,7 +15,8 @@
     "koa-static": "^5.0.0",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
-    "uuid": "^3.3.3"
+    "uuid": "^3.3.3",
+    "xlsx": "^0.15.3"
   },
   "peerDependencies": {
     "tms-db": "^0.0.8",
