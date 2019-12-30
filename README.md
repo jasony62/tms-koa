@@ -12,7 +12,7 @@
 
 `npm install tms-koa --save`
 
-为了运行系统需要安装 MySQL 和 Redis。
+注意：tms_db，mongodb，mongoose，redis 这 4 个依赖包采用`peerDependencies`，不会进行自动安装，如果需要使用可以手动安装。tms-db 的依赖包 mysql 和 better-sqlite3 采用`peerDependencies`，不会进行自动安装，如果需要使用可以手动安装。
 
 # 测试
 
@@ -26,6 +26,12 @@ cnpm i pm2 -g
 
 ```
 npm run pm2
+```
+
+启动 Redis 和 MongoDb
+
+```
+docker-compose up -d
 ```
 
 发送获得 token 的请求
@@ -73,7 +79,7 @@ controllers 的 prefix 在 url 中出现，例如：http://localhost:3001/api/tr
 ```javascript
 module.exports = {
   host: '127.0.0.1',
-  port: '6379'
+  port: 6379
 }
 ```
 
