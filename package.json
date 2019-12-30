@@ -1,7 +1,7 @@
 {
   "name": "tms-koa",
-  "version": "0.0.28",
-  "description": "基于koa的API服务框架，内置：基于token的API访问控制机制，MySQL数据库的连接管理机制和防SQL注入，连接MongoDb。",
+  "version": "0.0.29",
+  "description": "基于koa的API服务框架，内置：基于token的API访问控制机制，MySQL数据库的连接管理机制和防SQL注入，连接MongoDb，连接Redis，文件上传下载。",
   "main": "lib/app.js",
   "files": [
     "lib"
@@ -20,7 +20,7 @@
     "xlsx": "^0.15.3"
   },
   "peerDependencies": {
-    "tms-db": "^0.0.8",
+    "tms-db": "^0.0.10",
     "mongodb": "^3.3.5",
     "mongoose": "^5.7.13",
     "redis": "^2.8.0"
