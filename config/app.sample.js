@@ -21,6 +21,12 @@ module.exports = {
     jwt: {
       privateKey: 'tms-koa-secret',
       expiresIn: 3600
+    },
+    redis: {
+      host: '127.0.0.1',
+      port: 6379,
+      expiresIn: 3600,
+      prefix: 'tms-koa-0'
     }
   }
 }
