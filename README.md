@@ -37,7 +37,7 @@ docker-compose up -d
 发送获得 token 的请求
 
 ```
-http://localhost:3001/auth/token?userid=&name=
+http://localhost:3001/auth/authorize
 ```
 
 发送调用 api 的请求
@@ -216,7 +216,7 @@ tmsKoa.startup({afterController:[]})
 
 在项目的根目录下建立文件`/auth/client.js`，实现一个根据 http 请求 返回`Clinet`对象的方法。
 
-通过调用`/auth/token`获得`access_token`，它的值和`client.js`返回的对象存在一一对应的关系。
+通过调用`/auth/authorize`获得`access_token`，它的值和`client.js`返回的对象存在一一对应的关系。
 
 获得的`access_token`会存储在 Redis 中，有效期是`7200`秒。格式为`应用名称`（app.js 中的 name），`内容名AccessToken`，`token字符串`，`用户id字符串`（来源于 client.js 中指定的 id），中间用`:`分隔。
 
