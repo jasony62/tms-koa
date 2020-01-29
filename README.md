@@ -125,8 +125,10 @@ module.exports = {
 
 ```js
 module.exports = {
-  host,
-  port: 27017
+  master: {
+    host,
+    port: 27017
+  }
 }
 ```
 
