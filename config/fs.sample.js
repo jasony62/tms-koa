@@ -1,22 +1,29 @@
 module.exports = {
   local: {
-    rootDir: '', // 文件的写入位置
-    database: { dialect: 'sqlite', file_table: 'upload_files' },
-    schemas: [
-      { id: 's1', type: 'shorttext', title: '信息1' },
-      { id: 's2', type: 'longtext', title: '信息2' },
-      {
-        id: 's3',
-        type: 'single',
-        title: '信息3',
-        ops: [{ v: 'v1', l: '选项1' }, { v: 'v2', l: '选项2' }, { v: 'v3', l: '选项3' }]
-      },
-      {
-        id: 's4',
-        type: 'multiple',
-        title: '信息4',
-        ops: [{ v: 'v1', l: '选项1' }, { v: 'v2', l: '选项2' }, { v: 'v3', l: '选项3' }]
+    rootDir: '', // 文件存储的起始位置
+    database: {
+      dialect: 'mongodb',
+      source: 'master',
+      database: 'upload',
+      file_collection: 'files'
+    },
+    schemas: {
+      $schema: 'http://json-schema.org/draft-07/schema#',
+      type: 'object',
+      title: 'Json-Doc-File',
+      description: 'tms-koa file',
+      properties: {
+        comment: {
+          type: 'string',
+          minLength: 0,
+          maxLength: 80,
+          title: '备注',
+          attrs: {
+            placeholder: '请输入备注',
+            title: '备注'
+          }
+        }
       }
-    ]
+    }
   }
 }
