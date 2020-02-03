@@ -157,16 +157,33 @@ module.exports = {
   local: {
     rootDir: 'files' // 指定保存文件的根目录
     database: {
-      dialect: 'sqlite',
-      file_table: 'upload_files'
+      dialect: 'mongodb',
+      database:'upload',
+      file_table: 'files'
     },
-    schemas: [
-    ]
+    schemas: {
+      $schema: 'http://json-schema.org/draft-07/schema#',
+      type: 'object',
+      title: 'Json-Doc-File',
+      description: 'tms-vue-finder file',
+      properties: {
+        comment: {
+          type: 'string',
+          minLength: 0,
+          maxLength: 80,
+          title: '说明1',
+          attrs: {
+            placeholder: '请输入说明',
+            title: '说明1'
+          }
+        }
+      }
+    }
   }
 }
 ```
 
-tms-koa 支持保存上传文件的扩展信息。可以指定将信息保存在数据库中，例如：sqlite。指定的数据库需要在/config/db.js 中指定。tms-koa 启动时，如果指定的`file_table`表不存在，系统会自动创建，字段包括：id，userid，path 和扩展信息字段中的 id，所有以 id 命名的字段类型都是`text`。
+tms-koa 支持保存上传文件的扩展信息。可以指定将信息保存在数据库中，例如：mongodb。指定的数据库需要在/config/mongodb.js 中存在。
 
 ## 启动代码
 
