@@ -1,4 +1,5 @@
 module.exports = {
+  disabled: false, // 可省略
   mysql: {
     master: {
       connectionLimit: 10,

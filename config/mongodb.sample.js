@@ -1,10 +1,7 @@
-let host
-if (process.env.TMS_MONGODB_WEB_ENV === 'docker') {
-  host = 'docker.for.mac.host.internal'
-} else {
-  host = 'localhost'
-}
 module.exports = {
-  host,
-  port: 27017
+  disabled: false, // 可省略
+  master: {
+    host: 'localhost',
+    port: 27017
+  }
 }
