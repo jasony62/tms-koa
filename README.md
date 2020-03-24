@@ -179,6 +179,7 @@ module.exports = {
 module.exports = {
   local: {
     rootDir: 'files' // 指定保存文件的根目录
+    outDir: 'files' // 指定系统生成文件的根目录
     database: {
       dialect: 'mongodb',
       database:'upload',
@@ -375,7 +376,7 @@ class Upload extends UploadCtrl {
 module.exports = Upload
 ```
 
-长传文件 api：http://localhost:3001/api/fs/upload/plain
+上传文件 api：http://localhost:3001/api/fs/upload/plain
 
 在 controllers 目录创建文件 browse.js（可根据需要命名），用于浏览文件。
 
