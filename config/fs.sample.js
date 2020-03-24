@@ -1,6 +1,7 @@
 module.exports = {
   local: {
-    rootDir: '', // 文件存储的起始位置
+    rootDir: '', // 上传文件存储的起始位置
+    outDir: '',  // 系统生成文件存储的起始位置
     database: {
       dialect: 'mongodb',
       source: 'master',

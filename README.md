@@ -179,6 +179,7 @@ module.exports = {
 module.exports = {
   local: {
     rootDir: 'files' // 指定保存文件的根目录
+    outDir: 'files' // 指定系统生成文件的根目录
     database: {
       dialect: 'mongodb',
       database:'upload',
@@ -364,7 +365,7 @@ async tmsBeforeEach(method) {
 在 controllers 目录创建文件 upload.js（可根据需要命名），用于上传文件。
 
 ```javascript
-const { UploadCtrl } = require('tms-koa/controller/fs')
+const { UploadCtrl } = require('tms-koa/lib/controller/fs')
 
 class Upload extends UploadCtrl {
   constructor(...args) {
@@ -375,12 +376,28 @@ class Upload extends UploadCtrl {
 module.exports = Upload
 ```
 
-长传文件 api：http://localhost:3001/api/fs/upload/plain
+上传文件 api：http://localhost:3001/api/fs/upload/plain
+
+在 controllers 目录创建文件 download.js（可根据需要命名），用于下载文件。
+
+```javascript
+const { DownloadCtrl } = require('tms-koa/lib/controller/fs')
+
+class Download extends DownloadCtrl {
+  constructor(...args) {
+    super(...args)
+  }
+}
+
+module.exports = Download
+```
+
+下载 api：http://localhost:3001/api/fs/download/down?file=
 
 在 controllers 目录创建文件 browse.js（可根据需要命名），用于浏览文件。
 
 ```javascript
-const { BrowseCtrl } = require('tms-koa/controller/fs')
+const { BrowseCtrl } = require('tms-koa/lib/controller/fs')
 
 class Browse extends BrowseCtrl {
   constructor(...args) {
