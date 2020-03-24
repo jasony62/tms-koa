@@ -305,6 +305,10 @@ async tmsBeforeEach(method) {
 
 ## 文件上传和下载
 
+domain bucket path
+
+domain 和 bucket 对用户是不可见的？但是要直接访问呢？
+
 需要在部署阶段创建程序运行后用到的`domain`，例如在`files`目录下创建`tests`目录，用于保存单元测试产生的文件。
 
 在 controllers 目录创建文件 upload.js（可根据需要命名），用于上传文件。
@@ -321,7 +325,7 @@ class Upload extends UploadCtrl {
 module.exports = Upload
 ```
 
-长传文件 api：http://localhost:3001/api/fs/upload/plain
+上传文件 api：http://localhost:3001/api/fs/upload/plain
 
 在 controllers 目录创建文件 browse.js（可根据需要命名），用于浏览文件。
 
@@ -336,6 +340,8 @@ class Browse extends BrowseCtrl {
 
 module.exports = Browse
 ```
+
+设置访问控制插件 client.id
 
 ## 记录日志
 
