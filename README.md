@@ -64,13 +64,33 @@ module.exports = {
       prefix: '' // 接口调用url的前缀，例如：/api
     }
   },
+  auth: {
+    captcha: { code: 'a1z9' },
+    client: { accounts: [{ id: 1, username: 'user1', password: '123456' }] },
+    jwt: {
+      privateKey: 'tms-koa-secret',
+      expiresIn: 7200
+    }
+  },
   tmsTransaction: false
 }
 ```
 
-controllers 的 prefix 在 url 中出现，例如：http://localhost:3001/api/tryGet?value=hello，但是不在controller的路径中出现，例如：controllers/main.js为和url对应的控制器。
+### 路由（router）
+
+`controllers`的`prefix` 在 url 中出现，例如：`http://localhost:3001/api/tryGet?value=hello`，但是不在 controller 的路径中出现，例如：controllers/main.js 为与 url 对应的控制器。
 
 参考：https://www.npmjs.com/package/koa-router
+
+### 认证（auth）
+
+`auth`部分是可选的，如果不配置，就不启动鉴权机制。
+
+支持`jwt`和`redis`两种`token`管理机制。
+
+可用`disabled`关闭。
+
+详细内容参见下面鉴权机制部分。
 
 ---
 
@@ -78,6 +98,7 @@ controllers 的 prefix 在 url 中出现，例如：http://localhost:3001/api/tr
 
 ```javascript
 module.exports = {
+  disabled: false, // 可选项，不需要指定。主要用于开发调试阶段。
   host: '127.0.0.1',
   port: 6379
 }
@@ -125,6 +146,7 @@ module.exports = {
 
 ```js
 module.exports = {
+  disabled: false, // 可选项，不需要指定。主要用于开发调试阶段。
   master: {
     host,
     port: 27017
@@ -140,6 +162,7 @@ module.exports = {
 
 ```js
 module.exports = {
+  disabled: false, // 可选项，不需要指定。主要用于开发调试阶段。
   host,
   port: 27017,
   database: 'test'
@@ -156,17 +179,35 @@ module.exports = {
 module.exports = {
   local: {
     rootDir: 'files' // 指定保存文件的根目录
+    outDir: 'files' // 指定系统生成文件的根目录
     database: {
-      dialect: 'sqlite',
-      file_table: 'upload_files'
+      dialect: 'mongodb',
+      database:'upload',
+      file_table: 'files'
     },
-    schemas: [
-    ]
+    schemas: {
+      $schema: 'http://json-schema.org/draft-07/schema#',
+      type: 'object',
+      title: 'Json-Doc-File',
+      description: 'tms-vue-finder file',
+      properties: {
+        comment: {
+          type: 'string',
+          minLength: 0,
+          maxLength: 80,
+          title: '说明1',
+          attrs: {
+            placeholder: '请输入说明',
+            title: '说明1'
+          }
+        }
+      }
+    }
   }
 }
 ```
 
-tms-koa 支持保存上传文件的扩展信息。可以指定将信息保存在数据库中，例如：sqlite。指定的数据库需要在/config/db.js 中指定。tms-koa 启动时，如果指定的`file_table`表不存在，系统会自动创建，字段包括：id，userid，path 和扩展信息字段中的 id，所有以 id 命名的字段类型都是`text`。
+tms-koa 支持保存上传文件的扩展信息。可以指定将信息保存在数据库中，例如：mongodb。指定的数据库需要在/config/mongodb.js 中存在。
 
 ## 启动代码
 
@@ -235,6 +276,20 @@ class Main extends Ctrl {
 }
 module.exports = Main
 ```
+
+### 路由与控制器匹配规则
+
+`tms-koa`会根据`url`自动匹配`/controllers`目录下的控制器文件。
+
+路由格式：`http://yourhost/{prefix}/{controller}/{method}`
+
+| 参数       | 说明                                                                                                                       |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------- |
+| prefix     | `/config/app.js`文件中，`router/controlers/prefix`中指定的内容。                                                           |
+| controller | 和`/controllers`目录下的文件对应。`main.js`作为目录中的默认控制，如果`url`匹配的是目录，`tms-koa`会尝试匹配`main.js`文件。 |
+| method     | 匹配到的`Ctrl`对象的方法。                                                                                                 |
+
+参考：`/lib/controller/router.js`文件。
 
 ## 模型（model）
 
@@ -314,7 +369,7 @@ domain 和 bucket 对用户是不可见的？但是要直接访问呢？
 在 controllers 目录创建文件 upload.js（可根据需要命名），用于上传文件。
 
 ```javascript
-const { UploadCtrl } = require('tms-koa/controller/fs')
+const { UploadCtrl } = require('tms-koa/lib/controller/fs')
 
 class Upload extends UploadCtrl {
   constructor(...args) {
@@ -327,10 +382,26 @@ module.exports = Upload
 
 上传文件 api：http://localhost:3001/api/fs/upload/plain
 
+在 controllers 目录创建文件 download.js（可根据需要命名），用于下载文件。
+
+```javascript
+const { DownloadCtrl } = require('tms-koa/lib/controller/fs')
+
+class Download extends DownloadCtrl {
+  constructor(...args) {
+    super(...args)
+  }
+}
+
+module.exports = Download
+```
+
+下载 api：http://localhost:3001/api/fs/download/down?file=
+
 在 controllers 目录创建文件 browse.js（可根据需要命名），用于浏览文件。
 
 ```javascript
-const { BrowseCtrl } = require('tms-koa/controller/fs')
+const { BrowseCtrl } = require('tms-koa/lib/controller/fs')
 
 class Browse extends BrowseCtrl {
   constructor(...args) {
