@@ -1,7 +1,8 @@
 module.exports = {
   local: {
     rootDir: '', // 上传文件存储的起始位置
-    outDir: '',  // 系统生成文件存储的起始位置
+    outDir: '', // 系统生成文件存储的起始位置
+    customName: false, // 是否保留上传文件名和指定的目录
     database: {
       dialect: 'mongodb',
       source: 'master',
@@ -25,6 +26,16 @@ module.exports = {
           }
         }
       }
+    },
+    domain: {
+      default: 'upload',
+      valid: []
+    },
+    bucket: {
+      module: ''
+    },
+    accessControl: {
+      module: '' // 返回检查函数的模块地址
     }
   }
 }
