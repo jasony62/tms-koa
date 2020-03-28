@@ -1,11 +1,8 @@
-const { Captcha } = require('../lib/app')
 /**
- * 获取换取access_token的验证信息
+ * 登录验证码
  */
 module.exports = function(ctx) {
-  let veri = new Captcha()
+  let code = '4321'
 
-  veri.code = '4321'
-
-  return [true, '4321']
+  return [true, code]
 }

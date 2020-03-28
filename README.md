@@ -412,8 +412,6 @@ class Browse extends BrowseCtrl {
 module.exports = Browse
 ```
 
-设置访问控制插件 client.id
-
 ## 记录日志
 
 在启动代码中添加如下文件
