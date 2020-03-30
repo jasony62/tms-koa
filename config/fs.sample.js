@@ -33,10 +33,10 @@ module.exports = {
         schemas,
         customName: false, // 是否保留上传文件名和指定的目录
         bucket: {
-          module: ''
+          path: ''
         },
         accessControl: {
-          module: '' // 返回检查函数的模块地址
+          path: '' // 返回检查函数的模块地址
         }
       }
     },
