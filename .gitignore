@@ -63,12 +63,16 @@ typings/
 .vscode/
 
 # 本地文件
-/config/app.js
-/config/redis.js
-/config/db.js
-/config/mongodb.js
-/config/mongoose.js
-/config/fs.js
-/config/log4js.js
-files
+demo/config/app.js
+demo/config/redis.js
+demo/config/db.js
+demo/config/mongodb.js
+demo/config/mongoose.js
+demo/config/fs.js
+demo/config/push.js
+demo/config/log4js.js
+demo/config/trusted-hosts.js
+demo/config/*.local.js
 dump.rdb
+demo/node_modules/
+demo/files

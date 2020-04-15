@@ -1,4 +1,4 @@
-const { UploadCtrl } = require('../../../lib/controller/fs/upload')
+const { UploadCtrl } = require('tms-koa/lib/controller/fs/upload')
 
 class Upload extends UploadCtrl {
   constructor(...args) {

@@ -1,4 +1,4 @@
-const { ImageCtrl } = require('../../../lib/controller/fs/imageage')
+const { ImageCtrl } = require('tms-koa/lib/controller/fs/image')
 
 class Image extends ImageCtrl {
   constructor(...args) {

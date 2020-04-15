@@ -1,4 +1,4 @@
-const { BrowseCtrl } = require('../../../lib/controller/fs/browse')
+const { BrowseCtrl } = require('tms-koa/lib/controller/fs/browse')
 
 class Browse extends BrowseCtrl {
   constructor(...args) {

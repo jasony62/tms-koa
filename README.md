@@ -58,21 +58,21 @@ module.exports = {
   name: 'tms-koa-0',
   router: {
     auth: {
-      prefix: '' // 接口调用url的前缀
+      prefix: '', // 接口调用url的前缀
     },
     controllers: {
-      prefix: '' // 接口调用url的前缀，例如：/api
-    }
+      prefix: '', // 接口调用url的前缀，例如：/api
+    },
   },
   auth: {
     captcha: { code: 'a1z9' },
     client: { accounts: [{ id: 1, username: 'user1', password: '123456' }] },
     jwt: {
       privateKey: 'tms-koa-secret',
-      expiresIn: 7200
-    }
+      expiresIn: 7200,
+    },
   },
-  tmsTransaction: false
+  tmsTransaction: false,
 }
 ```
 
@@ -100,7 +100,7 @@ module.exports = {
 module.exports = {
   disabled: false, // 可选项，不需要指定。主要用于开发调试阶段。
   host: '127.0.0.1',
-  port: 6379
+  port: 6379,
 }
 ```
 
@@ -119,7 +119,7 @@ module.exports = {
       port: '',
       user: '',
       password: '',
-      database: ''
+      database: '',
     },
     write: {
       connectionLimit: 10,
@@ -127,12 +127,12 @@ module.exports = {
       port: '',
       user: '',
       password: '',
-      database: ''
-    }
+      database: '',
+    },
   },
   sqlite: {
-    path: ''
-  }
+    path: '',
+  },
 }
 ```
 
@@ -149,8 +149,8 @@ module.exports = {
   disabled: false, // 可选项，不需要指定。主要用于开发调试阶段。
   master: {
     host,
-    port: 27017
-  }
+    port: 27017,
+  },
 }
 ```
 
@@ -165,7 +165,7 @@ module.exports = {
   disabled: false, // 可选项，不需要指定。主要用于开发调试阶段。
   host,
   port: 27017,
-  database: 'test'
+  database: 'test',
 }
 ```
 
@@ -267,7 +267,7 @@ const { Ctrl, ResultData } = require('tms-koa')
 class Main extends Ctrl {
   tmsRequireTransaction() {
     return {
-      get: true
+      get: true,
     }
   }
   get() {

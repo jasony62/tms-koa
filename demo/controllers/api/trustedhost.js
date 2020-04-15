@@ -1,4 +1,4 @@
-const { Ctrl, ResultData } = require('../../lib/app')
+const { Ctrl, ResultData } = require('tms-koa')
 
 class Main extends Ctrl {
   /**

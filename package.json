@@ -18,6 +18,7 @@
     "koa-static": "^5.0.0",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
+    "socket.io": "^2.3.0",
     "uuid": "^3.3.3",
     "xlsx": "^0.15.3"
   },
@@ -37,7 +38,6 @@
     "jest": "^24.9.0"
   },
   "scripts": {
-    "pm2": "pm2 start ecosystem.config.js",
     "test": "jest"
   },
   "repository": {
