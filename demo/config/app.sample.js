@@ -1,5 +1,6 @@
 module.exports = {
   port: 3001,
+  https: { port: 3002, key: '', cert: '' },
   name: 'tms-koa-0',
   router: {
     auth: {
