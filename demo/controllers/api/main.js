@@ -19,7 +19,6 @@ class Main extends Ctrl {
   tryPush() {
     if (this.socket) {
       setTimeout(() => {
-        console.log('xxxxxxxx')
         this.socket.emit('tms-koa-controller', { result: 'push in tryPush()' })
       }, 1000)
     }
