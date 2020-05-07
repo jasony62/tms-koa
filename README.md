@@ -317,35 +317,7 @@ module.exports = { Template, create: Template.create.bind(Template) }
 
 项目根目录下创建`public`目录。
 
-## 记录控制器事物
-
-在连接的数据库中执行下面的脚本。
-
-```sql
-CREATE TABLE `tms_transaction` (
- `id` bigint(20) NOT NULL AUTO_INCREMENT,
- `begin_at` double(13,3) NOT NULL,
- `end_at` double(13,3) NOT NULL DEFAULT '0.000',
- `request_uri` text,
- `user_agent` text,
- `referer` text,
- `remote_addr` text,
- `userid` varchar(40) NOT NULL DEFAULT '',
- PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8
-```
-
-在`app.js`文件中将`tmsTransaction`设置为`true`
-
-在控制器类（Ctrl）中添加方法，说明需要支持事物的接口。
-
-```javascript
-tmsRequireTransaction() {
-    return {
-        get: true
-    }
-}
-```
+## 控制器守卫方法
 
 在控制器类（Ctrl）中添加方法，说明需要在调用接口前执行的代码。
 
