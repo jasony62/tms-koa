@@ -1,6 +1,6 @@
 {
   "name": "tms-koa-demo",
-  "version": "0.0.34",
+  "version": "0.0.40",
   "description": "",
   "scripts": {
     "pm2": "pm2 start ecosystem.config.js",
@@ -12,6 +12,6 @@
   "dependencies": {
     "log4js": "^6.1.2",
     "socket.io": "^2.3.0",
-    "tms-koa": "^0.0.34"
+    "tms-koa": "^0.0.42"
   }
 }

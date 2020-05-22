@@ -60,7 +60,8 @@ typings/
 # next.js build output
 .next
 
-.vscode/
+
+.DS_Store
 
 # 本地文件
 demo/config/app.js
