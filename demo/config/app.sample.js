@@ -9,7 +9,7 @@ module.exports = {
     controllers: {
       prefix: '',
       plugins_npm: [{ id: 'tms-koa-ffmpeg', alias: 'ffmpeg' }], // 指定npm包作为控制器
-      excel: { defaultDomain: 'outUpload' }, // 系统生成 excel文件 存放 默认域
+      excel: { defaultDomain: 'upload' }, // 系统生成 excel文件 存放 默认域
     },
   },
   auth: {
