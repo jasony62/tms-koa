@@ -10,6 +10,9 @@ module.exports = {
       prefix: '',
       plugins_npm: [{ id: 'tms-koa-ffmpeg', alias: 'ffmpeg' }], // 指定npm包作为控制器
     },
+    fsdomian: {
+      prefix: 'output',
+    },
   },
   auth: {
     captcha: {
