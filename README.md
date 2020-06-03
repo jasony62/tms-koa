@@ -179,7 +179,6 @@ module.exports = {
 module.exports = {
   local: {
     rootDir: 'files' // 指定保存文件的根目录
-    outDir: 'files' // 指定系统生成文件的根目录
     database: {
       dialect: 'mongodb',
       database:'upload',

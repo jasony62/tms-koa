@@ -9,6 +9,7 @@
   "dependencies": {
     "@koa/cors": "^2.2.3",
     "@log4js-node/log4js-api": "^1.0.2",
+    "axios": "^0.19.2",
     "dotenv-flow": "^3.1.0",
     "fs-extra": "^8.1.0",
     "jsonwebtoken": "^8.5.1",

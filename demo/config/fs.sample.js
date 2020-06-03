@@ -26,7 +26,6 @@ const database = {
 module.exports = {
   local: {
     rootDir: '', // 上传文件存储的起始位置
-    outDir: '', // 系统生成文件存储的起始位置
     domains: {
       upload: {
         database,
