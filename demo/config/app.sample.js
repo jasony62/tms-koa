@@ -34,5 +34,6 @@ module.exports = {
       expiresIn: 3600,
       prefix: 'tms-koa-0',
     },
+    bucket: { validator: '' },
   },
 }

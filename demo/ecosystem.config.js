@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: 'tms-koa',
-      script: 'node sample',
+      script: 'node server',
 
       // Options reference: https://pm2.io/doc/en/runtime/reference/ecosystem-file/
       instances: 1,
@@ -11,11 +11,11 @@ module.exports = {
       ignore_watch: ['node_modules', 'tests', 'files'],
       max_memory_restart: '1G',
       env: {
-        NODE_ENV: 'development'
+        NODE_ENV: 'development',
       },
       env_production: {
-        NODE_ENV: 'production'
-      }
-    }
-  ]
+        NODE_ENV: 'production',
+      },
+    },
+  ],
 }

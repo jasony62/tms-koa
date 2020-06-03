@@ -11,16 +11,16 @@ const schemas = {
       title: '备注',
       attrs: {
         placeholder: '请输入备注',
-        title: '备注'
-      }
-    }
-  }
+        title: '备注',
+      },
+    },
+  },
 }
 const database = {
   dialect: 'mongodb',
   source: 'master',
   database: 'upload',
-  file_collection: 'files'
+  file_collection: 'files',
 }
 
 module.exports = {
@@ -31,14 +31,11 @@ module.exports = {
         database,
         schemas,
         customName: false, // 是否保留上传文件名和指定的目录
-        bucket: {
-          path: ''
-        },
         accessControl: {
-          path: '' // 返回检查函数的模块地址
-        }
-      }
+          path: '', // 返回检查函数的模块地址
+        },
+      },
     },
-    defaultDomain: 'upload'
-  }
+    defaultDomain: 'upload',
+  },
 }
