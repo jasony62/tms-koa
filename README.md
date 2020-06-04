@@ -99,12 +99,14 @@ module.exports = {
 ```javascript
 module.exports = {
   disabled: false, // 可选项，不需要指定。主要用于开发调试阶段。
-  host: '127.0.0.1',
-  port: 6379,
+  master: {
+    host: '127.0.0.1',
+    port: 6379,
+  },
 }
 ```
 
-https://www.npmjs.com/package/redis
+参考：https://www.npmjs.com/package/redis
 
 ---
 
@@ -234,6 +236,10 @@ tmsKoa.startup({beforeController:[]})
 tmsKoa.startup({afterController:[]})
 ```
 
+完成初始化，启动 http 和 https 端口之前
+
+tmsKoa.startup({afterInit:function(context){}})
+
 ## API 代码
 
 建立 controllers 目录防止 API 代码，参考内置模块控制器部分。
@@ -353,21 +359,7 @@ module.exports = Upload
 
 上传文件 api：http://localhost:3001/api/fs/upload/plain
 
-在 controllers 目录创建文件 download.js（可根据需要命名），用于下载文件。
-
-```javascript
-const { DownloadCtrl } = require('tms-koa/lib/controller/fs')
-
-class Download extends DownloadCtrl {
-  constructor(...args) {
-    super(...args)
-  }
-}
-
-module.exports = Download
-```
-
-下载 api：http://localhost:3001/api/fs/download/down?file=
+---
 
 在 controllers 目录创建文件 browse.js（可根据需要命名），用于浏览文件。
 
