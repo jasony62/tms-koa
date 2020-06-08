@@ -34,6 +34,7 @@ module.exports = {
       expiresIn: 3600,
       prefix: 'tms-koa-0',
     },
+    /* 检查bucket参数，支持多租户访问 */
     bucket: { validator: '' },
   },
 }

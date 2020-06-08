@@ -8,6 +8,8 @@ class Main extends Ctrl {
   }
   tryGet() {
     let { value } = this.request.query
+    const { bucket } = this
+    console.log(`bucket:${bucket}`)
 
     return new ResultData(`收到：${value}`)
   }
