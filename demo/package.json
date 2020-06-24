@@ -12,6 +12,6 @@
   "dependencies": {
     "log4js": "^6.1.2",
     "socket.io": "^2.3.0",
-    "tms-koa": "^0.0.47"
+    "tms-koa": "^0.0.48"
   }
 }
