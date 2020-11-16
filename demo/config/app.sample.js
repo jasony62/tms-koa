@@ -14,6 +14,9 @@ module.exports = {
     fsdomian: {
       prefix: 'output',
     },
+    swagger: {
+      prefix: 'oas',
+    },
   },
   auth: {
     captcha: {

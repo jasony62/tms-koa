@@ -1,11 +1,36 @@
 const { Ctrl, ResultData } = require('tms-koa')
 
 class Main extends Ctrl {
-  tmsRequireTransaction() {
-    return {
-      get: true,
-    }
-  }
+  /**
+   * @swagger
+   *
+   * /tryGet:
+   *   get:
+   *     description: 测试get方法，传入参数，并返回结果
+   *     produces:
+   *       - application/json
+   *     parameters:
+   *       - name: value
+   *         description: 传入1个值
+   *         in: query
+   *         required: false
+   *         type: string
+   *     responses:
+   *       200:
+   *         description: 将输入的值作为执行结果返回
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 code:
+   *                   type: integer
+   *                 msg:
+   *                   type: string
+   *                 result:
+   *                   type: string
+   *
+   */
   tryGet() {
     let { value } = this.request.query
     const { bucket } = this
@@ -13,11 +38,48 @@ class Main extends Ctrl {
 
     return new ResultData(`收到：${value}`)
   }
+  /**
+   * @swagger
+   *
+   * /tryPost:
+   *   post:
+   *     description: 测试post方法，传入参数，并返回结果
+   *     required: true
+   *     content:
+   *       application/json:
+   *         schema:
+   *           type: object
+   *     responses:
+   *       200:
+   *         description: 将输入的值作为执行结果返回
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 code:
+   *                   type: integer
+   *                 msg:
+   *                   type: string
+   *                 result:
+   *                   type: object
+   *
+   */
   tryPost() {
     let posted = this.request.body
 
     return new ResultData(posted)
   }
+  /**
+   * @swagger
+   *
+   * /tryPush:
+   *   get:
+   *     description: 测试push方法
+   *     responses:
+   *       200:
+   *         description: 返回ok
+   */
   tryPush() {
     if (this.socket) {
       setTimeout(() => {

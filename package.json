@@ -29,6 +29,7 @@
     "mongodb": "^3.3.5",
     "mongoose": "^5.7.13",
     "redis": "^2.8.0",
+    "swagger-jsdoc": "^5.0.1",
     "sharp": "^0.25.3"
   },
   "devDependencies": {
