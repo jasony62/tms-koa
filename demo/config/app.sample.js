@@ -40,5 +40,7 @@ module.exports = {
     /* 检查bucket参数，支持多租户访问 */
     bucket: { validator: '' },
   },
-  cors: {},
+  cors: {
+    credentials: true,
+  },
 }
