@@ -84,15 +84,11 @@ module.exports = {
 
 ### 认证（auth）
 
-`auth`部分是可选的，如果不配置，就不启动鉴权机制。
+`auth`部分是可选的，如果不配置或者`disabled`设置为`true`，就不启动鉴权机制。
 
-支持`jwt`和`redis`两种`token`管理机制。
+支持`jwt`和`redis`两种`token`认证机制，都支持用`disabled`关闭，若同时设置，`jwt`优先于`redis`。
 
-可用`disabled`关闭。
-
-详细内容参见下面鉴权机制部分。
-
----
+### redis
 
 在项目的根目录下建立文件`/config/redis.js`，指定下列 Redis 连接信息：
 
@@ -108,7 +104,7 @@ module.exports = {
 
 参考：https://www.npmjs.com/package/redis
 
----
+### 关系数据库（mysql 或 sqlite）
 
 在项目的根目录下建立文件`/config/db.js`，指定下列 MySQL 或 Sqlite 数据库（可选）连接信息：
 
@@ -142,7 +138,7 @@ module.exports = {
 
 参考：https://github.com/JoshuaWise/better-sqlite3/blob/HEAD/docs/api.md
 
----
+### mongodb
 
 在项目的根目录下建立文件`/config/mongodb.js`，指定下列 MongoDb 连接信息：
 
@@ -158,7 +154,7 @@ module.exports = {
 
 注意：如果项目要使用 mongodb，需要在项目中安装 mongodb 包。
 
----
+### mongoose
 
 在项目的根目录下建立文件`/config/mongoose.js`，指定下列 mongoose 连接信息：
 
@@ -173,7 +169,7 @@ module.exports = {
 
 注意：如果项目要使用 mongoose，需要在项目中安装 mongoose 包。
 
----
+### 文件服务
 
 文件管理，例如：保存上传文件
 
@@ -259,6 +255,8 @@ tmsKoa.startup({afterInit:function(context){}})
 > 利用这个机制可以用`tms-koa`实现一个基于 token 的 api 鉴权中心。
 
 通过调用`/auth/client`用`access_token`获得用户信息。
+
+详细说明参加：[访问控制](doc/访问控制.md)
 
 ## 控制器（API）
 
