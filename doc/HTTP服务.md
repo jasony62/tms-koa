@@ -21,6 +21,7 @@
 
 在`config/app.js`中指定`cors`字段。
 
-| 参数        | 必填 | 说明                               | 默认值 |
-| ----------- | ---- | ---------------------------------- | ------ |
-| credentials | 否   | `Access-Control-Allow-Credentials` | false  |
+| 参数        | 必填 | 说明                                     | 默认值 |
+| ----------- | ---- | ---------------------------------------- | ------ |
+| origin      | 否   | 添加`Access-Control-Allow-Origin`头      |        |
+| credentials | 否   | 添加`Access-Control-Allow-Credentials`头 | false  |
