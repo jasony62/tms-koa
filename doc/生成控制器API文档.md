@@ -1,8 +1,6 @@
 使用`Swagger`生成控制器 API 在线说明文档。
 
-启用`Swagger`前需安装`swagger-jsdoc`包。
-
-> cnpm i swagger-jsdoc -S
+# 配置
 
 `config/swagger.js`文件中指定配置信息，只有存在这个文件才开启`Swagger`服务。
 
@@ -19,6 +17,8 @@
 前缀`prefix`在`config/app.js`文件中`router.swagger.prefix`指定。若不指定，默认值为`oas`。
 
 API 定义访问地址为`http://host:port/prefix`，例如：`http://host:port/oas`。
+
+# 访问
 
 首次访问时遍历所有指定的文件生成定义，所以首次访问时间会较长。
 
