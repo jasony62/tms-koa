@@ -4,32 +4,30 @@ class Main extends Ctrl {
   /**
    * @swagger
    *
-   * /tryGet:
-   *   get:
-   *     description: 测试get方法，传入参数，并返回结果
-   *     produces:
-   *       - application/json
-   *     parameters:
-   *       - name: value
-   *         description: 传入1个值
-   *         in: query
-   *         required: false
-   *         type: string
-   *     responses:
-   *       200:
-   *         description: 将输入的值作为执行结果返回
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 code:
-   *                   type: integer
-   *                 msg:
-   *                   type: string
-   *                 result:
-   *                   type: string
-   *
+   *  /tryGet:
+   *    get:
+   *      description: 测试get方法，传入参数，并返回结果
+   *      parameters:
+   *        - name: value
+   *          description: 传入1个值
+   *          in: query
+   *          required: false
+   *          schema:
+   *            type: string
+   *      responses:
+   *        '200':
+   *          description: 将输入的值作为执行结果返回
+   *          content:
+   *            application/json:
+   *              schema:
+   *                type: object
+   *                properties:
+   *                  code:
+   *                    type: integer
+   *                  msg:
+   *                    type: string
+   *                  result:
+   *                    type: string
    */
   tryGet() {
     let { value } = this.request.query
@@ -41,28 +39,29 @@ class Main extends Ctrl {
   /**
    * @swagger
    *
-   * /tryPost:
-   *   post:
-   *     description: 测试post方法，传入参数，并返回结果
-   *     required: true
-   *     content:
-   *       application/json:
-   *         schema:
-   *           type: object
-   *     responses:
-   *       200:
-   *         description: 将输入的值作为执行结果返回
-   *         content:
-   *           application/json:
-   *             schema:
-   *               type: object
-   *               properties:
-   *                 code:
-   *                   type: integer
-   *                 msg:
-   *                   type: string
-   *                 result:
-   *                   type: object
+   *  /tryPost:
+   *    post:
+   *      description: 测试post方法，传入参数，并返回结果
+   *      requestBody:
+   *        content:
+   *          application/json:
+   *            schema:
+   *              type: object
+   *        required: true
+   *      responses:
+   *        '200':
+   *          description: 将输入的值作为执行结果返回
+   *          content:
+   *            application/json:
+   *              schema:
+   *                type: object
+   *                properties:
+   *                  code:
+   *                    type: integer
+   *                  msg:
+   *                    type: string
+   *                  result:
+   *                    type: object
    *
    */
   tryPost() {
