@@ -242,7 +242,7 @@ tmsKoa.startup({afterInit:function(context){}})
 
 # 内置模块
 
-## 鉴权机制
+## 认证机制
 
 在项目的根目录下建立文件`/auth/client.js`，实现一个根据 http 请求 返回`Clinet`对象的方法。
 
