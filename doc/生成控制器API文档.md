@@ -4,14 +4,17 @@
 
 `config/swagger.js`文件中指定配置信息，只有存在这个文件才开启`Swagger`服务。
 
-| 配置项                  | 说明                                                  | 类型     | 默认值                                                                                |
-| ----------------------- | ----------------------------------------------------- | -------- | ------------------------------------------------------------------------------------- |
-| definition              |                                                       | object   |                                                                                       |
-| definition.openapi      | 规范版本                                              | string   | 若不指定，默认为：openapi: '3.0.0'，版本号可以通过环境变量`TMS_KOA_OAS_VERSION`指定。 |
-| definition.info         |                                                       | object   |                                                                                       |
-| definition.info.title   |                                                       | object   |                                                                                       |
-| definition.info.version |                                                       | object   |                                                                                       |
-| apis                    | 包含 API 的文件路径，起始位置是 node 运行的当前路径。 | string[] | `./controllers/**/*.js`，控制器目录下的所有代码。                                     |
+| 配置项                           | 说明                                                  | 类型     | 默认值                                                                                |
+| -------------------------------- | ----------------------------------------------------- | -------- | ------------------------------------------------------------------------------------- |
+| definition                       |                                                       | object   |                                                                                       |
+| definition.openapi               | 规范版本                                              | string   | 若不指定，默认为：openapi: '3.0.0'，版本号可以通过环境变量`TMS_KOA_OAS_VERSION`指定。 |
+| definition.info                  |                                                       | object   |                                                                                       |
+| definition.info.title            |                                                       | object   |                                                                                       |
+| definition.info.version          |                                                       | object   |                                                                                       |
+| definition.servers               |                                                       | [object] | 提供 API 服务的地址列表。                                                             |
+| definition.servers[].url         |                                                       | string   |                                                                                       |
+| definition.servers[].description |                                                       | string   |                                                                                       |
+| apis                             | 包含 API 的文件路径，起始位置是 node 运行的当前路径。 | [string] | `./controllers/**/*.js`，控制器目录下的所有代码。                                     |
 
 参看：[OpenAPI Specification](http://spec.openapis.org/oas/v3.0.3)
 
