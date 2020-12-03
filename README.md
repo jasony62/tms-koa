@@ -146,8 +146,9 @@ module.exports = {
 module.exports = {
   disabled: false, // 可选项，不需要指定。主要用于开发调试阶段。
   master: {
-    host,
-    port: 27017,
+    host, // 如果要连接复制集，这里是复制集节点的主机地址数组
+    port: 27017, // 如果要连接复制集，这里是复制集节点的主机端口数组
+    replicaSet, // 复制集的名称
   },
 }
 ```
