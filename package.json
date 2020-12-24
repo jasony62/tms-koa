@@ -1,6 +1,6 @@
 {
   "name": "tms-koa",
-  "version": "0.0.61",
+  "version": "0.0.62",
   "description": "基于koa的API服务框架，内置：基于token的API访问控制机制，MySQL数据库的连接管理机制和防SQL注入，连接MongoDb，连接Redis，文件上传下载，API在线文档服务。",
   "main": "lib/index.js",
   "files": [
