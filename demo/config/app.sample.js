@@ -43,4 +43,9 @@ module.exports = {
   cors: {
     credentials: true,
   },
+  body: {
+    jsonLimit: "1mb",
+    formLimit: "56kb",
+    textLimit: "56kb",
+  },
 }

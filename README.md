@@ -73,6 +73,11 @@ module.exports = {
     },
   },
   tmsTransaction: false,
+  body: { // post 请求时对body大小的限制
+    jsonLimit: "1mb",
+    formLimit: "56kb",
+    textLimit: "56kb",
+  },
 }
 ```
 
