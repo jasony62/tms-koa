@@ -63,6 +63,12 @@ module.exports = {
     controllers: {
       prefix: '', // 接口调用url的前缀，例如：/api
     },
+    swagger: {
+      prefix: '/oas',
+    },
+    metrics: {
+      prefix: '/metrics', // 提供给prometheus的地址
+    },
   },
   auth: {
     captcha: { code: 'a1z9' },
@@ -73,10 +79,11 @@ module.exports = {
     },
   },
   tmsTransaction: false,
-  body: { // post 请求时对body大小的限制
-    jsonLimit: "1mb",
-    formLimit: "56kb",
-    textLimit: "56kb",
+  body: {
+    // post 请求时对body大小的限制
+    jsonLimit: '1mb',
+    formLimit: '56kb',
+    textLimit: '56kb',
   },
 }
 ```
@@ -151,8 +158,8 @@ module.exports = {
 module.exports = {
   disabled: false, // 可选项，不需要指定。主要用于开发调试阶段。
   master: {
-    host, // 如果要连接复制集，这里是复制集节点的主机地址数组
-    port: 27017, // 如果要连接复制集，这里是复制集节点的主机端口数组
+    host, // 如果要连接复制集，这里是复制集节点的主机地址数组，否则是字符串
+    port: 27017, // 如果要连接复制集，这里是复制集节点的主机端口数组，否则是整数
     replicaSet, // 复制集的名称
   },
 }
@@ -211,6 +218,12 @@ module.exports = {
 ```
 
 tms-koa 支持保存上传文件的扩展信息。可以指定将信息保存在数据库中，例如：mongodb。指定的数据库需要在/config/mongodb.js 中存在。
+
+### 监控服务
+
+支持向`prometheus`提供监控数据。
+
+在项目的根目录下建立文件`/config/metrics.js`
 
 ## 启动代码
 
