@@ -9,7 +9,7 @@
   "dependencies": {
     "@koa/cors": "^2.2.3",
     "@log4js-node/log4js-api": "^1.0.2",
-    "axios": "^0.21.1",
+    "axios": "^0.24.0",
     "dotenv-flow": "^3.1.0",
     "fs-extra": "^8.1.0",
     "jsonwebtoken": "^8.5.1",
@@ -26,12 +26,12 @@
     "xlsx": "^0.15.3"
   },
   "peerDependencies": {
-    "tms-db": "^0.0.10",
     "mongodb": "^3.3.5",
     "mongoose": "^5.7.13",
+    "prom-client": "^13.1.0",
     "redis": "^2.8.0",
     "sharp": "^0.25.3",
-    "prom-client": "^13.1.0"
+    "tms-db": "^0.0.10"
   },
   "devDependencies": {
     "babel-plugin-module-resolver": "^3.2.0",
