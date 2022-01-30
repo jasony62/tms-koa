@@ -23,7 +23,7 @@
     "socket.io": "^2.3.0",
     "swagger-jsdoc": "^5.0.1",
     "uuid": "^3.3.3",
-    "xlsx": "^0.15.3"
+    "xlsx": "^0.17.0"
   },
   "peerDependencies": {
     "mongodb": "^3.3.5",
