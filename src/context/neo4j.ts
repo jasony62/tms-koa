@@ -44,9 +44,12 @@ class Context {
    * @returns
    */
   static async ins(
-    config: Neo4jConfig | string,
+    config?: Neo4jConfig | string,
     name?: string
   ): Promise<Context> {
+    if (config === undefined) {
+      return Context._instancesByName.get('master')
+    }
     if (typeof config === 'string' && undefined === name) {
       return Context._instancesByName.get(config)
     }
