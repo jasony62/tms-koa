@@ -257,7 +257,7 @@ tmsKoa.startup({afterInit:function(context){}})
 
 ## API 代码
 
-建立 controllers 目录防止 API 代码，参考内置模块控制器部分。
+建立 controllers 目录放置 API 代码，参考内置模块控制器部分。
 
 # 内置模块
 
@@ -393,6 +393,10 @@ module.exports = Browse
 ```
 
 ## 记录日志
+
+安装依赖包
+
+> cnpm i log4js -S
 
 在启动代码中添加如下文件
 
