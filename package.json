@@ -1,37 +1,37 @@
 {
   "name": "tms-koa",
-  "version": "0.0.71",
+  "version": "0.0.72",
   "description": "基于koa的API服务框架，内置：基于token的API访问控制机制，MySQL数据库的连接管理机制和防SQL注入，连接MongoDb，连接Redis，文件上传下载，API在线文档服务。",
   "main": "lib/index.js",
   "files": [
     "lib"
   ],
   "dependencies": {
-    "@koa/cors": "^2.2.3",
+    "@koa/cors": "^3.3.0",
     "@log4js-node/log4js-api": "^1.0.2",
-    "axios": "^0.24.0",
+    "axios": "^0.26.1",
     "dotenv-flow": "^3.1.0",
-    "fs-extra": "^8.1.0",
+    "fs-extra": "^10.0.1",
     "jsonwebtoken": "^8.5.1",
     "koa": "^2.8.1",
     "koa-body": "^4.1.1",
-    "koa-router": "^7.4.0",
+    "koa-router": "^10.1.1",
     "koa-send": "^5.0.0",
     "koa-static": "^5.0.0",
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
-    "socket.io": "^2.3.0",
-    "swagger-jsdoc": "^5.0.1",
-    "uuid": "^3.3.3",
-    "xlsx": "^0.17.0"
+    "socket.io": "^4.4.1",
+    "swagger-jsdoc": "^6.2.0",
+    "uuid": "^8.3.2",
+    "xlsx": "^0.18.5"
   },
   "peerDependencies": {
-    "mongodb": "^3.3.5",
+    "mongodb": "4.5.0",
     "mongoose": "^5.7.13",
     "prom-client": "^13.1.0",
-    "redis": "^2.8.0",
+    "redis": "^4.0.6",
     "sharp": "^0.25.3",
-    "tms-db": "^0.0.10"
+    "tms-db": "^0.0.12"
   },
   "devDependencies": {
     "babel-plugin-module-resolver": "^3.2.0",

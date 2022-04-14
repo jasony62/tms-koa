@@ -1,9 +1,9 @@
 module.exports = {
   appenders: {
-    consoleout: { type: 'console' }
+    consoleout: { type: 'stdout' },
   },
   categories: {
-    default: { appenders: ['consoleout'], level: 'info' }
+    default: { appenders: ['consoleout'], level: 'info' },
   },
-  pm2: true
+  pm2: true,
 }
