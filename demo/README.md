@@ -8,10 +8,6 @@
 
 > yarn start
 
-或
-
-> npm run pm2
-
 # 打开静态页
 
 > curl http://localhost:3001/index.html
@@ -22,4 +18,4 @@
 
 # 上传 base64 图片
 
-> curl -X POST -H "Content-Type: text/plain" -d @image.jpeg.base64 "http://localhost:3001/api/fs/image/uploadBase64?thumb=Y"
+> curl -X POST -H "Content-Type: text/plain" -d @image.jpeg.base64 "http://localhost:3001/fs/image/uploadBase64?thumb=Y"

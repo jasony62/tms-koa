@@ -25,7 +25,9 @@ module.exports = {
     },
     client: {
       //path: '/auth/client.js', // 指定用户认证实现方法
-      accounts: [{ id: 1, username: 'user1', password: '123456' }], // 预制用户账号（没有指定外部实现方法时生效）
+      accounts: [
+        { id: 1, username: 'user1', password: '123456', bucket: ['bucket01'] },
+      ], // 预制用户账号（没有指定外部实现方法时生效）
     },
     jwt: {
       privateKey: 'tms-koa-secret',
@@ -34,7 +36,7 @@ module.exports = {
     redis: {
       host: '127.0.0.1',
       port: 6379,
-      password: "",
+      password: '',
       expiresIn: 3600,
       prefix: 'tms-koa-0',
     },
@@ -45,8 +47,8 @@ module.exports = {
     credentials: true,
   },
   body: {
-    jsonLimit: "1mb",
-    formLimit: "56kb",
-    textLimit: "56kb",
+    jsonLimit: '1mb',
+    formLimit: '56kb',
+    textLimit: '56kb',
   },
 }
