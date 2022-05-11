@@ -5,6 +5,7 @@ module.exports = {
   router: {
     auth: {
       prefix: '',
+      trustedHosts: [], // 允许访问的主机地址列表
     },
     controllers: {
       prefix: '',

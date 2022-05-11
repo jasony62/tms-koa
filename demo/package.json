@@ -3,7 +3,7 @@
   "version": "0.0.76",
   "description": "",
   "scripts": {
-    "start": "node server.js"
+    "start": "DEBUG=koa-router node server.js"
   },
   "keywords": [],
   "author": "jasony62",
