@@ -26,6 +26,7 @@ module.exports = {
     },
     client: {
       //path: '/auth/client.js', // 指定用户认证实现方法
+      //registerPath: "/auth/register.js"
       accounts: [
         { id: 1, username: 'user1', password: '123456', bucket: ['bucket01'] },
       ], // 预制用户账号（没有指定外部实现方法时生效）
