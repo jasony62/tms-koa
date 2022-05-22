@@ -79,3 +79,6 @@ demo/config/*.local.js
 dump.rdb
 demo/node_modules/
 demo/files
+
+# pnpm
+pnpm-lock.yaml
