@@ -22,11 +22,12 @@ module.exports = {
   auth: {
     captcha: {
       //path: '/auth/captcha.js', // 指定验证码实现方法
+      //checkPath: '/auth/checkPath.js' // 指定检查验证码方法
       code: 'a1z9', // 预制验证码（没有指定外部实现方法时生效）
     },
     client: {
       //path: '/auth/client.js', // 指定用户认证实现方法
-      //registerPath: "/auth/register.js"
+      //registerPath: "/auth/register.js" // 指定用户注册的实现方法
       accounts: [
         { id: 1, username: 'user1', password: '123456', bucket: ['bucket01'] },
       ], // 预制用户账号（没有指定外部实现方法时生效）
