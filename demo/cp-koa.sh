@@ -1,0 +1,1 @@
+cp -rf ../lib ./node_modules/tms-koa

@@ -12,8 +12,10 @@
   "dependencies": {
     "log4js": "^6.1.2",
     "mongodb": "^4.5.0",
+    "redis": "^4.1.0",
     "sharp": "^0.30.3",
     "socket.io": "^4.4.1",
-    "tms-koa": "^0.0.80"
+    "tms-koa": "0.0.82",
+    "tms-koa-account": "0.0.7"
   }
 }
