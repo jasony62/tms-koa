@@ -6,8 +6,10 @@
     "noImplicitAny": false,
     "removeComments": true,
     "preserveConstEnums": true,
+    "esModuleInterop": true,
     "outDir": "./lib",
     "rootDir": "./src",
+    "declaration": true,
     "sourceMap": false,
     "types": ["node"]
   },

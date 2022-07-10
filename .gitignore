@@ -64,6 +64,8 @@ typings/
 .DS_Store
 
 # 本地文件
+lib
+lib2
 demo/config/account.js
 demo/config/app.js
 demo/config/redis.js
