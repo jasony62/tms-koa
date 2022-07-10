@@ -63,7 +63,6 @@ typings/
 .DS_Store
 
 # 本地文件
-lib
 lib2
 
 dump.rdb
