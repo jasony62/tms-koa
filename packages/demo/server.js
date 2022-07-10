@@ -12,7 +12,7 @@ const beforeMiddleware = async (ctx, next) => {
   const ms = Date.now() - start
   ctx.set('X-Response-Time', `${ms}ms`)
 }
-console.log('llll', logger.appenders)
+
 logger.info('启动tms-koa')
 tmsKoa.startup({
   beforeController: [beforeMiddleware],

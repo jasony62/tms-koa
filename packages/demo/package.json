@@ -4,7 +4,7 @@
   "private": true,
   "description": "演示tms-koa框架使用方法。",
   "scripts": {
-    "start": "DEBUG=koa-router node server.js"
+    "start": "node server.js"
   },
   "keywords": [],
   "author": "jasony62",
@@ -12,12 +12,12 @@
   "dependencies": {
     "mongodb": "^4.5.0",
     "redis": "^4.1.0",
-    "sharp": "^0.30.3",
     "socket.io": "^4.4.1",
-    "tms-koa": "link:..",
+    "tms-koa": "workspace:*",
     "tms-koa-account": "0.0.7"
   },
   "peerDependencies": {
-    "log4js": "*"
+    "log4js": "*",
+    "sharp": "^0.30.3"
   }
 }

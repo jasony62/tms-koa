@@ -60,28 +60,12 @@ typings/
 # next.js build output
 .next
 
-
 .DS_Store
 
 # 本地文件
 lib
 lib2
-demo/config/account.js
-demo/config/app.js
-demo/config/redis.js
-demo/config/db.js
-demo/config/mongodb.js
-demo/config/mongoose.js
-demo/config/fs.js
-demo/config/push.js
-demo/config/log4js.js
-demo/config/swagger.js
-demo/config/metrics.js
-demo/config/trusted-hosts.js
-demo/config/*.local.js
-dump.rdb
-demo/node_modules/
-demo/files
 
+dump.rdb
 # pnpm
 pnpm-lock.yaml
