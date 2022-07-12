@@ -7,6 +7,9 @@ const _ = require('lodash')
 const jwt = require('jsonwebtoken')
 const fs = require('fs')
 const nodePath = require('path')
+const Debug = require('debug')
+
+const debug = Debug('tms-koa:ctrl-router')
 
 const { AppContext, DbContext, MongoContext, PushContext } =
   require('../app').Context
@@ -17,10 +20,10 @@ const TrustedHostsFile = nodePath.resolve(
   process.env.TMS_KOA_CONFIG_DIR || 'config',
   'trusted-hosts.js'
 )
-let trustedHosts = {}
+const TrustedHosts = {}
 if (fs.existsSync(TrustedHostsFile)) {
   logger.info(`从${TrustedHostsFile}加载信任主机列表`)
-  Object.assign(trustedHosts, require(TrustedHostsFile))
+  Object.assign(TrustedHosts, require(TrustedHostsFile))
 } else {
   logger.info(`未从${TrustedHostsFile}获得信任主机列表`)
 }
@@ -30,6 +33,7 @@ const { ResultFault, AccessTokenFault } = require('../response')
 // 从控制器路径查找
 const CtrlDir =
   process.env.TMS_KOA_CONTROLLERS_DIR || process.cwd() + '/controllers'
+debug(`控制器目录：${CtrlDir}`)
 
 /**在控制器目录中查找控制器类 */
 function findCtrlClassInCtrlDir(ctrlName, path) {
@@ -173,31 +177,36 @@ async function fnCtrlWrapper(ctx, next) {
   } else if (
     Object.prototype.hasOwnProperty.call(CtrlClass, 'tmsAuthTrustedHosts')
   ) {
-    // 检查是否来源于可信主机
-    if (
-      !trustedHosts[ctrlName] ||
-      !Array.isArray(trustedHosts[ctrlName]) ||
-      trustedHosts[ctrlName].length === 0
-    ) {
-      let msg = `没有指定【${ctrlName}】可信任的请求来源主机`
-      logger.debug(msg + '\n' + JSON.stringify(trustedHosts, null, 2))
-      return (response.body = new ResultFault(msg))
-    }
+    const skip = /yes|true/i.test(process.env.TMS_KOA_SKIP_TRUSTED_HOST ?? 'no')
+    if (!skip) {
+      // 检查是否来源于可信主机
+      if (
+        !TrustedHosts[ctrlName] ||
+        !Array.isArray(TrustedHosts[ctrlName]) ||
+        TrustedHosts[ctrlName].length === 0
+      ) {
+        let msg = `没有指定【${ctrlName}】可信任的请求来源主机`
+        logger.debug(msg + '\n' + JSON.stringify(TrustedHosts, null, 2))
+        return (response.body = new ResultFault(msg))
+      }
 
-    if (!request.ip)
-      return (response.body = new ResultFault('无法获得请求来源主机的ip地址'))
+      if (!request.ip)
+        return (response.body = new ResultFault('无法获得请求来源主机的ip地址'))
 
-    const ipv4 = request.ip.split(':').pop()
+      const ipv4 = request.ip.split(':').pop()
 
-    const ctrlTrustedHosts = trustedHosts[ctrlName]
-    if (
-      !ctrlTrustedHosts.some((rule) => {
-        const re = new RegExp(rule)
-        return re.test(request.ip) || re.test(ipv4)
-      })
-    ) {
-      logger.warn(`未被信任的主机进行请求[${request.ip}]`)
-      return (response.body = new ResultFault('请求来源主机不在信任列表中'))
+      const ctrlTrustedHosts = TrustedHosts[ctrlName]
+      if (
+        !ctrlTrustedHosts.some((rule) => {
+          const re = new RegExp(rule)
+          return re.test(request.ip) || re.test(ipv4)
+        })
+      ) {
+        logger.warn(`未被信任的主机进行请求[${request.ip}]`)
+        return (response.body = new ResultFault('请求来源主机不在信任列表中'))
+      }
+    } else {
+      debug('控制器访问跳过可信任主机检查')
     }
   } else if (authConfig && authConfig.mode) {
     // 进行用户鉴权

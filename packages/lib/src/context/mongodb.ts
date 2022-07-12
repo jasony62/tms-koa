@@ -1,6 +1,9 @@
 const log4js = require('@log4js-node/log4js-api')
 const logger = log4js.getLogger('tms-koa-mongodb')
 const { MongoClient, MongoError } = require('mongodb')
+const Debug = require('debug')
+
+const debug = Debug('tms-koa:context:mongodb')
 
 class TmsMongoDb {
   mongoClient
@@ -137,8 +140,10 @@ export class Context {
     if (_instancesByUrl.has(url)) return _instancesByUrl.get(url)
 
     logger.debug('开始连接[%s]', url)
+    debug(`开始连接[${url}]`)
     const client = await TmsMongoDb.connect(url)
     logger.debug('完成连接[%s]', url)
+    debug(`完成连接[${url}]`)
 
     let instance = new TmsMongoDb(client)
 
