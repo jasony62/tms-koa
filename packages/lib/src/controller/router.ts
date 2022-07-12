@@ -1,3 +1,5 @@
+import { Ctrl } from './ctrl'
+
 const log4js = require('@log4js-node/log4js-api')
 const logger = log4js.getLogger('tms-koa-ctrl')
 const Router = require('@koa/router')
@@ -29,12 +31,13 @@ const { ResultFault, AccessTokenFault } = require('../response')
 const CtrlDir =
   process.env.TMS_KOA_CONTROLLERS_DIR || process.cwd() + '/controllers'
 
-function findCtrlClassInControllers(ctrlName, path) {
+/**在控制器目录中查找控制器类 */
+function findCtrlClassInCtrlDir(ctrlName, path) {
   let ctrlPath = nodePath.resolve(`${CtrlDir}/${ctrlName}.js`)
   if (!fs.existsSync(ctrlPath)) {
     ctrlPath = nodePath.resolve(`${CtrlDir}/${ctrlName}/main.js`)
     if (!fs.existsSync(ctrlPath)) {
-      let logMsg = `参数错误，请求的控制器不存在(2)`
+      let logMsg = `参数错误，请求的控制器类不存在(2)`
       logger.isDebugEnabled()
         ? logger.debug(logMsg, ctrlName, path, ctrlPath)
         : logger.error(logMsg)
@@ -44,10 +47,28 @@ function findCtrlClassInControllers(ctrlName, path) {
 
   let CtrlClass = require(ctrlPath)
 
-  if (CtrlClass.default) CtrlClass = CtrlClass.default
-
   return CtrlClass
 }
+
+/**从npm包中查找 */
+function findCtrlClassInNpms(npmCtrl: any, ctrlName: any, path: any) {
+  logger.debug(`控制器插件${JSON.stringify(npmCtrl)}匹配当前请求`)
+  let CtrlClass
+  try {
+    // 先检查是否存在包
+    if (ctrlName.split('/')[0] === npmCtrl.alias) {
+      CtrlClass = require(ctrlName.replace(npmCtrl.alias, npmCtrl.id))
+    } else {
+      CtrlClass = require(ctrlName)
+    }
+  } catch (e) {
+    logger.warn(`查找npm控制器[${ctrlName}]失败[${e.message}]`, e)
+    // 从控制器路径查找
+    CtrlClass = findCtrlClassInCtrlDir(ctrlName, path)
+  }
+  return CtrlClass
+}
+
 /**
  *
  * @param {*} ctx
@@ -68,6 +89,8 @@ function findCtrlClassAndMethodName(ctx) {
   let CtrlClass
   const method = pieces.splice(-1, 1)[0]
   const ctrlName = pieces.length ? pieces.join('/') : 'main'
+
+  /**指定的控制器插件包*/
   const npmCtrls = _.get(AppContext.insSync(), 'router.controllers.plugins_npm')
   let npmCtrl
   if (Array.isArray(npmCtrls) && npmCtrls.length) {
@@ -76,26 +99,16 @@ function findCtrlClassAndMethodName(ctx) {
     )
   }
   if (npmCtrl) {
-    logger.debug(`控制器插件${JSON.stringify(npmCtrl)}匹配当前请求`)
-    try {
-      // 先检查是否存在包
-      if (ctrlName.split('/')[0] === npmCtrl.alias) {
-        CtrlClass = require(ctrlName.replace(npmCtrl.alias, npmCtrl.id))
-      } else {
-        CtrlClass = require(ctrlName)
-      }
-    } catch (e) {
-      logger.warn(`查找npm控制器[${ctrlName}]失败[${e.message}]`, e)
-      // 从控制器路径查找
-      CtrlClass = findCtrlClassInControllers(ctrlName, path)
-    }
+    CtrlClass = findCtrlClassInNpms(npmCtrl, ctrlName, path)
   } else {
-    // 从控制器路径查找
-    CtrlClass = findCtrlClassInControllers(ctrlName, path)
+    CtrlClass = findCtrlClassInCtrlDir(ctrlName, path)
   }
+
+  if (CtrlClass.default) CtrlClass = CtrlClass.default
 
   return [ctrlName, CtrlClass, method]
 }
+
 /**
  * 获得请求中传递的access_token
  *
@@ -124,7 +137,7 @@ function getAccessTokenByRequest(ctx) {
 async function fnCtrlWrapper(ctx, next) {
   let { request, response } = ctx
 
-  /* 只处理api请求，其它返回找不到 */
+  /**只处理api请求（不能包含点），其它返回找不到*/
   if (/\./.test(request.path)) {
     response.status = 404
     return (response.body = 'Not Found')
@@ -155,8 +168,8 @@ async function fnCtrlWrapper(ctx, next) {
     }
   }
 
-  if (accessWhite && accessWhite.includes(method)) {
-    // 跳过认证
+  if (accessWhite?.includes(method)) {
+    // 方法在白名单忠，跳过认证
   } else if (
     Object.prototype.hasOwnProperty.call(CtrlClass, 'tmsAuthTrustedHosts')
   ) {
@@ -227,7 +240,7 @@ async function fnCtrlWrapper(ctx, next) {
     /**
      * 创建控制器实例
      */
-    const oCtrl = new CtrlClass(
+    const oCtrl: Ctrl = new CtrlClass(
       ctx,
       tmsClient,
       dbContext,
@@ -238,7 +251,7 @@ async function fnCtrlWrapper(ctx, next) {
      * 检查指定的方法是否存在
      */
     if (oCtrl[method] === undefined && typeof oCtrl[method] !== 'function') {
-      let logMsg = '参数错误，请求的控制器不存在(3)'
+      let logMsg = `参数错误，请求的控制器类方法[${method}]不存在(3)`
       logger.isDebugEnabled()
         ? logger.debug(logMsg, oCtrl)
         : logger.error(logMsg)
@@ -265,7 +278,7 @@ async function fnCtrlWrapper(ctx, next) {
     /**
      * 前置操作
      */
-    if (oCtrl.tmsBeforeEach && typeof oCtrl.tmsBeforeEach === 'function') {
+    if (typeof oCtrl.tmsBeforeEach === 'function') {
       const resultBefore = await oCtrl.tmsBeforeEach(method)
       if (resultBefore instanceof ResultFault) {
         return (response.body = resultBefore)
