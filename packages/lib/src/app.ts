@@ -106,9 +106,56 @@ class TmsKoa extends Koa {
     /**
      * 应用配置
      */
-    const appConfig = loadConfig('app', {
+    const appDefaultConfig: any = {
       port: parseInt(process.env.TMS_KOA_APP_HTTP_PORT) || 3000,
-    })
+    }
+    if (process.env.TMS_KOA_CONTROLLERS_PREFIX) {
+      _.set(
+        appDefaultConfig,
+        'router.controllers.prefix',
+        process.env.TMS_KOA_CONTROLLERS_PREFIX
+      )
+    }
+    if (process.env.TMS_KOA_CONTROLLERS_PLUGINS_NPM) {
+      let data = process.env.TMS_KOA_CONTROLLERS_PLUGINS_NPM
+      debug(`环境变量TMS_KOA_CONTROLLERS_PLUGINS_NPM=${data}`)
+      try {
+        let plugins = JSON.parse(data)
+        let normalized = []
+        if (Array.isArray(plugins) && plugins.length) {
+          plugins.forEach((p: any) => {
+            let { id, dir, alias } = p
+            if (typeof id === 'string' && id) {
+              let np: any = { id }
+              if (typeof dir === 'string' && dir) np.dir = dir
+              if (typeof alias === 'string' && alias) np.alias = alias
+              normalized.push(np)
+            } else {
+              debug(`指定的控制器插件id=${JSON.stringify(id)}不是字符串`)
+            }
+          })
+          if (normalized.length)
+            _.set(
+              appDefaultConfig,
+              'router.controllers.plugins_npm',
+              normalized
+            )
+        } else {
+          let logMsg = `环境变量TMS_KOA_CONTROLLERS_PLUGINS_NPM不是数组或内容为空`
+          debug(logMsg)
+        }
+      } catch (e) {
+        let logMsg = `环境变量TMS_KOA_CONTROLLERS_PLUGINS_NPM=${data}无法解析为JSON`
+        debug(logMsg)
+        logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
+        process.exit(0)
+      }
+    }
+    debug(
+      `通过环境变量指定的默认配置：\n` +
+        JSON.stringify(appDefaultConfig, null, 2)
+    )
+    const appConfig = loadConfig('app', appDefaultConfig)
     try {
       AppContext = require('./context/app').Context
       await AppContext.init(appConfig)

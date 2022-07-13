@@ -36,7 +36,7 @@ const CtrlDir =
 debug(`控制器目录：${CtrlDir}`)
 
 /**在控制器目录中查找控制器类 */
-function findCtrlClassInCtrlDir(ctrlName, path) {
+function findCtrlClassInCtrlDir(ctrlName, path: string) {
   let ctrlPath = nodePath.resolve(`${CtrlDir}/${ctrlName}.js`)
   if (!fs.existsSync(ctrlPath)) {
     ctrlPath = nodePath.resolve(`${CtrlDir}/${ctrlName}/main.js`)
@@ -53,18 +53,25 @@ function findCtrlClassInCtrlDir(ctrlName, path) {
 
   return CtrlClass
 }
-
+/**控制器插件包*/
+type NpmCtrl = { id: string; dir?: string; alias?: string }
 /**从npm包中查找 */
-function findCtrlClassInNpms(npmCtrl: any, ctrlName: any, path: any) {
+function findCtrlClassInNpms(npmCtrl: NpmCtrl, ctrlName: any, path: string) {
   logger.debug(`控制器插件${JSON.stringify(npmCtrl)}匹配当前请求`)
-  let CtrlClass
+  let CtrlClass, ctrlPath
   try {
     // 先检查是否存在包
     if (ctrlName.split('/')[0] === npmCtrl.alias) {
-      CtrlClass = require(ctrlName.replace(npmCtrl.alias, npmCtrl.id))
+      // 用包名替换请求路径中的别名
+      ctrlPath = ctrlName.replace(npmCtrl.alias, npmCtrl.id)
     } else {
-      CtrlClass = require(ctrlName)
+      ctrlPath = ctrlName
     }
+    if (npmCtrl.dir) {
+      // 如果指定了起始目录，在其实报名后面添加起始目录
+      ctrlPath = ctrlPath.replace(npmCtrl.id, `${npmCtrl.id}/${npmCtrl.dir}`)
+    }
+    CtrlClass = require(ctrlPath)
   } catch (e) {
     logger.warn(`查找npm控制器[${ctrlName}]失败[${e.message}]`, e)
     // 从控制器路径查找
@@ -91,12 +98,15 @@ function findCtrlClassAndMethodName(ctx) {
     throw new Error(logMsg)
   }
   let CtrlClass
-  const method = pieces.splice(-1, 1)[0]
-  const ctrlName = pieces.length ? pieces.join('/') : 'main'
+  const method: string = pieces.splice(-1, 1)[0]
+  const ctrlName: string = pieces.length ? pieces.join('/') : 'main'
 
   /**指定的控制器插件包*/
-  const npmCtrls = _.get(AppContext.insSync(), 'router.controllers.plugins_npm')
-  let npmCtrl
+  const npmCtrls: NpmCtrl[] = _.get(
+    AppContext.insSync(),
+    'router.controllers.plugins_npm'
+  )
+  let npmCtrl: NpmCtrl
   if (Array.isArray(npmCtrls) && npmCtrls.length) {
     npmCtrl = npmCtrls.find((nc) =>
       new RegExp(`${nc.alias}|${nc.id}`).test(ctrlName.split('/')[0])
@@ -208,7 +218,7 @@ async function fnCtrlWrapper(ctx, next) {
     } else {
       debug('控制器访问跳过可信任主机检查')
     }
-  } else if (authConfig && authConfig.mode) {
+  } else if (authConfig?.mode) {
     // 进行用户鉴权
     let [success, access_token] = getAccessTokenByRequest(ctx)
     if (false === success)
