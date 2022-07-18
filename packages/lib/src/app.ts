@@ -9,7 +9,11 @@ const koaStatic = require('koa-static')
 const cors = require('@koa/cors')
 const log4js = require('@log4js-node/log4js-api')
 const logger = log4js.getLogger('tms-koa')
+const Debug = require('debug')
+
 require('dotenv-flow').config()
+
+const debug = Debug('tms-koa:app')
 
 // 初始化配置信息
 let AppContext,
@@ -46,6 +50,7 @@ process.on('SIGTERM', async () => {
 
 /**配置文件存放位置*/
 const ConfigDir = process.env.TMS_KOA_CONFIG_DIR || process.cwd() + '/config'
+debug(`配置文件目录：${ConfigDir}`)
 /*
  *
  * @param {string} name - 配置名称
@@ -101,17 +106,66 @@ class TmsKoa extends Koa {
     /**
      * 应用配置
      */
-    const appConfig = loadConfig('app', { port: 3000 })
-    AppContext = require('./context/app').Context
+    const appDefaultConfig: any = {
+      port: parseInt(process.env.TMS_KOA_APP_HTTP_PORT) || 3000,
+    }
+    if (process.env.TMS_KOA_CONTROLLERS_PREFIX) {
+      _.set(
+        appDefaultConfig,
+        'router.controllers.prefix',
+        process.env.TMS_KOA_CONTROLLERS_PREFIX
+      )
+    }
+    if (process.env.TMS_KOA_CONTROLLERS_PLUGINS_NPM) {
+      let data = process.env.TMS_KOA_CONTROLLERS_PLUGINS_NPM
+      debug(`环境变量TMS_KOA_CONTROLLERS_PLUGINS_NPM=${data}`)
+      try {
+        let plugins = JSON.parse(data)
+        let normalized = []
+        if (Array.isArray(plugins) && plugins.length) {
+          plugins.forEach((p: any) => {
+            let { id, dir, alias } = p
+            if (typeof id === 'string' && id) {
+              let np: any = { id }
+              if (typeof dir === 'string' && dir) np.dir = dir
+              if (typeof alias === 'string' && alias) np.alias = alias
+              normalized.push(np)
+            } else {
+              debug(`指定的控制器插件id=${JSON.stringify(id)}不是字符串`)
+            }
+          })
+          if (normalized.length)
+            _.set(
+              appDefaultConfig,
+              'router.controllers.plugins_npm',
+              normalized
+            )
+        } else {
+          let logMsg = `环境变量TMS_KOA_CONTROLLERS_PLUGINS_NPM不是数组或内容为空`
+          debug(logMsg)
+        }
+      } catch (e) {
+        let logMsg = `环境变量TMS_KOA_CONTROLLERS_PLUGINS_NPM=${data}无法解析为JSON`
+        debug(logMsg)
+        logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
+        process.exit(0)
+      }
+    }
+    debug(
+      `通过环境变量指定的默认配置：\n` +
+        JSON.stringify(appDefaultConfig, null, 2)
+    )
+    const appConfig = loadConfig('app', appDefaultConfig)
     try {
+      AppContext = require('./context/app').Context
       await AppContext.init(appConfig)
       Context.AppContext = AppContext
     } catch (e) {
       let logMsg = `初始化[app]配置失败`
+      debug(logMsg + '\n', JSON.stringify(e, null, 2))
       logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
       process.exit(0)
     }
-
     /**
      * 启动数据库连接池
      */
@@ -130,14 +184,35 @@ class TmsKoa extends Koa {
     /**
      * 初始化mongodb
      */
-    const mongoConfig = loadConfig('mongodb')
+    let mongodbDefaultConfig: any
+    if (parseInt(process.env.TMS_KOA_MONGODB_MASTER_PORT)) {
+      let msg = '从环境变量获取mongodb默认配置：'
+      let mdb: any = {
+        port: parseInt(process.env.TMS_KOA_MONGODB_MASTER_PORT),
+      }
+      mdb.host = process.env.TMS_KOA_MONGODB_MASTER_HOST ?? 'localhost'
+      msg += `port=${mdb.port},host=${mdb.host}`
+      if (process.env.TMS_KOA_MONGODB_MASTER_USER) {
+        mdb.user = process.env.TMS_KOA_MONGODB_MASTER_USER
+        msg += `,user=${mdb.user}`
+      }
+      if (process.env.TMS_KOA_MONGODB_MASTER_PASS) {
+        mdb.password = process.env.TMS_KOA_MONGODB_MASTER_PASS
+        msg += `,pass=****`
+      }
+      logger.info(msg)
+      debug(msg)
+      mongodbDefaultConfig = { master: mdb }
+    }
+    const mongoConfig = loadConfig('mongodb', mongodbDefaultConfig)
     if (mongoConfig && mongoConfig.disabled !== true) {
-      MongoContext = require('./context/mongodb').Context
       try {
+        MongoContext = require('./context/mongodb').Context
         await MongoContext.init(mongoConfig)
         Context.MongoContext = MongoContext
       } catch (e) {
         let logMsg = `初始化[mongodb]配置失败`
+        debug(logMsg + '\n', JSON.stringify(e, null, 2))
         logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
       }
     }
@@ -324,13 +399,19 @@ class TmsKoa extends Koa {
       const httpServer = http.createServer(serverCallback)
       httpServer.listen(appContext.port, (err) => {
         if (err) {
-          logger.error(`启动http端口【${appContext.port}】失败: `, err)
+          let msg = `启动http端口【${appContext.port}】失败: `
+          debug(msg + '%O', err)
+          logger.error(msg, err)
         } else {
-          logger.info(`完成启动http端口：${appContext.port}`)
+          let msg = `完成启动http端口：${appContext.port}`
+          debug(msg)
+          logger.info(msg)
         }
       })
     } catch (ex) {
-      logger.error('启动http服务失败\n', ex, ex && ex.stack)
+      let msg = '启动http服务失败\n'
+      debug(msg + '%O', ex)
+      logger.error(msg, ex, ex && ex.stack)
     }
     /**
      * 支持https
