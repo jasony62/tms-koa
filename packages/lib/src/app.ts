@@ -50,7 +50,29 @@ process.on('SIGTERM', async () => {
 
 /**配置文件存放位置*/
 const ConfigDir = process.env.TMS_KOA_CONFIG_DIR || process.cwd() + '/config'
-debug(`配置文件目录：${ConfigDir}`)
+logger.info(`配置文件目录：${ConfigDir}`)
+
+/**控制器插件配置文件位置*/
+let CtrlPluginConfigDir
+if (process.env.TMS_KOA_CONTROLLERS_PLUGINS_NPM_DIR) {
+  const fullpath = path.resolve(process.env.TMS_KOA_CONTROLLERS_PLUGINS_NPM_DIR)
+  if (fs.existsSync(fullpath) && fs.statSync(fullpath).isDirectory()) {
+    CtrlPluginConfigDir = fullpath
+  } else {
+    logger.warn(
+      `通过环境变量TMS_KOA_CONTROLLERS_PLUGINS_NPM_DIR=${fullpath}指定的控制器插件配置文件目录不是目录，无法加载控制器插件`
+    )
+  }
+} else {
+  const fullpath = path.resolve('./ctrl_plugin_config')
+  if (fs.existsSync(fullpath) && fs.statSync(fullpath).isDirectory()) {
+    CtrlPluginConfigDir = fullpath
+  } else {
+    logger.info(
+      `默认控制器插件配置文件目录【${fullpath}】不存在，无法加载控制器插件`
+    )
+  }
+}
 /*
  *
  * @param {string} name - 配置名称
@@ -78,6 +100,80 @@ function loadConfig(name, defaultConfig?) {
   }
 
   return false
+}
+
+function normalizePluginNpm(pluginNpm) {
+  let { id, dir, alias } = pluginNpm
+  if (typeof id === 'string' && id) {
+    let np: any = { id }
+    if (typeof dir === 'string' && dir) np.dir = dir
+    if (typeof alias === 'string' && alias) np.alias = alias
+    return np
+  }
+
+  return false
+}
+function loadCtrlPluginsNpmFromEnv(appDefaultConfig: any) {
+  let data = process.env.TMS_KOA_CONTROLLERS_PLUGINS_NPM
+  debug(`环境变量TMS_KOA_CONTROLLERS_PLUGINS_NPM=${data}`)
+  try {
+    let plugins = JSON.parse(data)
+    let normalized = []
+    if (Array.isArray(plugins) && plugins.length) {
+      plugins.forEach((p: any) => {
+        let np = normalizePluginNpm(p)
+        if (np) {
+          normalized.push(np)
+        } else {
+          debug(`指定的控制器插件id=${JSON.stringify(p.id)}不是字符串`)
+        }
+      })
+      if (normalized.length)
+        _.set(appDefaultConfig, 'router.controllers.plugins_npm', normalized)
+    } else {
+      let logMsg = `环境变量TMS_KOA_CONTROLLERS_PLUGINS_NPM不是数组或内容为空`
+      debug(logMsg)
+    }
+  } catch (e) {
+    let logMsg = `环境变量TMS_KOA_CONTROLLERS_PLUGINS_NPM=${data}无法解析为JSON`
+    debug(logMsg)
+    logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
+    process.exit(0)
+  }
+}
+
+function loadCtrlPluginsNpmFromDir(appDefaultConfig: any) {
+  let plugins = []
+  let files = fs.readdirSync(CtrlPluginConfigDir)
+  files.forEach((file) => {
+    let fp = path.resolve(CtrlPluginConfigDir, file)
+    if (fs.statSync(fp).isFile() && /\.json$/.test(file)) {
+      let data = fs.readFileSync(fp, 'utf-8')
+      data = JSON.parse(data)
+      if (Array.isArray(data) && data.length)
+        data.forEach((p) => {
+          let np = normalizePluginNpm(p)
+          if (np) plugins.push(np)
+        })
+      else if (data !== null && typeof data === 'object') {
+        let np = normalizePluginNpm(data)
+        if (np) plugins.push(np)
+      }
+    }
+  })
+  logger.info(
+    `从目录${CtrlPluginConfigDir}加载了${plugins.length}个控制器插件定义`
+  )
+
+  if (plugins.length) {
+    const inConfig = _.get(
+      appDefaultConfig,
+      'router.controllers.plugins_npm',
+      []
+    )
+    plugins.forEach((p) => inConfig.push(p))
+    _.set(appDefaultConfig, 'router.controllers.plugins_npm', inConfig)
+  }
 }
 
 type KoaMiddleware = (ctx: any, next: Function) => void
@@ -116,40 +212,13 @@ class TmsKoa extends Koa {
         process.env.TMS_KOA_CONTROLLERS_PREFIX
       )
     }
+    /**通过环境变量指定存放控制器插件目录的情况*/
+    if (typeof CtrlPluginConfigDir === 'string') {
+      loadCtrlPluginsNpmFromDir(appDefaultConfig)
+    }
+    /**通过环境变量直接指定控制插件的情况*/
     if (process.env.TMS_KOA_CONTROLLERS_PLUGINS_NPM) {
-      let data = process.env.TMS_KOA_CONTROLLERS_PLUGINS_NPM
-      debug(`环境变量TMS_KOA_CONTROLLERS_PLUGINS_NPM=${data}`)
-      try {
-        let plugins = JSON.parse(data)
-        let normalized = []
-        if (Array.isArray(plugins) && plugins.length) {
-          plugins.forEach((p: any) => {
-            let { id, dir, alias } = p
-            if (typeof id === 'string' && id) {
-              let np: any = { id }
-              if (typeof dir === 'string' && dir) np.dir = dir
-              if (typeof alias === 'string' && alias) np.alias = alias
-              normalized.push(np)
-            } else {
-              debug(`指定的控制器插件id=${JSON.stringify(id)}不是字符串`)
-            }
-          })
-          if (normalized.length)
-            _.set(
-              appDefaultConfig,
-              'router.controllers.plugins_npm',
-              normalized
-            )
-        } else {
-          let logMsg = `环境变量TMS_KOA_CONTROLLERS_PLUGINS_NPM不是数组或内容为空`
-          debug(logMsg)
-        }
-      } catch (e) {
-        let logMsg = `环境变量TMS_KOA_CONTROLLERS_PLUGINS_NPM=${data}无法解析为JSON`
-        debug(logMsg)
-        logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
-        process.exit(0)
-      }
+      loadCtrlPluginsNpmFromEnv(appDefaultConfig)
     }
     debug(
       `通过环境变量指定的默认配置：\n` +

@@ -1,6 +1,6 @@
 {
   "name": "tms-koa-demo",
-  "version": "0.0.80",
+  "version": "0.0.88",
   "private": true,
   "description": "演示tms-koa框架使用方法。",
   "scripts": {
@@ -10,14 +10,14 @@
   "author": "jasony62",
   "license": "MIT",
   "dependencies": {
-    "mongodb": "^4.5.0",
+    "mongodb": "^4.8.0",
     "redis": "^4.1.0",
     "socket.io": "^4.4.1",
     "tms-koa": "workspace:*",
-    "tms-koa-account": "0.0.7"
+    "tms-koa-account": "0.0.10",
+    "log4js": "*"
   },
   "peerDependencies": {
-    "log4js": "*",
     "sharp": "^0.30.3"
   }
 }

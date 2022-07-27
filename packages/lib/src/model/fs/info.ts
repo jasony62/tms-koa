@@ -109,32 +109,5 @@ export class Info {
       return domainInfo
     }
   })()
+  static ins = Info.init
 }
-// Info.init = (function () {
-//   let _instance = new Map()
-
-//   return async function (domain) {
-//     if (_instance.has(domain.name)) return _instance.get(domain.name)
-
-//     if (
-//       !domain.mongoClient ||
-//       !domain.database ||
-//       !domain.collection ||
-//       !domain.schemas
-//     )
-//       return false
-
-//     const mongo = new MongodbInfo(
-//       domain.mongoClient,
-//       domain.database,
-//       domain.collection,
-//       domain.schemas
-//     )
-//     const domainInfo = new Info(domain, mongo)
-//     _instance.set(domain.name, domainInfo)
-
-//     return domainInfo
-//   }
-// })()
-
-// Info.ins = Info.init
