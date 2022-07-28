@@ -229,9 +229,11 @@ async function fnCtrlWrapper(ctx, next) {
         tmsClient = require('../auth/client').createByData(decoded)
       } catch (e) {
         if (e.name === 'TokenExpiredError') {
-          response.body = new AccessTokenFault('认证令牌过期')
+          response.body = new AccessTokenFault('JWT认证令牌过期')
         } else {
-          response.body = new ResultFault(e.message)
+          let msg = `JWT令牌验证失败：${e.message}`
+          debug(msg)
+          response.body = new ResultFault(msg)
         }
         return
       }
