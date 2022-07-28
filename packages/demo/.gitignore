@@ -17,3 +17,4 @@ config/*.local.js
 files
 ctrl_plugins
 ctrl_plugin_config
+auth_client_account

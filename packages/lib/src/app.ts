@@ -60,7 +60,7 @@ if (process.env.TMS_KOA_CONTROLLERS_PLUGINS_NPM_DIR) {
     CtrlPluginConfigDir = fullpath
   } else {
     logger.warn(
-      `通过环境变量TMS_KOA_CONTROLLERS_PLUGINS_NPM_DIR=${fullpath}指定的控制器插件配置文件目录不是目录，无法加载控制器插件`
+      `通过环境变量TMS_KOA_CONTROLLERS_PLUGINS_NPM_DIR=${fullpath}指定的控制器插件配置文件目录不是目录，无法加载数据`
     )
   }
 } else {
@@ -68,9 +68,26 @@ if (process.env.TMS_KOA_CONTROLLERS_PLUGINS_NPM_DIR) {
   if (fs.existsSync(fullpath) && fs.statSync(fullpath).isDirectory()) {
     CtrlPluginConfigDir = fullpath
   } else {
-    logger.info(
-      `默认控制器插件配置文件目录【${fullpath}】不存在，无法加载控制器插件`
+    logger.info(`默认控制器插件配置文件目录【${fullpath}】不存在，无法加载数据`)
+  }
+}
+/**内置账号数据存放目录*/
+let ClientAccountDir
+if (process.env.TMS_KOA_CLIENT_ACCOUNT_DIR) {
+  const fullpath = path.resolve(process.env.TMS_KOA_CLIENT_ACCOUNT_DIR)
+  if (fs.existsSync(fullpath) && fs.statSync(fullpath).isDirectory()) {
+    ClientAccountDir = fullpath
+  } else {
+    logger.warn(
+      `通过环境变量TMS_KOA_CLIENT_ACCOUNT_DIR=${fullpath}指定的账号数据文件目录不是目录，无法加载数据`
     )
+  }
+} else {
+  const fullpath = path.resolve('./auth_client_account')
+  if (fs.existsSync(fullpath) && fs.statSync(fullpath).isDirectory()) {
+    ClientAccountDir = fullpath
+  } else {
+    logger.info(`默认账号数据文件目录【${fullpath}】不存在，无法加载数据`)
   }
 }
 /*
@@ -175,6 +192,45 @@ function loadCtrlPluginsNpmFromDir(appDefaultConfig: any) {
     _.set(appDefaultConfig, 'router.controllers.plugins_npm', inConfig)
   }
 }
+/**检查内置账号数据是否完整*/
+function validateClientAccount(account) {
+  let { id, username, password } = account
+  if (
+    !id ||
+    (typeof id !== 'string' && typeof id !== 'number') ||
+    !username ||
+    typeof username !== 'string' ||
+    !password ||
+    typeof password !== 'string'
+  ) {
+    return false
+  }
+
+  return account
+}
+function loadClientAccountFromDir(appDefaultConfig: any) {
+  let accounts = []
+  let files = fs.readdirSync(ClientAccountDir)
+  files.forEach((file) => {
+    let fp = path.resolve(ClientAccountDir, file)
+    if (fs.statSync(fp).isFile() && /\.json$/.test(file)) {
+      let data = fs.readFileSync(fp, 'utf-8')
+      data = JSON.parse(data)
+      if (Array.isArray(data) && data.length)
+        data.forEach((a) => {
+          let va = validateClientAccount(a)
+          if (va) accounts.push(va)
+        })
+      else if (data !== null && typeof data === 'object') {
+        let va = validateClientAccount(data)
+        if (va) accounts.push(va)
+      }
+    }
+  })
+  logger.info(`从目录${ClientAccountDir}加载了${accounts.length}个账号`)
+
+  if (accounts.length) _.set(appDefaultConfig, 'auth.client.accounts', accounts)
+}
 
 type KoaMiddleware = (ctx: any, next: Function) => void
 
@@ -199,17 +255,18 @@ class TmsKoa extends Koa {
     afterInit: (context: any) => void
   }) {
     logger.info(`配置文件获取目录：${ConfigDir}`)
+    const { env } = process
     /**
      * 应用配置
      */
     const appDefaultConfig: any = {
-      port: parseInt(process.env.TMS_KOA_APP_HTTP_PORT) || 3000,
+      port: parseInt(env.TMS_KOA_APP_HTTP_PORT) || 3000,
     }
-    if (process.env.TMS_KOA_CONTROLLERS_PREFIX) {
+    if (env.TMS_KOA_CONTROLLERS_PREFIX) {
       _.set(
         appDefaultConfig,
         'router.controllers.prefix',
-        process.env.TMS_KOA_CONTROLLERS_PREFIX
+        env.TMS_KOA_CONTROLLERS_PREFIX
       )
     }
     /**通过环境变量指定存放控制器插件目录的情况*/
@@ -217,14 +274,17 @@ class TmsKoa extends Koa {
       loadCtrlPluginsNpmFromDir(appDefaultConfig)
     }
     /**通过环境变量直接指定控制插件的情况*/
-    if (process.env.TMS_KOA_CONTROLLERS_PLUGINS_NPM) {
+    if (env.TMS_KOA_CONTROLLERS_PLUGINS_NPM) {
       loadCtrlPluginsNpmFromEnv(appDefaultConfig)
     }
-    debug(
-      `通过环境变量指定的默认配置：\n` +
-        JSON.stringify(appDefaultConfig, null, 2)
-    )
+    /**从指定目录加载账号数据*/
+    if (typeof ClientAccountDir === 'string') {
+      loadClientAccountFromDir(appDefaultConfig)
+    }
+    debug(`应用的默认配置：\n` + JSON.stringify(appDefaultConfig, null, 2))
     const appConfig = loadConfig('app', appDefaultConfig)
+    debug(`完整的应用配置信息：\n` + JSON.stringify(appConfig, null, 2))
+
     try {
       AppContext = require('./context/app').Context
       await AppContext.init(appConfig)

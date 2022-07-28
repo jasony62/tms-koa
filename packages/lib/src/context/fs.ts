@@ -2,11 +2,12 @@
 const log4js = require('@log4js-node/log4js-api')
 const logger = log4js.getLogger('tms-koa-fs')
 const fs = require('fs')
+const path = require('path')
 
 // 本地文件存储起始位置
 function initRootDir(instance, lfsConfig) {
   const rootDir = lfsConfig.rootDir.replace(/\/$/, '') // 如果有替换掉结尾的斜杠
-  instance.rootDir = rootDir
+  instance.rootDir = path.resolve(rootDir)
 
   // TODO 应该去掉
   // excel导出文件保存目录
@@ -237,7 +238,7 @@ export class Context {
       return false
     }
 
-    logger.info(`完成文件服务设置。`)
+    logger.info(`完成文件服务设置【rootDir=${_instance.rootDir}】`)
 
     return _instance
   }

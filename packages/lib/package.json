@@ -1,6 +1,6 @@
 {
   "name": "tms-koa",
-  "version": "0.0.89",
+  "version": "0.0.90",
   "description": "基于koa的API服务框架，内置：基于token的API访问控制机制，MySQL数据库的连接管理机制和防SQL注入，连接MongoDb，连接Redis，文件上传下载，API在线文档服务。",
   "main": "dist/index.js",
   "files": [
@@ -8,19 +8,19 @@
   ],
   "dependencies": {
     "@koa/cors": "^3.3.0",
-    "@koa/router": "^10.1.1",
+    "@koa/router": "^12.0.0",
     "@log4js-node/log4js-api": "^1.0.2",
-    "axios": "^0.26.1",
+    "axios": "^0.27.2",
     "debug": "^4.3.4",
     "dotenv-flow": "^3.1.0",
     "fs-extra": "^10.0.1",
     "jsonwebtoken": "^8.5.1",
-    "mongodb": "4.5.0",
     "koa": "^2.8.1",
-    "koa-body": "^4.1.1",
+    "koa-body": "^5.0.0",
     "koa-send": "^5.0.0",
     "koa-static": "^5.0.0",
     "lodash": "^4.17.15",
+    "mongodb": "^4.8.1",
     "moment": "^2.24.0",
     "socket.io": "^4.4.1",
     "swagger-jsdoc": "^6.2.0",
@@ -32,7 +32,7 @@
     "neo4j-driver": "^4.4.2",
     "prom-client": "^13.1.0",
     "redis": "4.1.0",
-    "sharp": "^0.25.3",
+    "sharp": "^0.30.7",
     "tms-db": "^0.0.12"
   },
   "devDependencies": {
@@ -44,7 +44,6 @@
     "eslint-plugin-jest": "^22.17.0",
     "eslint-plugin-node": "^10.0.0",
     "jest": "^24.9.0",
-    "mongodb": "^4.8.0",
     "rimraf": "^3.0.2"
   },
   "scripts": {

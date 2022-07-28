@@ -27,9 +27,14 @@ async function localCreateTmsClient(ctx, accounts) {
       (a) => a.username === username && a.password === password
     )
     if (found) {
+      let data = JSON.parse(JSON.stringify(found))
+      delete data.id
+      delete data.password
+      delete data.isAdmin
+      delete data.allowMultiLogin
       const tmsClient = require('../auth/client').createByData({
         id: found.id,
-        data: { username },
+        data,
         isAdmin: found.isAdmin === true,
         allowMultiLogin: found.allowMultiLogin === true,
       })
