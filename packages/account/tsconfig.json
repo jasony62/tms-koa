@@ -6,7 +6,6 @@
     "noImplicitAny": false,
     "removeComments": true,
     "preserveConstEnums": true,
-    "esModuleInterop": true,
     "outDir": "./dist",
     "rootDir": "./src",
     "declaration": true,

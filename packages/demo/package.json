@@ -10,12 +10,12 @@
   "author": "jasony62",
   "license": "MIT",
   "dependencies": {
+    "log4js": "*",
     "mongodb": "^4.8.0",
     "redis": "^4.1.0",
     "socket.io": "^4.4.1",
     "tms-koa": "workspace:*",
-    "tms-koa-account": "0.0.10",
-    "log4js": "*"
+    "tms-koa-account": "workspace:*"
   },
   "peerDependencies": {
     "sharp": "^0.30.3"

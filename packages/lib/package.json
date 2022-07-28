@@ -15,6 +15,7 @@
     "dotenv-flow": "^3.1.0",
     "fs-extra": "^10.0.1",
     "jsonwebtoken": "^8.5.1",
+    "mongodb": "4.5.0",
     "koa": "^2.8.1",
     "koa-body": "^4.1.1",
     "koa-send": "^5.0.0",
@@ -24,10 +25,10 @@
     "socket.io": "^4.4.1",
     "swagger-jsdoc": "^6.2.0",
     "uuid": "^8.3.2",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "tms-koa-account": "workspace:*"
   },
   "peerDependencies": {
-    "mongodb": "4.5.0",
     "neo4j-driver": "^4.4.2",
     "prom-client": "^13.1.0",
     "redis": "4.1.0",

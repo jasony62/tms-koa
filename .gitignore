@@ -67,3 +67,6 @@ typings/
 dump.rdb
 # pnpm
 pnpm-lock.yaml
+
+# 示例
+demo
