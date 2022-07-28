@@ -1,6 +1,9 @@
 /**
  * 处理http请求的接口
  */
+
+import { ResultFault } from '../response'
+
 // 应用上下文
 const CTRL_FIELD_CTX = Symbol('ctx')
 // http请求
@@ -79,7 +82,7 @@ export abstract class Ctrl {
    * 执行每个控制器方法前执行的操作
    * 如果返回的是ResultFault类型，返回，不继续执行方法
    */
-  abstract tmsBeforeEach?(method: string): any
+  abstract tmsBeforeEach?(method: string): Promise<ResultFault | true>
   /**
    * 加载指定的model包，传递数据库实例
    *
