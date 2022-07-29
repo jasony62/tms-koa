@@ -277,12 +277,12 @@ class TmsKoa extends Koa {
     if (env.TMS_KOA_CONTROLLERS_PLUGINS_NPM) {
       loadCtrlPluginsNpmFromEnv(appDefaultConfig)
     }
-    /**从指定目录加载账号数据*/
-    if (typeof ClientAccountDir === 'string') {
-      loadClientAccountFromDir(appDefaultConfig)
-    }
     debug(`应用的默认配置：\n` + JSON.stringify(appDefaultConfig, null, 2))
     const appConfig = loadConfig('app', appDefaultConfig)
+    /**从指定目录加载账号数据，覆盖配置文件中的设置*/
+    if (typeof ClientAccountDir === 'string') {
+      loadClientAccountFromDir(appConfig)
+    }
     debug(`完整的应用配置信息：\n` + JSON.stringify(appConfig, null, 2))
 
     try {
