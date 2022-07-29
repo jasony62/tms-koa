@@ -11,12 +11,15 @@ const logger = log4js.getLogger('tms-koa-app')
 async function localCreateTmsClient(ctx, accounts) {
   const authConfig = Context.insSync().auth
   let captchaConfig = _.get(authConfig, ['captcha'], {})
-  const { checkCaptcha } = captchaConfig
 
-  if (typeof checkCaptcha === 'function') {
-    let cResult = await checkCaptcha(ctx)
-    if (cResult[0] === false) return cResult
-  } else return [false, '没有指定验证码检查程序']
+  /**检查验证码*/
+  if (captchaConfig.disabled !== true) {
+    const { checkCaptcha } = captchaConfig
+    if (typeof checkCaptcha === 'function') {
+      let cResult = await checkCaptcha(ctx)
+      if (cResult[0] === false) return cResult
+    } else return [false, '没有指定验证码检查程序']
+  }
 
   let aResult
   const { username, password } = ctx.request.body
@@ -53,12 +56,15 @@ async function localCreateTmsClient(ctx, accounts) {
 async function localRegisterTmsClient(ctx, accounts) {
   const authConfig = Context.insSync().auth
   let captchaConfig = _.get(authConfig, ['captcha'], {})
-  const { checkCaptcha } = captchaConfig
 
-  if (typeof checkCaptcha === 'function') {
-    let cResult = await checkCaptcha(ctx)
-    if (cResult[0] === false) return cResult
-  } else return [false, '没有指定验证码检查程序']
+  /**检查验证码*/
+  if (captchaConfig.disabled !== true) {
+    const { checkCaptcha } = captchaConfig
+    if (typeof checkCaptcha === 'function') {
+      let cResult = await checkCaptcha(ctx)
+      if (cResult[0] === false) return cResult
+    } else return [false, '没有指定验证码检查程序']
+  }
 
   const userInfo = ctx.request.body
   accounts.push(userInfo)
@@ -295,39 +301,29 @@ async function initAuth(instance, appConfig) {
   /**验证码设置*/
   if (captcha && typeof captcha === 'object') {
     const { path, checkPath, code, npm } = captcha
-    if (typeof npm === 'object' && npm.disabled !== true) {
+    if (npm && typeof npm === 'object' && npm.disabled !== true) {
       const { id, module, generator, checker } = npm
       if (typeof id !== 'string') throw Error(`通过[auth.captcha.npm.id]类型`)
 
       let createCaptcha, checkCaptcha
       if (module && typeof module === 'string') {
-        if (generator && typeof generator === 'string') {
+        if (generator && typeof generator === 'string')
           createCaptcha = require(`${id}/${module}`)[generator]
-        } else {
-          createCaptcha = require(`${id}/${module}`)
-        }
+        else createCaptcha = require(`${id}/${module}`)
         // 检查验证码方法
         if (typeof checker === 'string') {
-          if (checker) {
-            checkCaptcha = require(`${id}/${module}`)[checker]
-          } else {
-            checkCaptcha = require(`${id}/${module}`)
-          }
+          if (checker) checkCaptcha = require(`${id}/${module}`)[checker]
+          else checkCaptcha = require(`${id}/${module}`)
         }
       } else {
         // 如果没有指定module 那么 generator、checker 指定的应该是一个独立的模块文件
-        if (generator && typeof generator === 'string') {
+        if (generator && typeof generator === 'string')
           createCaptcha = require(`${id}/${generator}`)
-        } else {
-          createCaptcha = require(id)
-        }
+        else createCaptcha = require(id)
         // 检查验证码方法
         if (typeof checker === 'string') {
-          if (checker) {
-            checkCaptcha = require(`${id}/${checker}`)
-          } else {
-            checkCaptcha = require(id)
-          }
+          if (checker) checkCaptcha = require(`${id}/${checker}`)
+          else checkCaptcha = require(id)
         }
       }
 
@@ -370,6 +366,8 @@ async function initAuth(instance, appConfig) {
           return localCheckCaptcha(ctx, code)
         },
       }
+    } else {
+      authConfig.captcha = { disabled: true }
     }
   }
   if (bucket && bucket.validator) {

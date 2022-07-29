@@ -314,19 +314,19 @@ class TmsKoa extends Koa {
      * 初始化mongodb
      */
     let mongodbDefaultConfig: any
-    if (parseInt(process.env.TMS_KOA_MONGODB_MASTER_PORT)) {
+    if (parseInt(env.TMS_KOA_MONGODB_MASTER_PORT)) {
       let msg = '从环境变量获取mongodb默认配置：'
       let mdb: any = {
-        port: parseInt(process.env.TMS_KOA_MONGODB_MASTER_PORT),
+        port: parseInt(env.TMS_KOA_MONGODB_MASTER_PORT),
       }
-      mdb.host = process.env.TMS_KOA_MONGODB_MASTER_HOST ?? 'localhost'
+      mdb.host = env.TMS_KOA_MONGODB_MASTER_HOST ?? 'localhost'
       msg += `port=${mdb.port},host=${mdb.host}`
-      if (process.env.TMS_KOA_MONGODB_MASTER_USER) {
-        mdb.user = process.env.TMS_KOA_MONGODB_MASTER_USER
+      if (env.TMS_KOA_MONGODB_MASTER_USER) {
+        mdb.user = env.TMS_KOA_MONGODB_MASTER_USER
         msg += `,user=${mdb.user}`
       }
-      if (process.env.TMS_KOA_MONGODB_MASTER_PASS) {
-        mdb.password = process.env.TMS_KOA_MONGODB_MASTER_PASS
+      if (env.TMS_KOA_MONGODB_MASTER_PASS) {
+        mdb.password = env.TMS_KOA_MONGODB_MASTER_PASS
         msg += `,pass=****`
       }
       logger.info(msg)

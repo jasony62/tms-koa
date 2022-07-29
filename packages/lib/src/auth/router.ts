@@ -169,6 +169,7 @@ const authenticate = async (ctx) => {
       return (response.body = new ResultFault('不允许调用此接口'))
     }
 
+    /**根据请求中携带的信息，获得访问用户数据*/
     let [passed, tmsClient] = await getTmsClient(ctx)
     if (passed === false) {
       let msg = tmsClient ? tmsClient : '没有获得有效用户信息'
