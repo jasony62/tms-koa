@@ -1,8 +1,8 @@
-const { UploadCtrl } = require('tms-koa/lib/controller/fs/upload')
+const { UploadCtrl } = require('tms-koa/dist/controller/fs/upload')
 
 class Upload extends UploadCtrl {
-  constructor(...args) {
-    super(...args)
+  static tmsAccessWhite() {
+    return ['plain']
   }
 }
 

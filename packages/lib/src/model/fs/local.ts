@@ -1,6 +1,9 @@
 const fs = require('fs-extra')
 const path = require('path')
 const _ = require('lodash')
+
+import type { File } from 'formidable'
+
 /**
  * 本地文件系统
  */
@@ -232,7 +235,7 @@ export class LocalFS {
    * @param {*} file
    * @param {*} isRelative
    */
-  writeStream(filename, file, isRelative = true) {
+  writeStream(filename: string, file: File, isRelative = true) {
     // 文件的完整路径
     let fullpath = this.fullpath(filename, isRelative)
 
@@ -240,7 +243,7 @@ export class LocalFS {
     let dirname = path.dirname(fullpath)
     fs.ensureDirSync(dirname, 0o2777)
 
-    const reader = fs.createReadStream(file.path)
+    const reader = fs.createReadStream(file.filepath)
     // 创建可写流，如果文件已经存在替换已有文件
     const writer = fs.createWriteStream(fullpath)
     // 可读流通过管道写入可写流

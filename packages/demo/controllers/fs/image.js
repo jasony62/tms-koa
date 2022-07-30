@@ -1,9 +1,5 @@
-const { ImageCtrl } = require('tms-koa/lib/controller/fs/image')
+const { ImageCtrl } = require('tms-koa/dist/controller/fs/image')
 
-class Image extends ImageCtrl {
-  constructor(...args) {
-    super(...args)
-  }
-}
+class Image extends ImageCtrl {}
 
 module.exports = Image

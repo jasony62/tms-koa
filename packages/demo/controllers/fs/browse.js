@@ -1,9 +1,5 @@
-const { BrowseCtrl } = require('tms-koa/lib/controller/fs/browse')
+const { BrowseCtrl } = require('tms-koa/dist/controller/fs/browse')
 
-class Browse extends BrowseCtrl {
-  constructor(...args) {
-    super(...args)
-  }
-}
+class Browse extends BrowseCtrl {}
 
 module.exports = Browse

@@ -1,9 +1,7 @@
 import { BaseCtrl } from './base'
-const { ResultData, ResultFault } = require('../../response')
+import { ResultData, ResultFault } from '../../response'
+import { UploadPlain, Info, LocalFS } from '../../model/fs'
 
-const { UploadPlain } = require('../../model/fs/upload')
-const { Info } = require('../../model/fs/info')
-const { LocalFS } = require('../../model/fs/local')
 /**
  * 文件管理控制器（上传）
  */
@@ -12,25 +10,25 @@ export class UploadCtrl extends BaseCtrl {
    * 上传单个文件
    */
   async plain() {
-    if (!this.request.files || !this.request.files.file) {
-      return new ResultFault('没有上传文件')
-    }
+    if (!this.request.files?.file) return new ResultFault('没有上传文件')
+
     // 指定的文件存储目录，如果不指定按时间自动生成目录
     const { dir, forceReplace, thumb } = this.request.query
 
-    const tmsFs = new LocalFS(this.domain, this.bucket)
+    // 上传的原始文件，由formidable定义
+    const { file } = this.request.files
 
-    const file = this.request.files.file
-    const upload = new UploadPlain(tmsFs)
+    const tmsFs = new LocalFS(this.domain, this.bucket)
+    const uploader = new UploadPlain(tmsFs)
     try {
-      const filepath = await upload.store(file, dir, forceReplace)
+      const filepath = await uploader.store(file, dir, forceReplace)
 
       let thumbInfo
       if (thumb === 'Y') {
-        thumbInfo = await upload.makeThumb(filepath, false)
+        thumbInfo = await uploader.makeThumb(filepath, false)
       }
 
-      const publicPath = upload.publicPath(filepath)
+      const publicPath = uploader.publicPath(filepath)
       const fsInfo = await Info.ins(this.domain)
       if (fsInfo) {
         const info = this.request.body

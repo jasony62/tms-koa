@@ -1,20 +1,24 @@
-const fs = require('fs-extra')
-const path = require('path')
+import * as fs from 'fs-extra'
+import * as path from 'path'
+import { LocalFS } from '.'
+
 const moment = require('moment')
 const log4js = require('@log4js-node/log4js-api')
 const logger = log4js.getLogger('tms-koa-model-fs-upload')
+
+import type { File } from 'formidable'
 
 /**
  * 上传文件
  */
 export class Upload {
-  fs
+  fs: LocalFS
   /**
    * 管理上传文件
    *
    * @param {LocalFS} fs 存储接口
    */
-  constructor(fs) {
+  constructor(fs: LocalFS) {
     this.fs = fs
   }
   get rootDir() {
@@ -55,7 +59,7 @@ export class Upload {
    * 返回上传后的文件
    * @param {string} ext 文件的扩展名
    */
-  storename(ext) {
+  storename(ext: string) {
     let name
 
     name = this.autodir() + '/' + this.autoname()
@@ -111,7 +115,7 @@ export class UploadPlain extends Upload {
    *
    * @param {*} fs
    */
-  constructor(fs) {
+  constructor(fs: LocalFS) {
     super(fs)
   }
   /**
@@ -121,18 +125,19 @@ export class UploadPlain extends Upload {
    * @param {string} forceReplace 如果文件已经存在是否替换
    *
    */
-  async store(file, dir, forceReplace = 'N') {
-    let filename
+  async store(file: File, dir, forceReplace = 'N') {
+    let filename // 本地文件名
     if (this.domain.customName === true) {
       // 去掉指定目录开头或结尾的反斜杠
       dir = typeof dir === 'string' ? dir.replace(/(^\/|\/$)/g, '') : ''
       if (dir.length) {
-        filename = `${dir}/${file.name}`
+        filename = `${dir}/${file.originalFilename}`
       } else {
-        filename = this.autodir() + '/' + file.name
+        filename = this.autodir() + '/' + file.originalFilename
       }
     } else {
-      let ext = path.extname(file.name)
+      /**自动生成本地文件名称*/
+      let ext = path.extname(file.originalFilename)
       filename = this.storename(ext)
     }
     if (forceReplace !== 'Y') {

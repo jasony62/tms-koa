@@ -13,11 +13,9 @@
     "log4js": "*",
     "mongodb": "^4.8.0",
     "redis": "^4.1.0",
+    "sharp": "^0.30.7",
     "socket.io": "^4.4.1",
     "tms-koa": "workspace:*",
     "tms-koa-account": "workspace:*"
-  },
-  "peerDependencies": {
-    "sharp": "^0.30.3"
   }
 }

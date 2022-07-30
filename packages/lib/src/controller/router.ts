@@ -181,9 +181,10 @@ async function fnCtrlWrapper(ctx, next) {
       ))
     }
   }
-
+  let inAccessWhite = false // 执行的方法是否在白名中
   if (accessWhite?.includes(method)) {
     // 方法在白名单忠，跳过认证
+    inAccessWhite = true
   } else if (
     Object.prototype.hasOwnProperty.call(CtrlClass, 'tmsAuthTrustedHosts')
   ) {
@@ -280,21 +281,31 @@ async function fnCtrlWrapper(ctx, next) {
     }
     /**
      * 多租户模式，检查bucket
+     * 白名单方法不检查bucket
      */
     const appContext = AppContext.insSync()
-    let bucketValidateResult
-    if (Object.prototype.hasOwnProperty.call(CtrlClass, 'tmsBucketValidator')) {
-      // 控制提供了bucket检查方法
-      bucketValidateResult = await CtrlClass.tmsBucketValidator(tmsClient)
-    } else if (appContext.checkClientBucket) {
-      // 应用配置了bucket检查方法
-      bucketValidateResult = await appContext.checkClientBucket(ctx, tmsClient)
-    }
-    if (bucketValidateResult) {
-      const [passed, bucket] = bucketValidateResult
-      if (passed !== true)
-        return (response.body = new ResultFault('没有访问指定bucket资源的权限'))
-      if (typeof bucket === 'string') oCtrl.bucket = bucket
+    if (inAccessWhite === false) {
+      let bucketValidateResult
+      if (
+        Object.prototype.hasOwnProperty.call(CtrlClass, 'tmsBucketValidator')
+      ) {
+        // 控制提供了bucket检查方法
+        bucketValidateResult = await CtrlClass.tmsBucketValidator(tmsClient)
+      } else if (appContext.checkClientBucket) {
+        // 应用配置了bucket检查方法
+        bucketValidateResult = await appContext.checkClientBucket(
+          ctx,
+          tmsClient
+        )
+      }
+      if (bucketValidateResult) {
+        const [passed, bucket] = bucketValidateResult
+        if (passed !== true)
+          return (response.body = new ResultFault(
+            '没有访问指定bucket资源的权限'
+          ))
+        if (typeof bucket === 'string') oCtrl.bucket = bucket
+      }
     }
     /**
      * 前置操作
