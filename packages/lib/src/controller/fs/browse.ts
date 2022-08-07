@@ -28,12 +28,21 @@ export class BrowseCtrl extends BaseCtrl {
    */
   async list() {
     let { dir } = this.request.query
-    let localFS = new LocalFS(this.domain, this.bucket)
+    let localFS = new LocalFS(this.tmsContext, this.domain, this.bucket)
     let { files, dirs } = localFS.list(dir)
-    for (let i = 0, ii = files.length; i < ii; i++) {
-      let file = files[i]
-      let info = await this.getBizInfo(file.path)
-      file.info = info instanceof ResultFault ? {} : info
+
+    /**合并在数据库中保存的信息*/
+    const fsInfo = await Info.ins(this.domain)
+    if (fsInfo) {
+      for (let i = 0, ii = files.length; i < ii; i++) {
+        let file = files[i]
+        let info = await fsInfo.get(file.path)
+        if (info) {
+          delete info._id
+          delete info.path
+          Object.assign(file, info)
+        }
+      }
     }
 
     return new ResultData({ files, dirs })

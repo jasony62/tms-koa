@@ -5,8 +5,9 @@ const PATH = require('path')
 //
 const { LocalFS } = require('../../model/fs/local')
 const { Upload } = require('../../model/fs/upload')
-//
-const { AppContext, FsContext } = require('../../app').Context
+
+const TmsContext = require('../../app').Context
+const { AppContext, FsContext } = TmsContext
 
 /**
  * excel文件管理控制器
@@ -43,7 +44,7 @@ export class ExcelCtrl {
     workBook.Sheets = {}
     workBook.Sheets[sheetName] = jsonWorkSheet
 
-    const tmsFs = new LocalFS(this.domain)
+    const tmsFs = new LocalFS(TmsContext, this.domain)
     const uploadObj = new Upload(tmsFs)
     // 导出目录
     fileName = fileName ? fileName : uploadObj.autoname() + '.xlsx'
@@ -67,6 +68,7 @@ export class ExcelCtrl {
 
     return [true, tmsFs.publicPath(filePath)]
   }
+
   static init = (function () {
     if (!FsContext || !FsContext.insSync) return [false, '文件服务不可用']
 
@@ -98,31 +100,3 @@ export class ExcelCtrl {
     return [false, '系统错误，实例不存在']
   }
 }
-
-//
-// ExcelCtrl.init = (function () {
-//   if (!FsContext || !FsContext.insSync) return [false, '文件服务不可用']
-
-//   let _instance = new ExcelCtrl()
-//   _instance.fsContext = FsContext.insSync()
-
-//   let excelDomainName = AppContext.insSync().excelDomainName
-//   if (excelDomainName) {
-//     if (!_instance.fsContext.isValidDomain(excelDomainName))
-//       return [false, `指定的domain=${excelDomainName}不可用`]
-//     _instance.domain = _instance.fsContext.getDomain(excelDomainName)
-//   } else
-//     _instance.domain = _instance.fsContext.getDomain(
-//       _instance.fsContext.defaultDomain
-//     )
-
-//   return [true, _instance]
-// })()
-//
-// ExcelCtrl.export = (columns, datas, fileName = '', options = {}) => {
-//   let _instance = ExcelCtrl.init
-//   if (_instance[0] === false) return _instance
-
-//   _instance = _instance[1]
-//   return _instance._export(columns, datas, fileName, options)
-// }

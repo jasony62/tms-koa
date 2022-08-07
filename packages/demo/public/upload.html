@@ -1,4 +1,58 @@
-<form action="http://localhost:3001/api/fs/upload/plain?thumb=Y" method="post" enctype="multipart/form-data">
-  <input type="file" name="file" id="file" value="" multiple="multiple" />
-  <input type="submit" value="提交" />
-</form>
+<div>
+  <div>
+    <input id="inputFile" type="file" />
+  </div>
+  <div>
+    <input id="inputComment" type="text" value="测试" placeholder="备注" />
+  </div>
+  <div>
+    <button>提交</button>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script>
+  const submitButton = document.querySelector('button')
+  submitButton.addEventListener('click', () => {
+    const inputFile = document.getElementById('inputFile')
+    if (inputFile.files.length !== 1) {
+      alert('没有选择要上传的文件')
+      return
+    }
+    // 要上传的文件
+    const file = inputFile.files[0]
+    if (typeof file === undefined) console.log('uuuuuuu')
+    console.log('file', file)
+
+    const inputComment = document.getElementById('inputComment')
+    const omment = inputComment.value
+    console.log('comment', omment)
+
+    const formData = new FormData()
+    // 在表单数据中添加文件对象
+    formData.append('file', file)
+    // 将文件的基本信息作为表单数据
+    const defaultKeys = ['name', 'lastModified', 'size', 'type']
+    defaultKeys.forEach(key => {
+      formData.append(key, file[key])
+    })
+    // 添加json数据
+    const extraInfo = new Blob([JSON.stringify({
+      omment
+    })], {
+      type: 'application/json'
+    })
+    formData.append('extraInfo', extraInfo)
+
+    /**发送http请求*/
+    const headers = {
+      'Content-Type': 'multipart/form-data'
+    }
+    const url = 'http://localhost:3001/api/fs/upload/plain?thumb=Y'
+    axios.post(url, formData, {
+      headers
+    }).then((rsp) => {
+      console.log('response', rsp)
+      alert('完成上传')
+    })
+  })
+</script>

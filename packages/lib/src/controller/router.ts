@@ -11,8 +11,8 @@ const Debug = require('debug')
 
 const debug = Debug('tms-koa:ctrl-router')
 
-const { AppContext, DbContext, MongoContext, PushContext } =
-  require('../app').Context
+const TmsContext = require('../app').Context
+const { AppContext, DbContext, MongoContext, PushContext } = TmsContext
 
 /**可信任主机配置文件存放位置*/
 const TrustedHostsFile = nodePath.resolve(
@@ -233,7 +233,7 @@ async function fnCtrlWrapper(ctx, next) {
           response.body = new AccessTokenFault('JWT认证令牌过期')
         } else {
           let msg = `JWT令牌验证失败：${e.message}`
-          debug(msg)
+          debug(msg + ` (${authConfig.jwt.privateKey})`)
           response.body = new ResultFault(msg)
         }
         return
@@ -269,6 +269,7 @@ async function fnCtrlWrapper(ctx, next) {
       mongoClient,
       pushContext
     )
+    oCtrl.tmsContext = TmsContext
     /**
      * 检查指定的方法是否存在
      */

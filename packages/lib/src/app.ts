@@ -488,12 +488,20 @@ class TmsKoa extends Koa {
      * 获得access_token
      */
     const authConfig = _.get(AppContext.insSync(), 'auth')
-    if (typeof authConfig === 'object' && Object.keys(authConfig).length) {
+    if (
+      authConfig &&
+      typeof authConfig === 'object' &&
+      Object.keys(authConfig).length
+    ) {
       let router = require('./auth/router')
       this.use(router.routes())
       if (authConfig.mode)
-        logger.info(`启用API调用认证机制[${authConfig.mode}]`)
-      if (authConfig.captcha) logger.info(`启用验证码服务`)
+        logger.info(`启用API调用认证机制【mode=${authConfig.mode}】`)
+      if (authConfig.captcha && authConfig.captcha.disabled !== true) {
+        logger.info(`启用验证码服务【mode=${authConfig.captcha.mode}】`)
+      } else {
+        logger.info(`未启用验证码服务`)
+      }
     }
     /**
      * 其他中间件

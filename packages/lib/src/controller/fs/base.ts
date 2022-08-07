@@ -2,7 +2,6 @@ import { Ctrl } from '../ctrl'
 import { ResultData, ResultFault } from '../../response'
 
 const { Info } = require('../../model/fs/info')
-const { FsContext } = require('../../app').Context
 const fs = require('fs')
 const crypto = require('crypto')
 const log4js = require('@log4js-node/log4js-api')
@@ -22,11 +21,11 @@ export class BaseCtrl extends Ctrl {
    * 检查访问权限
    */
   async tmsBeforeEach() {
-    if (!FsContext || !FsContext.insSync)
+    if (!this.tmsContext.FsContext || !this.tmsContext.FsContext.insSync)
       return new ResultFault('文件服务不可用')
-    this.fsContext = FsContext.insSync()
+    this.fsContext = this.tmsContext.FsContext.insSync()
 
-    let { domain, bucket } = this.request.query
+    let { domain } = this.request.query
     // 检查指定的domain
     if (domain) {
       if (!this.fsContext.isValidDomain(domain))

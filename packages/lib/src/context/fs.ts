@@ -59,13 +59,16 @@ async function initDomains(instance, lfsConfig) {
   let domainNames = Object.keys(domains)
   if (domainNames.length === 0) {
     // 创建默认域
+    logger.info(
+      `文件服务的配置文件中未指定可用的存储域，创建默认存储域【update】`
+    )
     domains.upload = await initDomain(instance, 'upload')
     domainNames = ['upload']
   }
   let { defaultDomain } = lfsConfig
   if (defaultDomain) {
     if (!domains[defaultDomain]) {
-      logger.warn(`文件服务配置文件中的默认域（${defaultDomain}）不存在`)
+      logger.warn(`文件服务配置文件中的默认域【${defaultDomain}】不存在`)
       return false
     }
   } else {
@@ -78,14 +81,17 @@ async function initDomains(instance, lfsConfig) {
   return instance
 }
 /**
- * 单个域
+ * 初始化单个域
  *
  * @param {*} instance
  * @param {*} name
  * @param {*} lfsDomain
  */
-async function initDomain(instance, name, lfsDomain?) {
-  if (lfsDomain && lfsDomain.disabled === true) return false
+async function initDomain(instance, name: string, lfsDomain?) {
+  if (lfsDomain && lfsDomain.disabled === true) {
+    logger.warn(`文件服务的存储域【${name}】设置为禁用，不进行初始化`)
+    return false
+  }
   const { rootDir } = instance
   const domainDir = `${rootDir}/${name}`
   if (!fs.existsSync(domainDir)) {
@@ -105,6 +111,8 @@ async function initDomain(instance, name, lfsDomain?) {
     initACL(domain, lfsDomain)
   }
 
+  logger.info(`文件服务的存储域【${name}】完成初始化`)
+
   return domain
 }
 /**
@@ -120,12 +128,12 @@ async function initMongoDb(domain, lfsConfig) {
     logger.warn(`文件服务配置文件中没有给域（${domain.name}）指定数据库`)
     return false
   }
-  if (typeof lfsConfig.schemas !== 'object') {
-    logger.warn(
-      `文件服务配置文件中没有给域（${domain.name}）指定的扩展信息定义`
-    )
-    return false
-  }
+  // if (typeof lfsConfig.schemas !== 'object') {
+  //   logger.warn(
+  //     `文件服务配置文件中没有给域（${domain.name}）指定的扩展信息定义`
+  //   )
+  //   return false
+  // }
 
   // 数据库设置，保存文件信息
   let fsDbConfig = lfsConfig.database
@@ -138,8 +146,6 @@ async function initMongoDb(domain, lfsConfig) {
       logger.error(`文件服务配置文件中域（${domain.name}）[source]参数不可用`)
       return false
     }
-    // 扩展信息设置
-    let fsSchemas = lfsConfig.schemas
     const { source } = fsDbConfig
     const MongoContext = require('./mongodb').Context
     const mongoClient = await MongoContext.mongoClient(source)
@@ -165,7 +171,15 @@ async function initMongoDb(domain, lfsConfig) {
     domain.mongoClient = mongoClient
     domain.database = fsDbConfig.database
     domain.collection = fsDbConfig.file_collection
-    domain.schemas = fsSchemas
+
+    // 扩展信息设置
+    let fsSchemas = lfsConfig.schemas
+    if (fsSchemas) {
+      let { schemasRootName } = lfsConfig
+      domain.schemas = fsSchemas
+      if (schemasRootName && typeof schemasRootName === 'string')
+        domain.schemasRootName = schemasRootName
+    }
 
     return domain
   }

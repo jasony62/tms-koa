@@ -16,16 +16,14 @@ const LFS_THUMB_WIDTH = Symbol('lfs_thumb_width')
 const LFS_THUMB_HEIGHT = Symbol('lfs_thumb_height')
 
 export class LocalFS {
+  tmsContext
   /**
-   *
+   * @param {object} TmsContext 文件服务定义
    * @param {object|string} domain
    * @param {string} bucket
    */
-  constructor(domain, bucket = '') {
+  constructor(TmsContext, domain, bucket = '') {
     if (!domain) Error('没有提供文件服务[domain]参数')
-
-    const fsContext = this.getFsContext()
-
     let domainName
     if (typeof domain === 'string') {
       domainName = domain
@@ -37,6 +35,7 @@ export class LocalFS {
       if (!domain) Error('文件服务[domain]参数类型错误')
     }
 
+    const fsContext = TmsContext.FsContext.insSync()
     domain = fsContext.getDomain(domainName)
     if (!domain) throw Error(`指定的文件服务[domain=${domainName}]不存在`)
 
@@ -53,6 +52,7 @@ export class LocalFS {
     if (!fs.existsSync(rootDir))
       throw new Error(`指定的文件系统起始路径(${rootDir})不存在`)
 
+    this.tmsContext = TmsContext
     this[LFS_APPROOTDIR] = appRootDir
     this[LFS_ROOTDIR] = rootDir
     this[LFS_DOMAIN] = domain
@@ -71,15 +71,6 @@ export class LocalFS {
       this[LFS_THUMB_WIDTH] = parseInt(thumbnail.width) || 100
       this[LFS_THUMB_HEIGHT] = parseInt(thumbnail.height) || 100
     }
-  }
-  // 为了能够替换配置信息
-  getFsContext() {
-    const { FsContext } = require('../../app').Context
-    if (!FsContext.insSync) throw new Error(`没有获得文件服务配置信息`)
-
-    const fsContext = FsContext.insSync()
-
-    return fsContext
   }
   get appRootDir() {
     return this[LFS_APPROOTDIR]
@@ -121,7 +112,7 @@ export class LocalFS {
     let publicPath = fullpath.replace(path.normalize(this.appRootDir), '')
 
     /* 如果开放了文件下载服务添加前缀 */
-    const { AppContext } = require('../../app').Context
+    const { AppContext } = this.tmsContext
     const prefix = _.get(AppContext.insSync(), 'router.fsdomain.prefix')
     if (prefix) publicPath = path.join(prefix, publicPath)
 
@@ -195,7 +186,7 @@ export class LocalFS {
             let thumbPath = this.publicPath(
               path.join(this.thumbPath(fullpath, false), name)
             )
-            fileinfo.thumb = thumbPath
+            fileinfo.thumbPath = thumbPath
           }
         }
       } else if (stats.isDirectory()) {

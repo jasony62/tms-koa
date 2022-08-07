@@ -18,7 +18,7 @@ export class ImageCtrl extends UploadCtrl {
     const { dir, forceReplace, base64Field, thumb } = this.request.query
     const { body } = this.request
 
-    const tmsFs = new LocalFS(this.domain, this.bucket)
+    const tmsFs = new LocalFS(this.tmsContext, this.domain, this.bucket)
 
     let upload = new UploadImage(tmsFs)
 
@@ -35,6 +35,16 @@ export class ImageCtrl extends UploadCtrl {
     try {
       const filepath = upload.storeBase64(base64Content, dir, forceReplace)
       const publicPath = upload.publicPath(filepath)
+      // 获取文件信息
+      let stat = fs.statSync(filepath)
+      let result: any = { path: publicPath, size: stat.size }
+      let thumbInfo
+      if (thumb === 'Y') {
+        thumbInfo = await upload.makeThumb(filepath, false)
+        result.thumbPath = thumbInfo.path
+        result.thumbSize = thumbInfo.size
+      }
+
       if (contentType === 'application/json') {
         const fsInfo = await Info.ins(this.domain)
         if (fsInfo) {
@@ -42,18 +52,13 @@ export class ImageCtrl extends UploadCtrl {
           delete info[base64Field]
           info.userid = this.client ? this.client.id : ''
           info.bucket = this.bucket
+          if (thumbInfo) {
+            info.thumbPath = thumbInfo.path
+            info.thumbSize = thumbInfo.size
+          }
 
           fsInfo.set(publicPath, info)
         }
-      }
-
-      // 获取文件信息
-      let stat = fs.statSync(filepath)
-      let result: any = { path: publicPath, size: stat.size }
-      if (thumb === 'Y') {
-        let thumbInfo = await upload.makeThumb(filepath, false)
-        result.thumbPath = thumbInfo.path
-        result.thumbSize = thumbInfo.size
       }
 
       return new ResultData(result)

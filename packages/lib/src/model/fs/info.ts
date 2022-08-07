@@ -16,7 +16,7 @@ class MongodbInfo {
    * @param {*} path
    * @param {*} info
    */
-  async set(path, info) {
+  async set(path: string, info) {
     const cl = this.mongoClient.db(this.database).collection(this.collection)
     const beforeInfo = await cl.find({ path }).toArray()
     if (beforeInfo.length <= 1) {
@@ -25,13 +25,13 @@ class MongodbInfo {
         .updateOne({ path }, { $set: updatedInfo }, { upsert: true })
         .then(() => info)
     } else {
-      throw new Error(`数据错误，文件[${path}]有条信息数据`)
+      throw new Error(`数据错误，文件[${path}]有多条信息数据`)
     }
   }
   /*
    * @param {string} path
    */
-  async get(path) {
+  async get(path: string) {
     const client = this.mongoClient
     const cl = client.db(this.database).collection(this.collection)
     const info = await cl.findOne({ path })
@@ -44,7 +44,7 @@ class MongodbInfo {
    * @param {*} skip
    * @param {*} limit
    */
-  async list(query, skip, limit) {
+  async list(query, skip: number, limit: number) {
     const client = this.mongoClient
     const cl = client.db(this.database).collection(this.collection)
 
@@ -90,12 +90,7 @@ export class Info {
     return async function (domain) {
       if (_instance.has(domain.name)) return _instance.get(domain.name)
 
-      if (
-        !domain.mongoClient ||
-        !domain.database ||
-        !domain.collection ||
-        !domain.schemas
-      )
+      if (!domain.mongoClient || !domain.database || !domain.collection)
         return false
 
       const mongo = new MongodbInfo(

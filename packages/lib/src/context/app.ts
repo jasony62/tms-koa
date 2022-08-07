@@ -170,17 +170,24 @@ function initServer(instance, appConfig) {
     if (credentials === true) instance.cors.credentials = true
   }
 }
-/**初始化文件下载服务*/
+/**
+ * 初始化文件下载服务
+ */
 function initFsdomain(instanceRouter, fsdomainConfig) {
   let validConfig: any = {}
   let { prefix } = fsdomainConfig
   if (prefix && typeof prefix === 'string') {
     if (prefix[0] !== '/') prefix = `/${prefix}`
     validConfig.prefix = prefix
+  } else {
+    logger.warn(`文件服务没有指定访问文件的起始地址【router.fsdomian.prefix】`)
   }
   if (Object.keys(validConfig).length) instanceRouter.fsdomain = validConfig
 }
-/* 初始化控制器路由 */
+
+/**
+ * 初始化控制器路由
+ */
 function initRouter(instance, appConfig) {
   if (appConfig.router) {
     const { auth, controllers, fsdomain, swagger, metrics } = appConfig.router
@@ -331,7 +338,7 @@ async function initAuth(instance, appConfig) {
 
       if (typeof createCaptcha !== 'function')
         throw Error(`通过[npm=${id}]设置的生成验证码外部方法的类型不是函数`)
-      authConfig.captcha = { createCaptcha }
+      authConfig.captcha = { disabled: false, mode: 'npm', createCaptcha }
 
       if (checkCaptcha) {
         // 检查验证码方法
@@ -346,7 +353,11 @@ async function initAuth(instance, appConfig) {
       const fnCreateCaptcha = require(pathCaptcha)
       if (typeof fnCreateCaptcha !== 'function')
         throw Error('设置的生成验证码方法的类型不是函数')
-      authConfig.captcha = { createCaptcha: fnCreateCaptcha }
+      authConfig.captcha = {
+        disabled: false,
+        mode: 'path',
+        createCaptcha: fnCreateCaptcha,
+      }
 
       if (typeof checkPath === 'string') {
         const pathCheckCaptcha = modPath.resolve(checkPath)
@@ -360,6 +371,8 @@ async function initAuth(instance, appConfig) {
     } else if (code && typeof code === 'string') {
       /* 指定了本地验证码 */
       authConfig.captcha = {
+        disabled: false,
+        mode: 'code',
         code,
         createCaptcha: function (ctx) {
           return localCreateCaptcha(ctx, code)

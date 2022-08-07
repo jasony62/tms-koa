@@ -1,5 +1,5 @@
-import { UploadPlain } from './upload'
+import { Upload, UploadPlain } from './upload'
 import { Info } from './info'
 import { LocalFS } from './local'
 
-export { UploadPlain, Info, LocalFS }
+export { Upload, UploadPlain, Info, LocalFS }

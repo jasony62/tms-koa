@@ -18,7 +18,8 @@ const CTRL_FIELD_MONGO_CLIENT = Symbol('mongoclient')
 const CTRL_FIELD_PUSH_CTX = Symbol('pushContext')
 // 用户空间名称
 const CTRL_FIELD_BUCKET_NAME = Symbol('bucket')
-
+// 全局上线文定义集合，可以获取其它上线文定义
+const CTRL_FIELD_TMS_CONTEXT = Symbol('tmscontext')
 /**
  * 控制器基类
  */
@@ -47,6 +48,15 @@ export abstract class Ctrl {
   get db() {
     return this.dbContext.db()
   }
+  set tmsContext(value) {
+    this[CTRL_FIELD_TMS_CONTEXT] = value
+  }
+  get tmsContext() {
+    return this[CTRL_FIELD_TMS_CONTEXT]
+  }
+  /**
+   * koa context
+   */
   get ctx() {
     return this[CTRL_FIELD_CTX]
   }
