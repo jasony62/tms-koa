@@ -11,11 +11,15 @@ class TmsMongoDb {
   constructor(mongoClient) {
     this.mongoClient = mongoClient
   }
-  static connect(url) {
-    return MongoClient.connect(url, {
-      useUnifiedTopology: true,
-      keepAliveInitialDelay: 1,
-    })
+  static connect(url, connectionOptions) {
+    const options = Object.assign(
+      {
+        useUnifiedTopology: true,
+        keepAliveInitialDelay: 1,
+      },
+      connectionOptions
+    )
+    return MongoClient.connect(url, options)
       .then((client) => client)
       .catch((err) => {
         const msg = `连接[${url}]失败：${err.message}`
@@ -66,9 +70,10 @@ export class Context {
       return _instancesByName.get(config)
     }
 
-    let { host, port, replicaSet, user, password, authSource, maxPoolSize } =
+    let { host, port, replicaSet, user, password, authSource, maxPoolSize, connectionString, connectionOptions } =
       config
     if (
+      undefined === connectionString &&
       undefined === host &&
       undefined === port &&
       _instancesByUrl.size === 1
@@ -96,16 +101,16 @@ export class Context {
         logger.error(msg)
         throw new MongoError(msg)
       }
-    } else {
-      if (typeof host !== 'string') {
-        let msg = `没有指定mongodb的主机地址[host=${host}]`
-        logger.error(msg)
-        throw new MongoError(msg)
-      }
+    } else if (typeof host !== 'string' && typeof connectionString !== 'string') {
+      let msg = `没有指定mongodb的主机地址[host=${host} | connectionString=${connectionString}]`
+      logger.error(msg)
+      throw new MongoError(msg)
     }
 
     let url = ''
-    if (replicaSet) {
+    if (connectionString) {
+      url = connectionString
+    } else if (replicaSet) {
       if (Array.isArray(host))
         host.forEach((h, i) => {
           if (i > 0) url += ','
@@ -123,9 +128,7 @@ export class Context {
       password &&
       typeof password === 'string'
     ) {
-      url = `mongodb://${user}:${password}@${url}`
-    } else {
-      url = `mongodb://${url}`
+      url = `${user}:${password}@${url}`
     }
 
     if (authSource) {
@@ -137,11 +140,15 @@ export class Context {
       else url += `?maxPoolSize=${maxPoolSize}`
     }
 
+    if (url.indexOf('mongodb://') === -1) {
+      url = `mongodb://${url}`
+    }
+
     if (_instancesByUrl.has(url)) return _instancesByUrl.get(url)
 
     logger.debug('开始连接[%s]', url)
     debug(`开始连接[${url}]`)
-    const client = await TmsMongoDb.connect(url)
+    const client = await TmsMongoDb.connect(url, connectionOptions)
     logger.debug('完成连接[%s]', url)
     debug(`完成连接[${url}]`)
 

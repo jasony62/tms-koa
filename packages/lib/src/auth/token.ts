@@ -182,6 +182,13 @@ class TokenInRedis {
 
     return returnKey
   }
+  /**
+   * 
+   * 
+   */
+  async logout(token, clientId) {
+    return this.del(token, clientId)
+  }
 }
 /**
  * 身份令牌
@@ -266,6 +273,27 @@ class Token {
       const expire_in = await tokenRedis.expire(token, tmsClient.id)
       return [true, expire_in]
     } catch (e) {
+      return [false, e]
+    } finally {
+      tokenRedis.quit()
+    }
+  }
+  /**
+   * 退出登录
+   */
+  static async logout(token) {
+    let tokenRedis = await TokenInRedis.create()
+    if (false === tokenRedis) return [false, '连接Redis服务失败']
+
+    try {
+      let oResult = await tokenRedis.get(token)
+      if (!oResult) {
+        return [false, '没有找到和access_token匹配的数据']
+      }
+      oResult = await tokenRedis.logout(token, oResult.data.id)
+      return [true]
+    } catch (e) {
+      logger.error(e)
       return [false, e]
     } finally {
       tokenRedis.quit()
