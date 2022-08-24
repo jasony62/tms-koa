@@ -26,7 +26,7 @@ async function startSystemProfile(config) {
 let _instance
 
 /** swagger服务配置信息 */
-class Context {
+export class Context {
   register
   /**
    * 创建上下文
