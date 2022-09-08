@@ -13,7 +13,7 @@ const Debug = require('debug')
 
 require('dotenv-flow').config()
 
-const debug = Debug('tms-koa:app')
+const debug = Debug('tms-koa')
 
 // 初始化配置信息
 let AppContext,
@@ -24,15 +24,19 @@ let AppContext,
   PushContext,
   SwaggerContext,
   MetricsContext,
-  Neo4jContext
+  Neo4jContext,
+  AgendaContext
 
+/**全局上下文对象*/
 const Context: any = {}
 
 process.on('uncaughtException', (err) => {
   logger.warn('uncaughtException error:', err)
+  console.log('uncaughtException error:', err)
 })
 process.on('unhandledRejection', (reason) => {
   logger.warn('Unhandled Rejection reason:', reason)
+  console.log('Unhandled Rejection reason:', reason)
 })
 process.on('exit', (code) => {
   logger.info(`退出应用[code=${code}]`)
@@ -49,7 +53,10 @@ process.on('SIGTERM', async () => {
 })
 
 /**配置文件存放位置*/
-const ConfigDir = process.env.TMS_KOA_CONFIG_DIR || process.cwd() + '/config'
+const ConfigDir = path.resolve(
+  process.env.TMS_KOA_CONFIG_DIR || process.cwd() + '/config'
+)
+debug(`配置文件目录：${ConfigDir}`)
 logger.info(`配置文件目录：${ConfigDir}`)
 
 /**控制器插件配置文件位置*/
@@ -254,11 +261,11 @@ class TmsKoa extends Koa {
     afterController: KoaMiddleware[]
     afterInit: (context: any) => void
   }) {
-    logger.info(`配置文件获取目录：${ConfigDir}`)
     const { env } = process
     /**
      * 应用配置
      */
+    const applog = debug.extend('app')
     const appDefaultConfig: any = {
       port: parseInt(env.TMS_KOA_APP_HTTP_PORT) || 3000,
     }
@@ -277,13 +284,13 @@ class TmsKoa extends Koa {
     if (env.TMS_KOA_CONTROLLERS_PLUGINS_NPM) {
       loadCtrlPluginsNpmFromEnv(appDefaultConfig)
     }
-    debug(`应用的默认配置：\n` + JSON.stringify(appDefaultConfig, null, 2))
+    applog(`应用的默认配置：\n` + JSON.stringify(appDefaultConfig, null, 2))
     const appConfig = loadConfig('app', appDefaultConfig)
     /**从指定目录加载账号数据，覆盖配置文件中的设置*/
     if (typeof ClientAccountDir === 'string') {
       loadClientAccountFromDir(appConfig)
     }
-    debug(`完整的应用配置信息：\n` + JSON.stringify(appConfig, null, 2))
+    applog(`完整的应用配置信息：\n` + JSON.stringify(appConfig, null, 2))
 
     try {
       AppContext = require('./context/app').Context
@@ -291,7 +298,7 @@ class TmsKoa extends Koa {
       Context.AppContext = AppContext
     } catch (e) {
       let logMsg = `初始化[app]配置失败`
-      debug(logMsg + '\n', JSON.stringify(e, null, 2))
+      applog(logMsg + '\n', JSON.stringify(e, null, 2))
       logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
       process.exit(0)
     }
@@ -309,6 +316,9 @@ class TmsKoa extends Koa {
         logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
       }
     }
+    debug.extend('db')(
+      '完成【db】服务配置\n' + JSON.stringify(dbConfig, null, 2)
+    )
 
     /**
      * 初始化mongodb
@@ -345,6 +355,9 @@ class TmsKoa extends Koa {
         logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
       }
     }
+    debug.extend('mongodb')(
+      '完成【mongodb】服务配置\n' + JSON.stringify(mongoConfig, null, 2)
+    )
 
     /**
      * 初始化redis
@@ -360,6 +373,9 @@ class TmsKoa extends Koa {
         logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
       }
     }
+    debug.extend('redis')(
+      '完成【redis】服务配置\n' + JSON.stringify(redisConfig, null, 2)
+    )
 
     /**
      * 初始化neo4j
@@ -375,6 +391,9 @@ class TmsKoa extends Koa {
         logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
       }
     }
+    debug.extend('neo4j')(
+      '完成【neo4j】服务配置\n' + JSON.stringify(neo4jConfig, null, 2)
+    )
 
     /**
      * 文件管理模块初始化
@@ -390,6 +409,9 @@ class TmsKoa extends Koa {
         logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
       }
     }
+    debug.extend('fs')(
+      '完成【fs】服务配置\n' + JSON.stringify(fsConfig, null, 2)
+    )
 
     /**
      * 推送服务模块初始化
@@ -405,6 +427,27 @@ class TmsKoa extends Koa {
         logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
       }
     }
+    debug.extend('push')(
+      '完成【push】服务配置\n' + JSON.stringify(pushConfig, null, 2)
+    )
+
+    /**
+     * Agenda服务模块初始化
+     */
+    const agendaConfig = loadConfig('agenda')
+    if (agendaConfig && agendaConfig.disabled !== true) {
+      AgendaContext = require('./context/agenda').Context
+      try {
+        await AgendaContext.init(agendaConfig)
+        Context.AgendaContext = AgendaContext
+      } catch (e) {
+        let logMsg = `初始化[agenda]配置失败`
+        logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
+      }
+    }
+    debug.extend('agenda')(
+      '完成【agenda】服务配置\n' + JSON.stringify(agendaConfig, null, 2)
+    )
 
     /**
      * Swagger服务模块初始化
@@ -420,6 +463,9 @@ class TmsKoa extends Koa {
         logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
       }
     }
+    debug.extend('swagger')(
+      '完成数据【swagger】配置\n' + JSON.stringify(swaggerConfig, null, 2)
+    )
 
     /**
      * 监控服务
@@ -435,6 +481,9 @@ class TmsKoa extends Koa {
         logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
       }
     }
+    debug.extend('metrics')(
+      '完成数据【metrics】配置\n' + JSON.stringify(metricsConfig, null, 2)
+    )
 
     /**
      * 支持跨域
@@ -579,7 +628,27 @@ class TmsKoa extends Koa {
     }
   }
 }
+
+/**
+ * 获得请求中传递的access_token
+ *
+ * @param {*} ctx
+ */
+function getAccessTokenByRequest(ctx) {
+  let access_token
+  let { request } = ctx
+  let { authorization } = ctx.header
+  if (authorization && authorization.indexOf('Bearer') === 0) {
+    access_token = authorization.match(/\S+$/)[0]
+  } else if (request.query.access_token) {
+    access_token = request.query.access_token
+  } else {
+    return [false, '缺少Authorization头或access_token参数']
+  }
+
+  return [true, access_token]
+}
 /**
  * 对外接口
  */
-export { TmsKoa, Context, loadConfig }
+export { TmsKoa, Context, loadConfig, getAccessTokenByRequest }

@@ -11,7 +11,7 @@ const Debug = require('debug')
 
 const debug = Debug('tms-koa:ctrl-router')
 
-const TmsContext = require('../app').Context
+const { Context: TmsContext, getAccessTokenByRequest } = require('../app')
 const { AppContext, DbContext, MongoContext, PushContext } = TmsContext
 
 /**可信任主机配置文件存放位置*/
@@ -31,17 +31,21 @@ if (fs.existsSync(TrustedHostsFile)) {
 const { ResultFault, AccessTokenFault } = require('../response')
 
 // 从控制器路径查找
-const CtrlDir =
+const CtrlDir = nodePath.resolve(
   process.env.TMS_KOA_CONTROLLERS_DIR || process.cwd() + '/controllers'
+)
 debug(`控制器目录：${CtrlDir}`)
 
 /**在控制器目录中查找控制器类 */
 function findCtrlClassInCtrlDir(ctrlName, path: string) {
-  let ctrlPath = nodePath.resolve(`${CtrlDir}/${ctrlName}.js`)
+  let ctrlPath = `${CtrlDir}/${ctrlName}.js`
   if (!fs.existsSync(ctrlPath)) {
-    ctrlPath = nodePath.resolve(`${CtrlDir}/${ctrlName}/main.js`)
+    ctrlPath = `${CtrlDir}/${ctrlName}/main.js`
     if (!fs.existsSync(ctrlPath)) {
       let logMsg = `参数错误，请求的控制器类不存在(2)`
+      debug(
+        logMsg + '\n' + JSON.stringify({ ctrlName, path, ctrlPath }, null, 2)
+      )
       logger.isDebugEnabled()
         ? logger.debug(logMsg, ctrlName, path, ctrlPath)
         : logger.error(logMsg)
@@ -123,25 +127,6 @@ function findCtrlClassAndMethodName(ctx) {
   return [ctrlName, CtrlClass, method]
 }
 
-/**
- * 获得请求中传递的access_token
- *
- * @param {*} ctx
- */
-function getAccessTokenByRequest(ctx) {
-  let access_token
-  let { request } = ctx
-  let { authorization } = ctx.header
-  if (authorization && authorization.indexOf('Bearer') === 0) {
-    access_token = authorization.match(/\S+$/)[0]
-  } else if (request.query.access_token) {
-    access_token = request.query.access_token
-  } else {
-    return [false, '缺少Authorization头或access_token参数']
-  }
-
-  return [true, access_token]
-}
 /**
  * 根据请求找到对应的控制器并执行
  *

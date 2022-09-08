@@ -5,9 +5,8 @@ const _ = require('lodash')
 const jwt = require('jsonwebtoken')
 
 const { ResultData, ResultFault, AccessTokenFault } = require('../response')
-
-const { AppContext } = require('../app').Context
-
+const { Context: TmsContext, getAccessTokenByRequest } = require('../app')
+const { AppContext } = TmsContext
 let { routerAuthPrefix, routerAuthTrustedHosts } = AppContext.insSync()
 const router = new Router({ prefix: routerAuthPrefix })
 logger.info(`指定Auth控制器前缀：${routerAuthPrefix}`)
@@ -70,25 +69,6 @@ async function registerTmsClient(ctx) {
   else aResult = [false, '没有指定用户注册方法']
 
   return aResult
-}
-/**
- * 获得请求中传递的access_token
- *
- * @param {*} ctx
- */
-function getAccessTokenByRequest(ctx) {
-  let access_token
-  let { request } = ctx
-  let { authorization } = ctx.header
-  if (authorization && authorization.indexOf('Bearer') === 0) {
-    access_token = authorization.match(/\S+$/)[0]
-  } else if (request.query.access_token) {
-    access_token = request.query.access_token
-  } else {
-    return [false, '缺少Authorization头或access_token参数']
-  }
-
-  return [true, access_token]
 }
 /**
  * 账号注册

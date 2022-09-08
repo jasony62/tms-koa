@@ -3,14 +3,25 @@ const logger = log4js.getLogger('tms-koa-mongodb')
 const { MongoClient, MongoError } = require('mongodb')
 const Debug = require('debug')
 
-const debug = Debug('tms-koa:context:mongodb')
+const debug = Debug('tms-koa:mongodb:context')
 
 class TmsMongoDb {
-  mongoClient
+  _mongoClient
+  _url
 
-  constructor(mongoClient) {
-    this.mongoClient = mongoClient
+  constructor(mongoClient, url) {
+    this._mongoClient = mongoClient
+    this._url = url
   }
+
+  get mongoClient() {
+    return this._mongoClient
+  }
+
+  get url() {
+    return this._url
+  }
+
   static connect(url) {
     return MongoClient.connect(url, {
       useUnifiedTopology: true,
@@ -145,7 +156,7 @@ export class Context {
     logger.debug('完成连接[%s]', url)
     debug(`完成连接[${url}]`)
 
-    let instance = new TmsMongoDb(client)
+    let instance = new TmsMongoDb(client, url)
 
     _instancesByUrl.set(url, instance)
     _instancesByName.set(name, instance)

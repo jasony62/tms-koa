@@ -69,10 +69,10 @@ export abstract class Ctrl {
     }
     return null
   }
-  get bucket() {
+  get bucket(): string {
     return this[CTRL_FIELD_BUCKET_NAME]
   }
-  set bucket(name) {
+  set bucket(name: string) {
     this[CTRL_FIELD_BUCKET_NAME] = name
   }
   /**
