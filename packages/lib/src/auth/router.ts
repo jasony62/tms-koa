@@ -12,7 +12,16 @@ const router = new Router({ prefix: routerAuthPrefix })
 logger.info(`指定Auth控制器前缀：${routerAuthPrefix}`)
 
 const authConfig = AppContext.insSync().auth
+// 获取error msg
+function getErrMsg(error, msg = "未知错误") {
+  if (typeof error === 'string')
+    return error
+  else if (error instanceof Error) {
+    return error.message ? error.message : error.toString()
+  }
 
+  return msg
+}
 /**
  * 检查当前的请求是否来源于可信任主机
  * @param {*} ctx
@@ -183,7 +192,46 @@ const authenticate = async (ctx) => {
 }
 router.post(['/authenticate', '/authorize'], authenticate)
 router.get(['/authenticate', '/authorize'], authenticate)
+/**
+ * 退出登录
+ */
+const logout = async (ctx) => {
+  let { response } = ctx
+  if (!authConfig.jwt && !authConfig.redis)
+    return (response.body = new ResultFault('没有指定用户认证方法'))
 
+  let trusted = isTrustedHost(ctx)
+  if (!trusted[0]) {
+    logger.warn(
+      `有通过未授权主机调用auth::authenticate接口，原因：${trusted[1]}`
+    )
+    return (response.body = new ResultFault('不允许调用此接口'))
+  }
+
+  const [success, access_token] = getAccessTokenByRequest(ctx)
+  if (false === success) return (response.body = new ResultFault(access_token))
+
+  try {
+    if (authConfig.jwt) {
+      // let decoded = jwt.decode(access_token)
+    } else if (authConfig.redis) {
+      const Token = require('./token')
+      let aResult = await Token.logout(access_token)
+      if (false === aResult[0]) {
+        return (response.body = new AccessTokenFault(getErrMsg(aResult[1])))
+      }
+    }
+  } catch (error) {
+    logger.error(error)
+    return (response.body = new ResultFault(
+      getErrMsg(error),
+      20050
+    ))
+  }
+
+  response.body = new ResultData("成功")
+}
+router.get(['/logout'], logout)
 /**
  * 生成验证码
  */
