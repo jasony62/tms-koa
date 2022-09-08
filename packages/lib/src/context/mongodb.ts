@@ -18,10 +18,6 @@ class TmsMongoDb {
     return this._mongoClient
   }
 
-  constructor(mongoClient, url) {
-    this._mongoClient = mongoClient
-    this._url = url
-  }
   static connect(url, connectionOptions) {
     const options = Object.assign(
       {
