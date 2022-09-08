@@ -9,20 +9,22 @@ const Debug = require('debug')
 const debug = Debug('tms-koa:agenda:context')
 
 /**
+ * 上下文实例
+ */
+let _instance
+/**
  * 任务调度服务上下文
  */
 export class Context {
   /**
-   * 上下文实例
-   */
-  private static instance
-  /**
    *
    */
   private _agenda
+
   constructor(agenda) {
     this._agenda = agenda
   }
+
   get agenda() {
     return this._agenda
   }
@@ -31,7 +33,7 @@ export class Context {
    * @param config
    */
   static async init(config: any) {
-    if (Context.instance) return Context.instance
+    if (_instance) return _instance
     if (!config || typeof config !== 'object') {
       let msg = '没有指定连接agenda配置信息'
       logger.error(msg)
@@ -71,7 +73,7 @@ export class Context {
       console.log(e)
     }
 
-    Context.instance = new Context(agenda)
+    _instance = new Context(agenda)
 
     const jobs = []
     if (jobDir && typeof jobDir === 'string') {
@@ -137,6 +139,8 @@ export class Context {
       }
     }
 
-    return Context.instance
+    return _instance
   }
+
+  static ins = Context.init
 }
