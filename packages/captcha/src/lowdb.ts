@@ -1,12 +1,13 @@
 /**
  * 消息推送服务
  */
-const path = require('path')
-const low = require('lowdb')
-const fileSync = require('lowdb/adapters/FileSync')
+import * as path from 'path'
+import * as low from 'lowdb'
+import * as fileSync from 'lowdb/adapters/FileSync'
+import { loadConfig } from 'tms-koa'
 
-const log4js = require('@log4js-node/log4js-api')
-const logger = log4js.getLogger('tms-koa-account-lowdb')
+import { getLogger } from '@log4js-node/log4js-api'
+const logger = getLogger('tms-koa-account-lowdb')
 
 export class Context {
   static init
@@ -31,12 +32,11 @@ Context.init = (function () {
     if (_instance) return _instance
 
     if (!lowdbConfig) {
-      const { loadConfig } = require("../config")
       lowdbConfig = loadConfig('lowdb', {})
     }
 
     if (!lowdbConfig.file) {
-      lowdbConfig.file = "_lowdb.json"
+      lowdbConfig.file = '_lowdb.json'
     }
 
     let dbFile = path.resolve(lowdbConfig.file)

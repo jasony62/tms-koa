@@ -1,0 +1,21 @@
+{
+  "name": "tms-koa-crypto",
+  "version": "0.1.0",
+  "description": "提供加解密方法",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "rimraf ./dist && tsc"
+  },
+  "keywords": [
+    "tms-koa"
+  ],
+  "author": "jasony62",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^18.7.23",
+    "rimraf": "^3.0.2"
+  },
+  "dependencies": {
+    "crypto-js": "^4.1.1"
+  }
+}

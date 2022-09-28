@@ -1,21 +1,25 @@
-const { Client } = require('tms-koa')
-const { AccountConfig } = require('../config')
-const { captchaConfig: CaptchaConfig } = AccountConfig
-const { checkCaptcha } = require("../models/captcha")
-const PATH = require("path")
-const fs = require("fs")
+import { Client } from 'tms-koa'
+import { AccountConfig } from '../config'
+import * as PATH from 'path'
+import * as fs from 'fs'
 
-const log4js = require('@log4js-node/log4js-api')
-const logger = log4js.getLogger('tms-koa-account-authenticate')
+import { createAccount } from './account'
+
+import { getLogger } from '@log4js-node/log4js-api'
+const logger = getLogger('tms-koa-account')
 
 /**
  * 根据http请求中包含的信息获得用户数据，支持异步调用
  */
-export = async function (ctx) {
-  const { Account } = require('./account')
+export async function createTmsClient(
+  ctx: any,
+  tmsContext: any,
+  checkCaptcha?: Function
+) {
   let { username, password } = ctx.request.body
 
   // 账号、密码前置处理
+
   if (AccountConfig.accountBeforeEach) {
     let func
     if (typeof AccountConfig.accountBeforeEach === 'string') {
@@ -44,15 +48,14 @@ export = async function (ctx) {
       }
     }
     // 验证码
-    if (!CaptchaConfig || CaptchaConfig.disabled !== true) {
+    if (checkCaptcha && typeof checkCaptcha === 'function') {
       const rst = await checkCaptcha(ctx)
-      if (rst[0] === false)
-        return rst
+      if (rst[0] === false) return rst
     }
     /**mongodb存储账号 */
-    let found = await Account.authenticate(username, password, ctx)
-    if (found[0] === true) {
-      found = found[1]
+    let Account = createAccount(tmsContext)
+    let [exist, found] = await Account.authenticate(username, password, ctx)
+    if (exist === true) {
       let tmsClient = new Client(
         username,
         found,
@@ -60,8 +63,10 @@ export = async function (ctx) {
         found.allowMultiLogin === true
       )
       return [true, tmsClient]
-    } else return [false, found[1]]
+    } else return [false, found]
   }
 
   return [false, '没有找到匹配的账号']
 }
+
+export default createTmsClient

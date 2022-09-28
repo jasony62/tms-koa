@@ -1,45 +1,42 @@
 {
   "name": "tms-koa-account",
-  "version": "0.0.10",
+  "version": "0.1.0",
   "description": "tms-koa控制器插件，账号管理。",
   "main": "dist/index.js",
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "rimraf ./dist && tsc"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jasony62/tms-koa-account.git"
+    "url": "git+https://github.com/jasony62/tms-koa.git"
   },
   "keywords": [],
   "author": "jasony62",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/jasony62/tms-koa-account/issues"
+    "url": "https://github.com/jasony62/tms-koa/issues"
   },
-  "homepage": "https://github.com/jasony62/tms-koa-account#readme",
   "dependencies": {
     "@log4js-node/log4js-api": "^1.0.2",
-    "crypto-js": "^4.1.1",
+    "debug": "^4.3.4",
     "dotenv-flow": "^3.1.0",
     "lodash": "^4.17.21",
     "lowdb": "1.0.0",
     "mongodb": "^4.8.1",
-    "nanoid": "^3.1.20",
-    "password-validator": "^5.1.1",
-    "path": "^0.12.7",
+    "nanoid": "3.1.20",
+    "password-validator": "^5.3.0",
     "svg-captcha": "^1.4.0",
-    "tms-koa": "workspace:*"
+    "tms-koa": "workspace:*",
+    "tms-koa-crypto": "workspace:*"
   },
   "peerDependencies": {
     "redis": "4.1.0"
   },
   "devDependencies": {
-    "@types/node": "^17.0.35",
-    "babel-plugin-module-resolver": "^4.1.0",
-    "eslint-import-resolver-alias": "^1.1.2"
+    "@types/node": "^18.7.23",
+    "rimraf": "^3.0.2"
   }
 }

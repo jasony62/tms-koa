@@ -1,11 +1,13 @@
-const { MongoContext } = require('tms-koa').Context
-const ObjectId = require('mongodb').ObjectId
+import { ObjectId } from 'mongodb'
 
-const AccountConfig = require('../config').AccountConfig
-const { PasswordProcess: ProcessPwd } = require('./processpwd')
+import { AccountConfig } from '../config'
+import { PasswordProcess as ProcessPwd } from './processpwd'
 
-const log4js = require('@log4js-node/log4js-api')
-const logger = log4js.getLogger('tms-koa-account-account')
+import { getLogger } from '@log4js-node/log4js-api'
+const logger = getLogger('tms-koa-account')
+
+import Debug from 'debug'
+const debug = Debug('tms-koa-account')
 
 /**
  * 将指定的page和size参数转换为skip和limit参互
@@ -38,13 +40,17 @@ class MongodbModel {
    * @returns
    */
   async create(newAccount) {
-    // 加密密码
-    const salt = ProcessPwd.getSalt() // 加密密钥
-    const pwdProcess = new ProcessPwd(newAccount.password, salt)
-    newAccount.password = pwdProcess.hash
-    newAccount.salt = salt
-
-    return this.cl.insertOne(newAccount).then(result => result)
+    try {
+      // 加密密码
+      const salt = ProcessPwd.getSalt() // 加密密钥
+      const pwdProcess = new ProcessPwd(newAccount.password, salt)
+      newAccount.password = pwdProcess.hash
+      newAccount.salt = salt
+      return this.cl.insertOne(newAccount).then((result) => result)
+    } catch (e) {
+      logger.warn('创建账号时发送异常', e)
+      throw e
+    }
   }
   /**
    * 创建账号
@@ -72,6 +78,7 @@ class MongodbModel {
       pwdProcess.options = { account }
       const checkRst = pwdProcess.pwdStrengthCheck()
       if (checkRst[0] === false) return reject(checkRst[1])
+
       //
       let newAccount = {
         account,
@@ -83,6 +90,7 @@ class MongodbModel {
           : false,
         create_at: Date.now(),
       }
+
       // 根据mongodb存储字段要求处理用户提交数据
       let { mongodb } = AccountConfig
       if (mongodb && typeof mongodb.schema === 'object') {
@@ -92,13 +100,15 @@ class MongodbModel {
         Object.assign(newAccount, otherData)
       }
 
-      return await this.create(newAccount).then(r => resolve(newAccount)).catch(err => reject(err))
+      return this.create(newAccount)
+        .then((r) => resolve(newAccount))
+        .catch((err) => reject(err))
     })
   }
 
   async list({ filter = {} } = {}, { page = null, size = null } = {}) {
     let query = filter
-    const options: { skip?: number, limit?: number } = {}
+    const options: { skip?: number; limit?: number } = {}
     // 添加分页条件
     let { skip, limit } = toSkipAndLimit(page, size)
     if (typeof skip === 'number') {
@@ -114,13 +124,13 @@ class MongodbModel {
 
   forbid(id) {
     return this.cl
-      .updateOne({ _id: ObjectId(id) }, { $set: { forbidden: true } })
+      .updateOne({ _id: new ObjectId(id) }, { $set: { forbidden: true } })
       .then(({ modifiedCount }) => modifiedCount === 1)
   }
 
   unforbid(id) {
     return this.cl
-      .updateOne({ _id: ObjectId(id) }, { $set: { forbidden: false } })
+      .updateOne({ _id: new ObjectId(id) }, { $set: { forbidden: false } })
       .then(({ modifiedCount }) => modifiedCount === 1)
   }
 
@@ -134,7 +144,11 @@ class MongodbModel {
     return this.cl.findOne(where)
   }
 
-  async authenticate(account, password, ctx): Promise<[boolean, number | string | void]> {
+  async authenticate(
+    account,
+    password,
+    ctx
+  ): Promise<[boolean, number | string | void]> {
     const oAccount = await this.findOne({ account })
     if (!oAccount) return [false, '账号或密码错误']
     if (oAccount.forbidden === true) return [false, '禁止登录']
@@ -166,8 +180,9 @@ class MongodbModel {
             updata.pwdErrNum = 0
             msg += `; 账号锁定 ${parseInt(authConfig.authLockDUR)} 秒`
           } else {
-            msg += `, 账号即将被锁定。剩余次数【${parseInt(authConfig.pwdErrMaxNum) - pwdErrNum
-              }】`
+            msg += `, 账号即将被锁定。剩余次数【${
+              parseInt(authConfig.pwdErrMaxNum) - pwdErrNum
+            }】`
           }
         }
       }
@@ -247,6 +262,7 @@ class FileModel {
     return [!!found, found]
   }
 }
+
 /**
  * 如果没有指定有效的账号管理实现时，抛异常
  */
@@ -261,10 +277,33 @@ const unsupportHandler = {
 }
 
 let Account // 账号处理
+if (!AccountConfig || typeof AccountConfig !== 'object') {
+  logger.error('账号管理模块没有获取配置信息，无法启用')
+  Account = new Proxy({}, unsupportHandler)
+  process.exit(0)
+}
 
-if (AccountConfig && AccountConfig.disabled !== true) {
+if (AccountConfig.disabled === true) {
+  logger.warn('账号管理模已设置为禁用，不启用')
+  Account = new Proxy({}, unsupportHandler)
+} else {
+  logger.debug(
+    '通过配置文件获取账号管理配置信息：\n' +
+      JSON.stringify(AccountConfig, null, 2)
+  )
+  const { mongodb, accounts } = AccountConfig
+  if (!mongodb && !accounts) {
+    logger.error('账号管理模块没有指定账号存储方式，无法启用')
+    process.exit(0)
+  }
+}
+
+function createAccount(tmsContext: any) {
+  if (Account && typeof Account === 'object') return Account
+
   const { mongodb, accounts } = AccountConfig
   if (mongodb && typeof mongodb === 'object' && mongodb.disabled !== true) {
+    logger.debug('指定账号储存方式【mongodb】')
     let valid = ['name', 'database', 'collection'].reduce((result, prop) => {
       if (!mongodb[prop] || typeof mongodb[prop] !== 'string') {
         logger.warn(`配置文件中[account.mongodb.${prop}]错误`)
@@ -274,25 +313,31 @@ if (AccountConfig && AccountConfig.disabled !== true) {
     }, true)
     if (valid) {
       const { name, database, collection } = mongodb
+      const { MongoContext } = tmsContext
+      if (!MongoContext) {
+        logger.error(
+          '没有从框架获得【mongodb】的上下文数据，创建账号管理服务失败'
+        )
+        process.exit(0)
+      }
       Account = new MongodbModel(
         MongoContext.mongoClientSync(name),
         database,
         collection
       )
-      logger.debug('指定账号储存方式【mongodb】')
+      logger.debug('完成创建账号管理服务，储存方式【mongodb】')
     } else {
       Account = new Proxy({}, unsupportHandler)
     }
   } else if (Array.isArray(accounts)) {
     Account = new FileModel(accounts)
-    logger.debug('指定账号储存方式【File】')
+    logger.debug('完成创建账号管理服务，储存方式【file】')
   } else {
-    logger.warn('配置文件[account]没有指定有效账号存储方式')
-    Account = new Proxy({}, unsupportHandler)
+    logger.error('账号管理模块没有指定可用的账号存储方式，无法启用')
+    process.exit(0)
   }
-} else {
-  logger.warn('没有指定账号管理配置信息，不支持账号管理')
-  Account = new Proxy({}, unsupportHandler)
+
+  return Account
 }
 
-export { Account }
+export { Account, createAccount }

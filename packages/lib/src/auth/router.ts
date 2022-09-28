@@ -13,9 +13,8 @@ logger.info(`指定Auth控制器前缀：${routerAuthPrefix}`)
 
 const authConfig = AppContext.insSync().auth
 // 获取error msg
-function getErrMsg(error, msg = "未知错误") {
-  if (typeof error === 'string')
-    return error
+function getErrMsg(error, msg = '未知错误') {
+  if (typeof error === 'string') return error
   else if (error instanceof Error) {
     return error.message ? error.message : error.toString()
   }
@@ -56,9 +55,15 @@ async function getTmsClient(ctx) {
   let clientConfig = _.get(authConfig, ['client'], {})
   const { createTmsClient } = clientConfig
 
-  if (typeof createTmsClient === 'function')
-    aResult = await createTmsClient(ctx)
-  else aResult = [false, '没有指定用户认证方法']
+  if (typeof createTmsClient === 'function') {
+    /**用户认证时需要验证验证码*/
+    let fnCheckCaptcha
+    let captchaConfig = _.get(authConfig, ['captcha'], {})
+    if (typeof captchaConfig.checkCaptcha === 'function') {
+      fnCheckCaptcha = captchaConfig.checkCaptcha
+    }
+    aResult = await createTmsClient(ctx, TmsContext, fnCheckCaptcha)
+  } else aResult = [false, '没有指定用户认证方法']
 
   return aResult
 }
@@ -73,9 +78,15 @@ async function registerTmsClient(ctx) {
   let clientConfig = _.get(authConfig, ['client'], {})
   const { registerTmsClient } = clientConfig
 
-  if (typeof registerTmsClient === 'function')
-    aResult = await registerTmsClient(ctx)
-  else aResult = [false, '没有指定用户注册方法']
+  if (typeof registerTmsClient === 'function') {
+    /**用户认证时需要验证验证码*/
+    let fnCheckCaptcha
+    let captchaConfig = _.get(authConfig, ['captcha'], {})
+    if (typeof captchaConfig.checkCaptcha === 'function') {
+      fnCheckCaptcha = captchaConfig.checkCaptcha
+    }
+    aResult = await registerTmsClient(ctx, TmsContext, fnCheckCaptcha)
+  } else aResult = [false, '没有指定用户注册方法']
 
   return aResult
 }
@@ -223,13 +234,10 @@ const logout = async (ctx) => {
     }
   } catch (error) {
     logger.error(error)
-    return (response.body = new ResultFault(
-      getErrMsg(error),
-      20050
-    ))
+    return (response.body = new ResultFault(getErrMsg(error), 20050))
   }
 
-  response.body = new ResultData("成功")
+  response.body = new ResultData('成功')
 }
 router.get(['/logout'], logout)
 /**

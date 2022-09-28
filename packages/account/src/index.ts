@@ -1,9 +1,9 @@
-const { ResultData } = require('./models/response')
-const authenticate = require('./models/authenticate')
-const captcha = require('./models/captcha')
-const register = require('./models/register')
-const processPwd = require('./models/processpwd')
-const crypto = require('./models/crypto')
+import { ResultData } from 'tms-koa'
+import * as crypto from 'tms-koa-crypto'
+
+import authenticate from './models/authenticate'
+import register from './models/register'
+import processPwd from './models/processpwd'
 
 class Main {
   /**
@@ -15,4 +15,4 @@ class Main {
   }
 }
 
-export { Main, authenticate, captcha, register, processPwd, crypto }
+export { Main, authenticate, register, processPwd, crypto }

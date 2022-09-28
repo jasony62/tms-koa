@@ -255,12 +255,18 @@ async function initAuth(instance, appConfig) {
           } else {
             createTmsClient = require(id)
           }
+          if (typeof createTmsClient.default === 'function') {
+            createTmsClient = createTmsClient.default
+          }
           // 注册方法
           if (typeof register === 'string') {
             if (register) {
               registerTmsClient = require(`${id}/${register}`)
             } else {
               registerTmsClient = require(id)
+            }
+            if (typeof registerTmsClient.default === 'function') {
+              registerTmsClient = registerTmsClient.default
             }
           }
         }

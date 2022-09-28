@@ -1,0 +1,5 @@
+{
+  "id": "tms-koa-account",
+  "dir": "dist/controllers",
+  "alias": "account"
+}
