@@ -1,6 +1,6 @@
 {
   "name": "tms-koa-account",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "tms-koa控制器插件，账号管理。",
   "main": "dist/index.js",
   "files": [

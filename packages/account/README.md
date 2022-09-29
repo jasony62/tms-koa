@@ -154,7 +154,7 @@ const checkRst = pwdProcess.pwdStrengthCheck()
 
 > curl -H "Content-Type: application/json" -X POST -d '{ "username": "admin", "password":"admin" }' http://localhost:3001/auth/authenticate
 
-> curl -H "Content-Type: application/json" -X POST -d '{ "appid":"oauth","captchaid":"aly21","code":"a1z9","username": "admin", "password":"admin" }' http://localhost:3001/auth/authenticate
+> curl -H "Content-Type: application/json" -X POST -d '{ "appid":"oauth","captchaid":"oauth001","code":"a1z9","username": "admin", "password":"admin" }' http://localhost:3001/auth/authenticate
 
 ### 获取用户列表
 

@@ -3,7 +3,7 @@ import { AccountConfig } from '../config'
 import * as PATH from 'path'
 import * as fs from 'fs'
 
-import { createAccount } from './account'
+import { createModel } from './store'
 
 import { getLogger } from '@log4js-node/log4js-api'
 const logger = getLogger('tms-koa-account')
@@ -53,8 +53,8 @@ export async function createTmsClient(
       if (rst[0] === false) return rst
     }
     /**mongodb存储账号 */
-    let Account = createAccount(tmsContext)
-    let [exist, found] = await Account.authenticate(username, password, ctx)
+    let Model = createModel(tmsContext)
+    let [exist, found] = await Model.authenticate(username, password, ctx)
     if (exist === true) {
       let tmsClient = new Client(
         username,

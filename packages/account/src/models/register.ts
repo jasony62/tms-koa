@@ -5,7 +5,7 @@ import * as fs from 'fs'
 import { getLogger } from '@log4js-node/log4js-api'
 const logger = getLogger('tms-koa-account')
 
-import { createAccount } from './account'
+import { createModel } from './store'
 
 /**
  * 根据http请求中包含的信息获得用户数据，支持异步调用
@@ -50,9 +50,9 @@ export async function registerTmsClient(
       const rst = await checkCaptcha(ctx)
       if (rst[0] === false) return rst
     }
-    let Account = createAccount(tmsContext)
+    let Model = createModel(tmsContext)
     /* 存储账号 */
-    return Account.processAndCreate(userInfo)
+    return Model.processAndCreate(userInfo)
       .then((r) => [true, r])
       .catch((err) => [false, err.toString()])
   }

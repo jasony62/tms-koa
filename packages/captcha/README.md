@@ -45,6 +45,10 @@ module.exports = {
 curl 'http://localhost:3001/auth/captcha?appid=demo&captchaid=demo01'
 ```
 
+```
+curl 'http://localhost:3001/auth/captcha?appid=demo&captchaid=demo01&returnType=text'
+```
+
 附加参数
 
 | 参数         | 说明                                              | 默认值                      |

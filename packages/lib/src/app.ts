@@ -120,7 +120,15 @@ function loadConfig(name, defaultConfig?) {
     logger.info(`从[${localpath}]加载本地配置`)
   }
   if (defaultConfig || baseConfig || localConfig) {
-    return _.merge({}, defaultConfig, baseConfig, localConfig)
+    return _.mergeWith(
+      {},
+      defaultConfig,
+      baseConfig,
+      localConfig,
+      (objValue, srcValue) => {
+        if (_.isArray(objValue)) return objValue.concat(srcValue)
+      }
+    )
   }
 
   return false

@@ -7,7 +7,7 @@ import * as fileSync from 'lowdb/adapters/FileSync'
 import { loadConfig } from 'tms-koa'
 
 import { getLogger } from '@log4js-node/log4js-api'
-const logger = getLogger('tms-koa-account-lowdb')
+const logger = getLogger('tms-koa-account')
 
 export class Context {
   static init

@@ -213,7 +213,11 @@ export class PasswordProcess {
   compare(otherPlaintextPassword) {
     return this.hash === otherPlaintextPassword
   }
-
+  /**
+   * 随机数
+   * @param length
+   * @returns
+   */
   static getSalt(length = 16) {
     const nanoid = customAlphabet(
       '0123456789qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM',

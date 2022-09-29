@@ -1,5 +1,5 @@
 import { Ctrl, ResultData, ResultFault } from 'tms-koa'
-import { createAccount } from '../../models/account'
+import { createModel } from '../../models/store'
 
 /**
  * 管理系统账号
@@ -15,8 +15,8 @@ export class Admin extends Ctrl {
   async list() {
     let { page, size } = this.request.query
     const { filter } = this.request.body
-    const Account = createAccount(this.tmsContext)
-    const result = await Account.list({ filter }, { page, size })
+    const Model = createModel(this.tmsContext)
+    const result = await Model.list({ filter }, { page, size })
 
     return new ResultData(result)
   }
@@ -25,8 +25,8 @@ export class Admin extends Ctrl {
    */
   async create() {
     let userInfo = this.request.body
-    const Account = createAccount(this.tmsContext)
-    return Account.processAndCreate(userInfo)
+    const Model = createModel(this.tmsContext)
+    return Model.processAndCreate(userInfo)
       .then((account) => {
         return new ResultData(account)
       })
@@ -39,8 +39,8 @@ export class Admin extends Ctrl {
    */
   async forbid() {
     const { id } = this.request.query
-    const Account = createAccount(this.tmsContext)
-    const result = await Account.forbid(id)
+    const Model = createModel(this.tmsContext)
+    const result = await Model.forbid(id)
     return new ResultData(result)
   }
   /**
@@ -48,8 +48,8 @@ export class Admin extends Ctrl {
    */
   async unforbid() {
     const { id } = this.request.query
-    const Account = createAccount(this.tmsContext)
-    const result = await Account.unforbid(id)
+    const Model = createModel(this.tmsContext)
+    const result = await Model.unforbid(id)
     return new ResultData(result)
   }
 }

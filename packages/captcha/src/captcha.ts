@@ -202,11 +202,11 @@ class Captcha {
     return this.code
   }
   /**
-   *
+   * 保存验证码到存储服务中
    */
   async storageCode(appid, captchaid) {
     if (!captchaid || !appid) {
-      return [false, '参数不完整']
+      return [false, '无法存储验证码，参数不完整']
     }
 
     let code = this.getCode()
@@ -242,7 +242,7 @@ class Captcha {
    */
   async checkCode(appid, captchaid, code, strictMode = 'N') {
     if (!captchaid || !appid || !code) {
-      return [false, '参数不完整']
+      return [false, '无法验证验证验证码，缺少必要的参数']
     }
 
     if (this.masterCaptcha && this.masterCaptcha === code) {
@@ -371,7 +371,7 @@ async function checkCaptcha(ctx) {
   }
 
   if (!captchaid || !appid || !code) {
-    return [false, '参数不完整']
+    return [false, '检查验证码未通过，参数不完整']
   }
 
   const instance = Captcha.ins({ storageType })
@@ -445,7 +445,7 @@ async function createCaptcha(ctx) {
   const instance = Captcha.ins(config)
   if (restrainCode) {
     // 校验验证码
-    if (!captchaid || !appid) return [false, '参数不完整']
+    if (!captchaid || !appid) return [false, '无法创建验证码，参数不完整']
     const codeInfo = await instance.checkCode(appid, captchaid, restrainCode)
     if (codeInfo[0] === false) return [false, codeInfo[1]]
   }
