@@ -16,6 +16,8 @@ const CTRL_FIELD_DB_CTX = Symbol('dbcontext')
 const CTRL_FIELD_MONGO_CLIENT = Symbol('mongoclient')
 // 推送服务上下文
 const CTRL_FIELD_PUSH_CTX = Symbol('pushContext')
+// 文件服务上下文
+const CTRL_FIELD_FS_CTX = Symbol('fsContext')
 // 用户空间名称
 const CTRL_FIELD_BUCKET_NAME = Symbol('bucket')
 // 全局上线文定义集合，可以获取其它上线文定义
@@ -24,13 +26,14 @@ const CTRL_FIELD_TMS_CONTEXT = Symbol('tmscontext')
  * 控制器基类
  */
 export abstract class Ctrl {
-  constructor(ctx, client, dbContext, mongoClient, pushContext) {
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
     this[CTRL_FIELD_REQUEST] = ctx.request
     this[CTRL_FIELD_CLIENT] = client
     this[CTRL_FIELD_DB_CTX] = dbContext
     this[CTRL_FIELD_MONGO_CLIENT] = mongoClient
     this[CTRL_FIELD_CTX] = ctx
     this[CTRL_FIELD_PUSH_CTX] = pushContext
+    this[CTRL_FIELD_FS_CTX] = fsContext
   }
 
   get request() {
@@ -44,6 +47,9 @@ export abstract class Ctrl {
   }
   get mongoClient() {
     return this[CTRL_FIELD_MONGO_CLIENT]
+  }
+  get fsContext() {
+    return this[CTRL_FIELD_FS_CTX]
   }
   get db() {
     return this.dbContext.db()

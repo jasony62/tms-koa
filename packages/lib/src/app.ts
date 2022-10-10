@@ -417,9 +417,11 @@ class TmsKoa extends Koa {
         logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
       }
     }
-    debug.extend('fs')(
-      '完成【fs】服务配置\n' + JSON.stringify(fsConfig, null, 2)
-    )
+    if (fsConfig)
+      debug.extend('fs')(
+        '完成【fs】服务配置\n' + JSON.stringify(fsConfig, null, 2)
+      )
+    else debug.extend('fs')('没有配置数据，未启动【fs】服务')
 
     /**
      * 推送服务模块初始化

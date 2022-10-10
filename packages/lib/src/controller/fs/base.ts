@@ -11,19 +11,16 @@ const logger = log4js.getLogger('tms-koa-fs-base')
  * 文件管理控制器
  */
 export class BaseCtrl extends Ctrl {
-  fsContext
   domain
 
-  constructor(ctx, client, dbContext, mongoClient, pushContext) {
-    super(ctx, client, dbContext, mongoClient, pushContext)
+  constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext) {
+    super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
   /**
    * 检查访问权限
    */
   async tmsBeforeEach() {
-    if (!this.tmsContext.FsContext || !this.tmsContext.FsContext.insSync)
-      return new ResultFault('文件服务不可用')
-    this.fsContext = this.tmsContext.FsContext.insSync()
+    if (!this.fsContext) return new ResultFault('文件服务不可用')
 
     let { domain } = this.request.query
     // 检查指定的domain

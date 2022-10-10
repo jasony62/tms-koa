@@ -26,7 +26,14 @@ export class UploadCtrl extends BaseCtrl {
 
       let thumbInfo
       if (thumb === 'Y') {
-        thumbInfo = await uploader.makeThumb(filepath, false)
+        if (
+          this?.fsContext?.thumbnail &&
+          typeof this.fsContext.thumbnail === 'object'
+        ) {
+          thumbInfo = await uploader.makeThumb(filepath, false)
+        } else {
+          return new ResultFault('未设置缩略图服务，无法创建缩略图')
+        }
       }
 
       const publicPath = uploader.publicPath(filepath)

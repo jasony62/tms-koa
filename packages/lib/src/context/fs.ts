@@ -3,6 +3,9 @@ const log4js = require('@log4js-node/log4js-api')
 const logger = log4js.getLogger('tms-koa-fs')
 const fs = require('fs')
 const path = require('path')
+const Debug = require('debug')
+
+const debug = Debug('tms-koa:fs:context')
 
 // 本地文件存储起始位置
 function initRootDir(instance, lfsConfig) {
@@ -40,6 +43,9 @@ function initThumb(instance, lfsConfig) {
     if (parseInt(height)) instance.thumbnail.height = parseInt(height)
 
     logger.info(`创建缩略图服务(${JSON.stringify(instance.thumbnail)})`)
+    debug('开启缩略图服务\n' + JSON.stringify(instance.thumbnail, null, 2))
+  } else {
+    debug('未开启缩略图服务')
   }
 }
 /**

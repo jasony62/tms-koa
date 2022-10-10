@@ -12,7 +12,8 @@ const Debug = require('debug')
 const debug = Debug('tms-koa:ctrl-router')
 
 const { Context: TmsContext, getAccessTokenByRequest } = require('../app')
-const { AppContext, DbContext, MongoContext, PushContext } = TmsContext
+const { AppContext, DbContext, MongoContext, FsContext, PushContext } =
+  TmsContext
 
 /**可信任主机配置文件存放位置*/
 const TrustedHostsFile = nodePath.resolve(
@@ -235,7 +236,7 @@ async function fnCtrlWrapper(ctx, next) {
     }
   }
   /* 数据库连接 */
-  let dbContext, mongoClient, pushContext
+  let dbContext, mongoClient, fsContext, pushContext
   try {
     if (DbContext) {
       dbContext = new DbContext()
@@ -243,6 +244,7 @@ async function fnCtrlWrapper(ctx, next) {
     if (MongoContext) {
       mongoClient = await MongoContext.mongoClient()
     }
+    if (FsContext) fsContext = await FsContext.ins()
     if (PushContext) pushContext = await PushContext.ins()
     /**
      * 创建控制器实例
@@ -252,7 +254,8 @@ async function fnCtrlWrapper(ctx, next) {
       tmsClient,
       dbContext,
       mongoClient,
-      pushContext
+      pushContext,
+      fsContext
     )
     oCtrl.tmsContext = TmsContext
     /**
