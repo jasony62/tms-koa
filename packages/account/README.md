@@ -1,6 +1,10 @@
 # tms-koa-account
 
-`tms-koa`账号管理控制器插件。支持账号的增删改查操作。
+`tms-koa`账号管理控制器插件。
+
+- 支持账号的增删改查操作；
+- 支持基于 token 的认证功能；
+- 支持验证码校验服务；
 
 # tms-koa 用户认证方法
 
@@ -76,8 +80,8 @@ module.exports = {
         mustCheckNum: 3,
         contains: ['digits', 'uppercase', 'lowercase', 'symbols'],
       }, // 是否包含数字、大写字母、小写字母、特殊字符, 至少满足其中length项
-      hasSpaces: false, // 是否包含空格
-      hasAccount: false,
+      hasSpaces: false, // 是否允许包含空格
+      hasAccount: false, // 是否允许包含账号
       hasKeyBoardContinuousChar: false,
       // hasKeyBoardContinuousCharSize: 4
     },
@@ -134,17 +138,17 @@ const checkRst = pwdProcess.pwdStrengthCheck()
 
 # 账号对象固定字段
 
-| 字段            | 说明                 | 类型     | 必填 |
-| --------------- | -------------------- | -------- | ---- |
-| \_id            | 系统自动生成 id      | ObjectId | 是   |
-| username        | 用户账户名，不可重复 | string   | 是   |
-| nickname        | 用户昵称             | string   | 是   |
-| password        | 系统自动加密         | string   | 是   |
-| salt            | 系统自动生成         | string   | 是   |
-| pwdErrNum       | 密码错误次数         | int      | 否   |
-| authLockExp     | 授权锁截止时间       | string   | 否   |
-| isAdmin         | 是否为管理员         | boolean  | 否   |
-| allowMultiLogin | 是否允许多点登录     | boolean  | 否   |
+| 字段            | 说明                                                     | 类型     | 必填 |
+| --------------- | -------------------------------------------------------- | -------- | ---- |
+| \_id            | 系统自动生成 id                                          | ObjectId | 是   |
+| username        | 用户账户名，不可重复                                     | string   | 是   |
+| nickname        | 用户昵称                                                 | string   | 是   |
+| password        | 系统自动加密                                             | string   | 是   |
+| salt            | 系统自动生成                                             | string   | 是   |
+| pwdErrNum       | 密码错误次数                                             | int      | 否   |
+| authLockExp     | 授权锁截止时间                                           | string   | 否   |
+| isAdmin         | 是否为管理员                                             | boolean  | 否   |
+| allowMultiLogin | 是否允许多点登录。只在 token 由 redis 管理的情况下有效。 | boolean  | 否   |
 
 # 演示
 

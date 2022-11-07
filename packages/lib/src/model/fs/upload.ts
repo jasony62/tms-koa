@@ -81,26 +81,31 @@ export class Upload {
    * 生成缩略图
    */
   async makeThumb(filepath, isRelative = true) {
-    const sharp = require('sharp')
     if (!this.fs.thumbDir) return false
 
     const ext = path.extname(filepath)
     if (/\.[png|jpg|jpeg]/i.test(ext)) {
-      const fullpath = isRelative ? this.fs.fullpath(filepath) : filepath
-      const thumbPath = this.fs.thumbPath(filepath, isRelative)
-      const thumbnail = await sharp(fullpath)
-        .resize(this.thumbWidth, this.thumbHeight, { fit: 'inside' })
-        .toBuffer()
+      try {
+        const sharp = require('sharp')
+        const fullpath = isRelative ? this.fs.fullpath(filepath) : filepath
+        const thumbPath = this.fs.thumbPath(filepath, isRelative)
+        const thumbnail = await sharp(fullpath)
+          .resize(this.thumbWidth, this.thumbHeight, { fit: 'inside' })
+          .toBuffer()
 
-      this.fs.write(thumbPath, thumbnail, false)
-      // 获取文件信息
-      let stat = fs.statSync(thumbPath)
+        this.fs.write(thumbPath, thumbnail, false)
+        // 获取文件信息
+        let stat = fs.statSync(thumbPath)
 
-      return {
-        path: this.publicPath(thumbPath),
-        size: stat.size,
-        width: this.thumbWidth,
-        height: this.thumbHeight,
+        return {
+          path: this.publicPath(thumbPath),
+          size: stat.size,
+          width: this.thumbWidth,
+          height: this.thumbHeight,
+        }
+      } catch (e) {
+        logger.warn('创建缩略图失败', e)
+        return false
       }
     }
 

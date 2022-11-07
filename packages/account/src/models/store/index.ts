@@ -27,7 +27,7 @@ class MongodbModel extends MongodbModelBase {
     ctx
   ): Promise<[boolean, number | string | void]> {
     const oAccount = await this.findOne({ username })
-    if (!oAccount) return [false, '账号或密码错误']
+    if (!oAccount) return [false, '账号或密码错误（1）']
     if (oAccount.forbidden === true) return [false, '禁止登录']
     //
     const current = Date.now()
@@ -41,7 +41,7 @@ class MongodbModel extends MongodbModelBase {
     //可以登录检查密码
     const proPwd = new ProcessPwd(password, oAccount.salt)
     if (proPwd.compare(oAccount.password) === false) {
-      let msg = '账号或密码错误'
+      let msg = '账号或密码错误（2）'
       // 记录失败次数
       const pwdErrNum = !oAccount.pwdErrNum ? 1 : oAccount.pwdErrNum * 1 + 1
       let updata: any = { pwdErrNum }
@@ -77,7 +77,17 @@ class MongodbModel extends MongodbModelBase {
       }
     )
 
-    const { _id, password: pwd, salt, ...newAccount } = oAccount
+    const {
+      _id,
+      password: pwd,
+      salt,
+      create_at,
+      TMW_DEFAULT_UPDATE_TIME,
+      lastLoginIp,
+      lastLoginTime,
+      allowMultiLogin,
+      ...newAccount
+    } = oAccount
 
     return [true, newAccount]
   }
@@ -145,7 +155,9 @@ function createModel(tmsContext: any) {
         database,
         collection
       )
-      logger.debug('完成创建账号管理服务，储存方式【mongodb】')
+      logger.debug(
+        `完成创建账号管理服务，储存方式【mongodb】【${database}/${collection}】`
+      )
     } else {
       Account = new Proxy({}, unsupportHandler)
     }
