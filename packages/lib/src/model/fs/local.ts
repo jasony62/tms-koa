@@ -177,7 +177,8 @@ export class LocalFS {
         let fileinfo: any = {
           name,
           size: stats.size,
-          birthtime: stats.birthtimeMs,
+          birthtime: stats.birthtimeMs, // 有可能是0
+          mtime: stats.mtimeMs,
           path: publicPath,
         }
         files.push(fileinfo)

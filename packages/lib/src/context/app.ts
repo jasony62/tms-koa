@@ -103,13 +103,13 @@ function localCheckCaptcha(ctx, sysCode) {
  * @param {*} client
  */
 async function checkClientBucket(ctx, client) {
-  if (!client) throw Error('没有提供账号信息，无法进行bucket检查')
-
+  // 嵌入模式有可能没有用户信息
+  // if (!client) throw Error('没有提供账号信息，无法进行bucket检查')
   const { bucket } = ctx.request.query
   /**
    * 如果指定的本地账号中包含bucket信息，使用账号携带的信息
    */
-  if (typeof Context.insSync().auth.client === 'object') {
+  if (typeof Context.insSync().auth.client === 'object' && client) {
     const { accounts } = Context.insSync().auth.client
     if (Array.isArray(accounts) && accounts.length) {
       const account = accounts.find((a) => a.id === client.id)
