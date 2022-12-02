@@ -438,7 +438,8 @@ class TmsKoa extends Koa {
       }
     }
     debug.extend('push')(
-      '完成【push】服务配置\n' + JSON.stringify(pushConfig, null, 2)
+      '完成【push】服务配置\n',
+      JSON.stringify(pushConfig, null, 2)
     )
 
     /**
@@ -456,7 +457,8 @@ class TmsKoa extends Koa {
       }
     }
     debug.extend('agenda')(
-      '完成【agenda】服务配置\n' + JSON.stringify(agendaConfig, null, 2)
+      '完成【agenda】服务配置\n',
+      JSON.stringify(agendaConfig, null, 2)
     )
 
     /**
@@ -474,7 +476,8 @@ class TmsKoa extends Koa {
       }
     }
     debug.extend('swagger')(
-      '完成数据【swagger】配置\n' + JSON.stringify(swaggerConfig, null, 2)
+      '完成数据【swagger】配置\n',
+      JSON.stringify(swaggerConfig, null, 2)
     )
 
     /**
@@ -492,7 +495,8 @@ class TmsKoa extends Koa {
       }
     }
     debug.extend('metrics')(
-      '完成数据【metrics】配置\n' + JSON.stringify(metricsConfig, null, 2)
+      '完成数据【metrics】配置\n',
+      JSON.stringify(metricsConfig, null, 2)
     )
 
     /**

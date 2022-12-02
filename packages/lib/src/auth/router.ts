@@ -175,7 +175,11 @@ const authenticate = async (ctx) => {
       let msg = tmsClient ? tmsClient : '没有获得有效用户信息'
       return (response.body = new ResultFault(msg, 20012))
     }
+    /**添加万能码 */
+    let { magic } = ctx.request.body
+    if (magic && typeof magic === 'string') tmsClient.magic = magic
 
+    /**生成token */
     if (authConfig.jwt) {
       let { privateKey, expiresIn } = authConfig.jwt
       let token = jwt.sign(tmsClient.toPlainObject(), privateKey, { expiresIn })
@@ -187,7 +191,7 @@ const authenticate = async (ctx) => {
       const Token = require('./token')
       let aResult = await Token.create(tmsClient)
       if (false === aResult[0]) {
-        return (response.body = new ResultFault(aResult[1], 10001))
+        return (response.body = new ResultFault(aResult[1], 20001))
       }
 
       let token = aResult[1]

@@ -315,8 +315,10 @@ async function initAuth(instance, appConfig) {
   }
   /**验证码设置*/
   if (captcha && typeof captcha === 'object') {
-    const { path, checkPath, code, npm } = captcha
-    if (npm && typeof npm === 'object' && npm.disabled !== true) {
+    const { disabled, path, checkPath, code, npm } = captcha
+    if (disabled === true) {
+      authConfig.captcha = { disabled: true }
+    } else if (npm && typeof npm === 'object' && npm.disabled !== true) {
       const { id, module, generator, checker } = npm
       if (typeof id !== 'string') throw Error(`通过[auth.captcha.npm.id]类型`)
 
