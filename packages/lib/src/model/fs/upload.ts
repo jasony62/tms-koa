@@ -1,8 +1,8 @@
 import * as fs from 'fs-extra'
 import * as path from 'path'
 import { LocalFS } from '.'
+import dayjs from 'dayjs'
 
-const moment = require('moment')
 const log4js = require('@log4js-node/log4js-api')
 const logger = log4js.getLogger('tms-koa-model-fs-upload')
 
@@ -39,7 +39,7 @@ export class Upload {
   autodir() {
     let dir
 
-    dir = moment().format('YYYYMM/DDHH')
+    dir = dayjs().format('YYYYMM/DDHH')
 
     return dir
   }
@@ -50,7 +50,7 @@ export class Upload {
     let name
 
     name =
-      moment().format('mmss') +
+      dayjs().format('mmss') +
       +(Math.floor(Math.random() * (9999 - 1000)) + 1000)
 
     return name
