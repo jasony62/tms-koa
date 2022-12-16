@@ -12,6 +12,11 @@ const router = new Router({ prefix: routerAuthPrefix })
 logger.info(`指定Auth控制器前缀：${routerAuthPrefix}`)
 
 const authConfig = AppContext.insSync().auth
+
+// 记录指标
+const { Metrics } = require('./metrics')
+const metrics = new Metrics()
+
 // 获取error msg
 function getErrMsg(error, msg = '未知错误') {
   if (typeof error === 'string') return error
@@ -95,6 +100,7 @@ async function registerTmsClient(ctx) {
  */
 router.post('/register', async (ctx) => {
   let { response } = ctx
+  let labels: any = { name: 'register' }
 
   try {
     if (!authConfig.jwt && !authConfig.redis)
@@ -103,16 +109,30 @@ router.post('/register', async (ctx) => {
     let [passed, userInfo] = await registerTmsClient(ctx)
     if (passed === false) {
       let msg = userInfo ? userInfo : '注册失败'
-      return (response.body = new ResultFault(msg, 20013))
+      response.body = new ResultFault(msg, 20013)
+
+      // 记录指标
+      labels.stage = 'fail'
+      metrics.total(labels)
+
+      return
     }
 
-    return (response.body = new ResultData(userInfo))
+    response.body = new ResultData(userInfo)
+    // 记录指标
+    labels.stage = 'success'
+    metrics.total(labels)
+
+    return
   } catch (error) {
     logger.error(error)
     response.body = new ResultFault(
       error.message ? error.message : error.toString(),
       20050
     )
+    // 记录指标
+    labels.stage = 'error'
+    metrics.total(labels)
   }
 })
 /**
@@ -120,14 +140,22 @@ router.post('/register', async (ctx) => {
  */
 router.get('/client', async (ctx) => {
   let { response } = ctx
+  let labels: any = { name: 'client' }
 
   try {
     if (!authConfig.jwt && !authConfig.redis)
       return (response.body = new ResultFault('没有指定用户认证方法'))
 
     const [success, access_token] = getAccessTokenByRequest(ctx)
-    if (false === success)
-      return (response.body = new ResultFault(access_token))
+    if (false === success) {
+      response.body = new ResultFault(access_token)
+
+      // 记录指标
+      labels.stage = 'check'
+      metrics.total(labels)
+
+      return
+    }
 
     let tmsClient
     if (authConfig.jwt) {
@@ -141,13 +169,22 @@ router.get('/client', async (ctx) => {
       }
       tmsClient = aResult[1]
     }
-    return (response.body = new ResultData(tmsClient.toPlainObject()))
+    response.body = new ResultData(tmsClient.toPlainObject())
+
+    // 记录指标
+    labels.stage = 'success'
+    metrics.total(labels)
+
+    return
   } catch (error) {
     logger.error(error)
     response.body = new ResultFault(
       error.message ? error.message : error.toString(),
       20050
     )
+    // 记录指标
+    labels.stage = 'error'
+    metrics.total(labels)
   }
 })
 /**
@@ -156,6 +193,7 @@ router.get('/client', async (ctx) => {
  */
 const authenticate = async (ctx) => {
   let { response } = ctx
+  let labels: any = { name: 'authenticate' }
 
   try {
     if (!authConfig.jwt && !authConfig.redis)
@@ -166,14 +204,24 @@ const authenticate = async (ctx) => {
       logger.warn(
         `有通过未授权主机调用auth::authenticate接口，原因：${trusted[1]}`
       )
-      return (response.body = new ResultFault('不允许调用此接口'))
+      response.body = new ResultFault('不允许调用此接口')
+
+      // 记录指标
+      labels.stage = 'untrusted'
+      metrics.total(labels)
+      return
     }
 
     /**根据请求中携带的信息，获得访问用户数据*/
     let [passed, tmsClient] = await getTmsClient(ctx)
     if (passed === false) {
       let msg = tmsClient ? tmsClient : '没有获得有效用户信息'
-      return (response.body = new ResultFault(msg, 20012))
+      response.body = new ResultFault(msg, 20012)
+
+      // 记录指标
+      labels.stage = 'unauthorized'
+      metrics.total(labels)
+      return
     }
     /**添加万能码 */
     let { magic } = ctx.request.body
@@ -187,6 +235,9 @@ const authenticate = async (ctx) => {
         access_token: token,
         expire_in: expiresIn,
       })
+      // 记录指标
+      labels.stage = 'authorized'
+      metrics.total(labels)
     } else if (authConfig.redis) {
       const Token = require('./token')
       let aResult = await Token.create(tmsClient)
@@ -196,6 +247,9 @@ const authenticate = async (ctx) => {
 
       let token = aResult[1]
       response.body = new ResultData(token)
+      // 记录指标
+      labels.stage = 'authorized'
+      metrics.total(labels)
     }
   } catch (error) {
     logger.error(error)
@@ -203,6 +257,10 @@ const authenticate = async (ctx) => {
       error.message ? error.message : error.toString(),
       20050
     )
+
+    // 记录指标
+    labels.stage = 'error'
+    metrics.total(labels)
   }
 }
 router.post(['/authenticate', '/authorize'], authenticate)
@@ -249,6 +307,7 @@ router.get(['/logout'], logout)
  */
 const createCaptcha = async (ctx) => {
   let { response } = ctx
+  let labels: any = { name: 'captcha' }
 
   try {
     let trusted = isTrustedHost(ctx)
@@ -262,23 +321,38 @@ const createCaptcha = async (ctx) => {
       let captcha = await captchaConfig.createCaptcha(ctx)
       if (captcha[0] === false) {
         let msg = captcha[1] ? captcha[1] : '没有获得有效的验证码'
-        return (response.body = new ResultFault(msg, 40001))
+        response.body = new ResultFault(msg, 40001)
+        // 记录指标
+        labels.stage = 'fail'
+        metrics.total(labels)
+        return
       }
 
       captcha = captcha[1]
-      return (response.body = new ResultData(captcha))
+      response.body = new ResultData(captcha)
+
+      // 记录指标
+      labels.stage = 'success'
+      metrics.total(labels)
+      return
     }
 
     response.body = new ResultFault(
       '未设置用验证码限制调用用户认证接口的方法',
       20011
     )
+    // 记录指标
+    labels.stage = 'fail'
+    metrics.total(labels)
   } catch (error) {
     logger.error(error)
     response.body = new ResultFault(
       error.message ? error.message : error.toString(),
       20050
     )
+    // 记录指标
+    labels.stage = 'error'
+    metrics.total(labels)
   }
 }
 router.get('/captcha', createCaptcha)
