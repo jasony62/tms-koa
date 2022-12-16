@@ -5,36 +5,24 @@ const logger = log4js.getLogger('tms-koa-metrics')
 const PromClient = require('prom-client')
 const { Registry } = PromClient
 
-const { ProfileCollector } = require('../metrics/collector/mongodb/profile')
-
-async function startSystemProfile(config) {
-  let { db, prefix } = config
-  if (!db || typeof db !== 'string') {
-    logger.warn(`监控服务配置文件中,未指定参数db，或数据类型不是字符串`)
-    return false
-  }
-
-  /* 启用mongodb慢查询监控指标 */
-  const { MongoContext } = require('../app').Context
-  if (MongoContext) {
-    const mongoClient = await MongoContext.mongoClient()
-    const pc = new ProfileCollector(mongoClient, db, prefix)
-    pc.run()
-  }
-}
-
 let _instance
 
 /** swagger服务配置信息 */
 export class Context {
-  register
+  private _register
   /**
    * 创建上下文
    *
    * @param {Object} register - 监控指标注册器
    */
   constructor(register) {
-    this.register = register
+    this._register = register
+  }
+  get client() {
+    return PromClient
+  }
+  get register() {
+    return this._register
   }
   /**
    * 获得配置信息实例
@@ -44,9 +32,10 @@ export class Context {
   static async init(metricsConfig) {
     if (_instance) return _instance
 
-    const register = new Registry()
+    // const register = new Registry()
+    const { register } = PromClient
 
-    let { collectDefault, systemProfile } = metricsConfig
+    let { collectDefault } = metricsConfig
 
     if (collectDefault === true) {
       let msg = '提供默认系统监控指标'
@@ -56,15 +45,6 @@ export class Context {
     }
 
     _instance = new Context(register)
-
-    /* 启动监控system.profile */
-    if (systemProfile) {
-      if (Array.isArray(systemProfile)) {
-        systemProfile.forEach((config) => startSystemProfile(config))
-      } else if (typeof systemProfile === 'object') {
-        startSystemProfile(systemProfile)
-      }
-    }
 
     logger.info(`完成监控服务设置。`)
 

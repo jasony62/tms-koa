@@ -37,143 +37,233 @@ const CtrlDir = nodePath.resolve(
 )
 debug(`控制器目录：${CtrlDir}`)
 
-/**在控制器目录中查找控制器类 */
-function findCtrlClassInCtrlDir(ctrlName, path: string) {
-  let ctrlPath = `${CtrlDir}/${ctrlName}.js`
-  if (!fs.existsSync(ctrlPath)) {
-    ctrlPath = `${CtrlDir}/${ctrlName}/main.js`
-    if (!fs.existsSync(ctrlPath)) {
-      let logMsg = `参数错误，请求的控制器类不存在(2)`
-      debug(
-        logMsg + '\n' + JSON.stringify({ ctrlName, path, ctrlPath }, null, 2)
-      )
-      logger.isDebugEnabled()
-        ? logger.debug(logMsg, ctrlName, path, ctrlPath)
-        : logger.error(logMsg)
-      throw new Error(logMsg)
+// 记录指标
+const { Metrics } = require('./metrics')
+const metrics = new Metrics()
+/**
+ * 记录处理的数据
+ */
+class ChainState {
+  ctrlName?: string
+  CtrlClass?: any
+  method?: string
+  tmsClient?: any
+  oCtrl?: any
+  inAccessWhite = false
+  checkTrustedHosted = false
+  ctrlTime = 0
+}
+
+type ChainNext = (state?: ChainState) => void
+
+interface StageHandler {
+  name: string
+  handle(ctx, next: ChainNext, state?: ChainState)
+}
+
+abstract class BaseHandler implements StageHandler {
+  name: string
+  abstract handle(ctx: any, next: ChainNext, state?: ChainState)
+}
+/**
+ * 检查请求路径是否有效
+ */
+class CheckPathHandler extends BaseHandler {
+  name = 'CheckPath'
+  /**
+   *
+   * @param ctx
+   * @param next
+   * @returns
+   */
+  async handle(ctx: any, next: ChainNext) {
+    let { request, response } = ctx
+    /**只处理api请求（不能包含点），其它返回找不到*/
+    if (/\./.test(request.path)) {
+      response.status = 404
+      response.body = 'Not Found'
+      return
     }
+    await next()
   }
-
-  let CtrlClass = require(ctrlPath)
-
-  return CtrlClass
 }
 /**控制器插件包*/
 type NpmCtrl = { id: string; dir?: string; alias?: string }
-/**从npm包中查找 */
-function findCtrlClassInNpms(npmCtrl: NpmCtrl, ctrlName: any, path: string) {
-  logger.debug(`控制器插件${JSON.stringify(npmCtrl)}匹配当前请求`)
-  let CtrlClass, ctrlPath
-  try {
-    // 先检查是否存在包
-    if (ctrlName.split('/')[0] === npmCtrl.alias) {
-      // 用包名替换请求路径中的别名
-      ctrlPath = ctrlName.replace(npmCtrl.alias, npmCtrl.id)
-    } else {
-      ctrlPath = ctrlName
-    }
-    if (npmCtrl.dir) {
-      // 如果指定了起始目录，在其实报名后面添加起始目录
-      ctrlPath = ctrlPath.replace(npmCtrl.id, `${npmCtrl.id}/${npmCtrl.dir}`)
-    }
-    CtrlClass = require(ctrlPath)
-  } catch (e) {
-    logger.warn(`查找npm控制器[${ctrlName}]失败[${e.message}]`, e)
-    // 从控制器路径查找
-    CtrlClass = findCtrlClassInCtrlDir(ctrlName, path)
-  }
-  return CtrlClass
-}
-
 /**
- *
- * @param {*} ctx
+ * 查找匹配的控制器
  */
-function findCtrlClassAndMethodName(ctx) {
-  let { path } = ctx.request
+class FindCtrlClassAndMethodNameHandler extends BaseHandler {
+  name = 'FindCtrl'
+  /**在控制器目录中查找控制器类 */
+  findCtrlClassInCtrlDir(ctrlName, path: string) {
+    let ctrlPath = `${CtrlDir}/${ctrlName}.js`
+    if (!fs.existsSync(ctrlPath)) {
+      ctrlPath = `${CtrlDir}/${ctrlName}/main.js`
+      if (!fs.existsSync(ctrlPath)) {
+        let logMsg = `参数错误，请求的控制器类不存在(2)`
+        debug(
+          logMsg + '\n' + JSON.stringify({ ctrlName, path, ctrlPath }, null, 2)
+        )
+        logger.isDebugEnabled()
+          ? logger.debug(logMsg, ctrlName, path, ctrlPath)
+          : logger.error(logMsg)
+        throw new Error(logMsg)
+      }
+    }
 
-  if (prefix) path = path.replace(prefix, '')
+    let CtrlClass = require(ctrlPath)
 
-  let pieces = path.split('/').filter((p) => p)
-  if (pieces.length === 0) {
-    let logMsg = '参数错误，请求的控制器不存在(1)'
-    logger.isDebugEnabled()
-      ? logger.debug(logMsg, path, pieces)
-      : logger.error(logMsg)
-    throw new Error(logMsg)
+    return CtrlClass
   }
-  let CtrlClass
-  const method: string = pieces.splice(-1, 1)[0]
-  const ctrlName: string = pieces.length ? pieces.join('/') : 'main'
+  /**从npm包中查找 */
+  findCtrlClassInNpms(npmCtrl: NpmCtrl, ctrlName: any, path: string) {
+    logger.debug(`控制器插件${JSON.stringify(npmCtrl)}匹配当前请求`)
+    let CtrlClass, ctrlPath
+    try {
+      // 先检查是否存在包
+      if (ctrlName.split('/')[0] === npmCtrl.alias) {
+        // 用包名替换请求路径中的别名
+        ctrlPath = ctrlName.replace(npmCtrl.alias, npmCtrl.id)
+      } else {
+        ctrlPath = ctrlName
+      }
+      if (npmCtrl.dir) {
+        // 如果指定了起始目录，在其实报名后面添加起始目录
+        ctrlPath = ctrlPath.replace(npmCtrl.id, `${npmCtrl.id}/${npmCtrl.dir}`)
+      }
+      CtrlClass = require(ctrlPath)
+    } catch (e) {
+      logger.warn(`查找npm控制器[${ctrlName}]失败[${e.message}]`, e)
+      // 从控制器路径查找
+      CtrlClass = this.findCtrlClassInCtrlDir(ctrlName, path)
+    }
+    return CtrlClass
+  }
+  /**
+   *
+   * @param {*} request
+   */
+  findCtrlClassAndMethodName(request) {
+    let { path } = request
 
-  /**指定的控制器插件包*/
-  const npmCtrls: NpmCtrl[] = _.get(
-    AppContext.insSync(),
-    'router.controllers.plugins_npm'
-  )
-  let npmCtrl: NpmCtrl
-  if (Array.isArray(npmCtrls) && npmCtrls.length) {
-    npmCtrl = npmCtrls.find((nc) =>
-      new RegExp(`${nc.alias}|${nc.id}`).test(ctrlName.split('/')[0])
+    if (prefix) path = path.replace(prefix, '')
+
+    let pieces = path.split('/').filter((p) => p)
+    if (pieces.length === 0) {
+      let logMsg = '参数错误，请求的控制器不存在(1)'
+      logger.isDebugEnabled()
+        ? logger.debug(logMsg, path, pieces)
+        : logger.error(logMsg)
+      throw new Error(logMsg)
+    }
+    let CtrlClass
+    const method: string = pieces.splice(-1, 1)[0]
+    const ctrlName: string = pieces.length ? pieces.join('/') : 'main'
+
+    /**指定的控制器插件包*/
+    const npmCtrls: NpmCtrl[] = _.get(
+      AppContext.insSync(),
+      'router.controllers.plugins_npm'
     )
+    let npmCtrl: NpmCtrl
+    if (Array.isArray(npmCtrls) && npmCtrls.length) {
+      npmCtrl = npmCtrls.find((nc) =>
+        new RegExp(`${nc.alias}|${nc.id}`).test(ctrlName.split('/')[0])
+      )
+    }
+    if (npmCtrl) {
+      CtrlClass = this.findCtrlClassInNpms(npmCtrl, ctrlName, path)
+    } else {
+      CtrlClass = this.findCtrlClassInCtrlDir(ctrlName, path)
+    }
+
+    if (CtrlClass.default) CtrlClass = CtrlClass.default
+
+    return [ctrlName, CtrlClass, method]
   }
-  if (npmCtrl) {
-    CtrlClass = findCtrlClassInNpms(npmCtrl, ctrlName, path)
-  } else {
-    CtrlClass = findCtrlClassInCtrlDir(ctrlName, path)
-  }
+  /**
+   *
+   * @param ctx
+   * @param next
+   */
+  async handle(ctx: any, next: ChainNext) {
+    let { request, response } = ctx
+    /* 查找控制器和方法 */
+    let findCtrlResult
+    try {
+      findCtrlResult = this.findCtrlClassAndMethodName(request)
+      const [ctrlName, CtrlClass, method] = findCtrlResult
+      let ctrlTarget = new ChainState()
+      ctrlTarget.ctrlName = ctrlName
+      ctrlTarget.CtrlClass = CtrlClass
+      ctrlTarget.method = method
 
-  if (CtrlClass.default) CtrlClass = CtrlClass.default
-
-  return [ctrlName, CtrlClass, method]
-}
-
-/**
- * 根据请求找到对应的控制器并执行
- *
- * @param {Context} ctx
- *
- */
-async function fnCtrlWrapper(ctx, next) {
-  let { request, response } = ctx
-
-  /**只处理api请求（不能包含点），其它返回找不到*/
-  if (/\./.test(request.path)) {
-    response.status = 404
-    return (response.body = 'Not Found')
-  }
-
-  /* 查找控制器和方法 */
-  let findCtrlResult
-  try {
-    findCtrlResult = findCtrlClassAndMethodName(ctx)
-  } catch (e) {
-    let logMsg = e.message || `无法识别指定的请求，请检查输入的路径是否正确`
-    logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.error(logMsg)
-    return (response.body = new ResultFault(logMsg))
-  }
-  const [ctrlName, CtrlClass, method] = findCtrlResult
-
-  /* 检查访问控制 */
-  let tmsClient // 发送请求的用户
-  const authConfig = AppContext.insSync().auth
-  let accessWhite
-  if (Object.prototype.hasOwnProperty.call(CtrlClass, 'tmsAccessWhite')) {
-    accessWhite = CtrlClass.tmsAccessWhite()
-    if (!Array.isArray(accessWhite)) {
-      logger.warn(`控制器"${ctrlName}"白名单格式错误`, accessWhite)
-      return (response.body = new ResultFault(
-        '控制器认证白名单方法返回值格式错误'
-      ))
+      await next(ctrlTarget)
+    } catch (e) {
+      let logMsg = e.message || `无法识别指定的请求，请检查输入的路径是否正确`
+      logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.error(logMsg)
+      response.body = new ResultFault(logMsg)
     }
   }
-  let inAccessWhite = false // 执行的方法是否在白名中
-  if (accessWhite?.includes(method)) {
-    // 方法在白名单忠，跳过认证
-    inAccessWhite = true
-  } else if (
-    Object.prototype.hasOwnProperty.call(CtrlClass, 'tmsAuthTrustedHosts')
-  ) {
+}
+/**
+ * 检查控制自带白名单
+ */
+class CheckTmsAccessWhiteHandler extends BaseHandler {
+  name = 'TmsAccessWhite'
+  /**
+   *
+   * @param ctx
+   * @param next
+   * @param state
+   * @returns
+   */
+  async handle(ctx: any, next: ChainNext, state: ChainState) {
+    let { response } = ctx
+    const { ctrlName, CtrlClass, method } = state
+    let accessWhite
+    if (Object.prototype.hasOwnProperty.call(CtrlClass, 'tmsAccessWhite')) {
+      accessWhite = CtrlClass.tmsAccessWhite()
+      if (!Array.isArray(accessWhite)) {
+        logger.warn(`控制器"${ctrlName}"白名单格式错误`, accessWhite)
+        response.body = new ResultFault('控制器认证白名单方法返回值格式错误')
+        return
+      }
+      if (accessWhite?.includes(method)) {
+        // 方法在白名单忠，跳过认证
+        state.inAccessWhite = true
+      }
+    }
+    await next(state)
+  }
+}
+/**
+ * 检查请求是否来源于信任主机
+ */
+class CheckTmsAuthTrustedHosts extends BaseHandler {
+  name = 'TmsAuthTrustedHosts'
+  /**
+   *
+   * @param ctx
+   * @param next
+   * @param state
+   * @returns
+   */
+  async handle(ctx: any, next: ChainNext, state: ChainState) {
+    if (state.inAccessWhite === true) {
+      await next(state)
+      return
+    }
+
+    const { ctrlName, CtrlClass } = state
+    if (
+      !Object.prototype.hasOwnProperty.call(CtrlClass, 'tmsAuthTrustedHosts')
+    ) {
+      await next(state)
+      return
+    }
+
+    const { request, response } = ctx
     const skip = /yes|true/i.test(process.env.TMS_KOA_SKIP_TRUSTED_HOST ?? 'no')
     if (!skip) {
       // 检查是否来源于可信主机
@@ -205,7 +295,37 @@ async function fnCtrlWrapper(ctx, next) {
     } else {
       debug('控制器访问跳过可信任主机检查')
     }
-  } else if (authConfig?.mode) {
+
+    state.checkTrustedHosted = true
+    await next(state)
+  }
+}
+/**
+ * 用户认证
+ */
+class CheckAuthHandler extends BaseHandler {
+  name = 'CheckAuth'
+  /**
+   *
+   * @param ctx
+   * @param next
+   * @param state
+   * @returns
+   */
+  async handle(ctx: any, next: ChainNext, state: ChainState) {
+    if (state.inAccessWhite === true || state.checkTrustedHosted === true) {
+      await next(state)
+      return
+    }
+
+    const authConfig = AppContext.insSync().auth
+    if (!authConfig?.mode) {
+      await next(state)
+      return
+    }
+
+    let tmsClient
+    let { response } = ctx
     // 进行用户鉴权
     let [success, access_token] = getAccessTokenByRequest(ctx)
     if (false === success)
@@ -234,10 +354,26 @@ async function fnCtrlWrapper(ctx, next) {
       tmsClient = aResult[1]
       await Token.expire(access_token, tmsClient) // 重置token过期时间
     }
+    state.tmsClient = tmsClient
+    await next(state)
   }
-  /* 数据库连接 */
-  let dbContext, mongoClient, fsContext, pushContext
-  try {
+}
+/**
+ * 创建控制器
+ */
+class CreateCtrlHandler extends BaseHandler {
+  name = 'CreateCtrl'
+  /**
+   *
+   * @param ctx
+   * @param next
+   * @param state
+   */
+  async handle(ctx: any, next: ChainNext, state: ChainState) {
+    const { CtrlClass, tmsClient } = state
+    /* 数据库连接 */
+    let dbContext, mongoClient, fsContext, pushContext
+
     if (DbContext) {
       dbContext = new DbContext()
     }
@@ -258,6 +394,25 @@ async function fnCtrlWrapper(ctx, next) {
       fsContext
     )
     oCtrl.tmsContext = TmsContext
+    state.oCtrl = oCtrl
+    await next(state)
+  }
+}
+/**
+ * 检查指定的方法是否存在
+ */
+class CheckCtrlMethod extends BaseHandler {
+  name = 'CheckMethod'
+  /**
+   *
+   * @param ctx
+   * @param next
+   * @param state
+   * @returns
+   */
+  async handle(ctx: any, next: ChainNext, state: ChainState) {
+    const { response } = ctx
+    const { oCtrl, method } = state
     /**
      * 检查指定的方法是否存在
      */
@@ -268,34 +423,62 @@ async function fnCtrlWrapper(ctx, next) {
         : logger.error(logMsg)
       return (response.body = new ResultFault(logMsg))
     }
+    await next(state)
+  }
+}
+/**
+ * 多租户模式，检查bucket
+ * 白名单方法不检查bucket
+ */
+class CheckBuckHandler extends BaseHandler {
+  name = 'CheckBucket'
+  /**
+   *
+   * @param ctx
+   * @param next
+   * @param state
+   * @returns
+   */
+  async handle(ctx: any, next: ChainNext, state: ChainState) {
+    const { response } = ctx
+    const { CtrlClass, tmsClient, oCtrl } = state
     /**
      * 多租户模式，检查bucket
      * 白名单方法不检查bucket
      */
     const appContext = AppContext.insSync()
-    if (inAccessWhite === false) {
-      let bucketValidateResult
-      if (
-        Object.prototype.hasOwnProperty.call(CtrlClass, 'tmsBucketValidator')
-      ) {
-        // 控制提供了bucket检查方法
-        bucketValidateResult = await CtrlClass.tmsBucketValidator(tmsClient)
-      } else if (appContext.checkClientBucket) {
-        // 应用配置了bucket检查方法
-        bucketValidateResult = await appContext.checkClientBucket(
-          ctx,
-          tmsClient
-        )
-      }
-      if (bucketValidateResult) {
-        const [passed, bucket] = bucketValidateResult
-        if (passed !== true)
-          return (response.body = new ResultFault(
-            '没有访问指定bucket资源的权限'
-          ))
-        if (typeof bucket === 'string') oCtrl.bucket = bucket
-      }
+    let bucketValidateResult
+    if (Object.prototype.hasOwnProperty.call(CtrlClass, 'tmsBucketValidator')) {
+      // 控制提供了bucket检查方法
+      bucketValidateResult = await CtrlClass.tmsBucketValidator(tmsClient)
+    } else if (appContext.checkClientBucket) {
+      // 应用配置了bucket检查方法
+      bucketValidateResult = await appContext.checkClientBucket(ctx, tmsClient)
     }
+    if (bucketValidateResult) {
+      const [passed, bucket] = bucketValidateResult
+      if (passed !== true)
+        return (response.body = new ResultFault('没有访问指定bucket资源的权限'))
+      if (typeof bucket === 'string') oCtrl.bucket = bucket
+    }
+    await next(state)
+  }
+}
+/**
+ * 控制器前置操作
+ */
+class TmsBeforeEachHandler extends BaseHandler {
+  name = 'TmsBeforeEach'
+  /**
+   *
+   * @param ctx
+   * @param next
+   * @param state
+   * @returns
+   */
+  async handle(ctx: any, next: ChainNext, state: ChainState) {
+    const { response } = ctx
+    const { oCtrl, method } = state
     /**
      * 前置操作
      */
@@ -305,10 +488,84 @@ async function fnCtrlWrapper(ctx, next) {
         return (response.body = resultBefore)
       }
     }
+    await next(state)
+  }
+}
+/**
+ * 执行控制器方法
+ */
+class ExecCtrlMethodHandler extends BaseHandler {
+  name = 'ExecCtrl'
+  /**
+   *
+   * @param ctx
+   * @param next
+   * @param state
+   */
+  async handle(ctx: any, next: ChainNext, state: ChainState) {
+    const { response, request } = ctx
+    const { oCtrl, method } = state
+    const start = Date.now()
+
     /* 执行方法调用 */
     const result = await oCtrl[method](request)
-
     response.body = result
+
+    // 记录耗时
+    state.ctrlTime = Date.now() - start
+
+    await next(state)
+  }
+}
+/**
+ * 处理收到的请求
+ */
+const chain = []
+chain.push(new CheckPathHandler())
+chain.push(new FindCtrlClassAndMethodNameHandler())
+chain.push(new CheckTmsAccessWhiteHandler())
+chain.push(new CheckTmsAuthTrustedHosts())
+chain.push(new CheckAuthHandler())
+chain.push(new CreateCtrlHandler())
+chain.push(new CheckCtrlMethod())
+chain.push(new CheckBuckHandler())
+chain.push(new TmsBeforeEachHandler())
+chain.push(new ExecCtrlMethodHandler())
+/**
+ * 根据请求找到对应的控制器并执行
+ *
+ * @param {Context} ctx
+ *
+ */
+async function fnCtrlWrapper(ctx, next) {
+  let { response } = ctx
+  /**
+   * 检查指定的方法是否存在
+   */
+  try {
+    let index = -1
+    let latestState
+    const runChain = async (state?) => {
+      if (state) latestState = state
+      if (index + 1 < chain.length) {
+        let h = chain[++index]
+        await h.handle(ctx, runChain, state)
+      }
+    }
+    await runChain()
+
+    // 记录指标
+    if (index < chain.length) {
+      let { url } = ctx.request
+      let h = chain[index]
+      let stage = h.name
+      let ctrlName = latestState?.ctrlName
+      let ctrlMethod = latestState?.method
+      let ctrlTime = latestState?.ctrlTime
+      let labels = { url, stage, ctrlName, ctrlMethod }
+      metrics.total(labels)
+      if (ctrlTime) metrics.time(labels, ctrlTime)
+    }
 
     next()
   } catch (err) {
@@ -318,10 +575,10 @@ async function fnCtrlWrapper(ctx, next) {
     response.body = new ResultFault(errMsg)
   } finally {
     // 关闭数据库连接
-    if (dbContext) {
-      dbContext.end()
-      dbContext = null
-    }
+    // if (dbContext) {
+    //   dbContext.end()
+    //   dbContext = null
+    // }
   }
 }
 

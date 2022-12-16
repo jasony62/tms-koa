@@ -19,12 +19,11 @@ logger.info(msg)
 const router = new Router()
 
 router.get(prefix, async (ctx) => {
-  let { request, response } = ctx
+  let { response } = ctx
 
   const metricsContext = MetricsContext.insSync()
 
-  const metrics = await metricsContext.register.metrics()
-
+  const metrics = await metricsContext.client.register.metrics()
   response.body = metrics
 })
 

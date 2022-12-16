@@ -27,11 +27,11 @@
     "socket.io": "^4.4.1",
     "swagger-jsdoc": "^6.2.0",
     "uuid": "^8.3.2",
-    "xlsx": "^0.18.5"
+    "xlsx": "^0.18.5",
+    "prom-client": "^14.1.0"
   },
   "peerDependencies": {
     "neo4j-driver": "^4.4.2",
-    "prom-client": "^13.1.0",
     "redis": "4.1.0",
     "tms-db": "^0.0.12"
   },
