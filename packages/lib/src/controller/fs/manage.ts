@@ -1,12 +1,15 @@
 import { BaseCtrl } from './base'
 import { ResultData, ResultFault } from '../../response'
-
-const { Info } = require('../../model/fs/info')
+import { Info } from '../../model/fs'
 
 /**
  * 文件管理控制器
  */
 export class ManageCtrl extends BaseCtrl {
+  /**
+   *
+   * @returns
+   */
   async list() {
     const fsInfo = await Info.ins(this.domain)
     if (!fsInfo) return new ResultFault('不支持设置文件信息')

@@ -1,6 +1,6 @@
 import * as fs from 'fs-extra'
 import * as path from 'path'
-import { LocalFS } from '.'
+import { LocalFS, MinioFS } from '.'
 import dayjs from 'dayjs'
 
 const log4js = require('@log4js-node/log4js-api')
@@ -12,17 +12,17 @@ import type { File } from 'formidable'
  * 上传文件
  */
 export class Upload {
-  fs: LocalFS
+  fs: LocalFS | MinioFS
   /**
    * 管理上传文件
    *
    * @param {LocalFS} fs 存储接口
    */
-  constructor(fs: LocalFS) {
+  constructor(fs: LocalFS | MinioFS) {
     this.fs = fs
   }
   get rootDir() {
-    return this.fs.rootDir
+    return this.fs.prefix
   }
   get domain() {
     return this.fs.domain
@@ -68,48 +68,10 @@ export class Upload {
     return name
   }
   /**
-   * 用于公开访问的路径，例如：下载
-   *
-   * 去掉rootDir部分，从domain开始
-   *
-   * @param {*} fullpath
-   */
-  publicPath(fullpath) {
-    return this.fs.publicPath(fullpath)
-  }
-  /**
    * 生成缩略图
    */
-  async makeThumb(filepath, isRelative = true) {
-    if (!this.fs.thumbDir) return false
-
-    const ext = path.extname(filepath)
-    if (/\.[png|jpg|jpeg]/i.test(ext)) {
-      try {
-        const sharp = require('sharp')
-        const fullpath = isRelative ? this.fs.fullpath(filepath) : filepath
-        const thumbPath = this.fs.thumbPath(filepath, isRelative)
-        const thumbnail = await sharp(fullpath)
-          .resize(this.thumbWidth, this.thumbHeight, { fit: 'inside' })
-          .toBuffer()
-
-        this.fs.write(thumbPath, thumbnail, false)
-        // 获取文件信息
-        let stat = fs.statSync(thumbPath)
-
-        return {
-          path: this.publicPath(thumbPath),
-          size: stat.size,
-          width: this.thumbWidth,
-          height: this.thumbHeight,
-        }
-      } catch (e) {
-        logger.warn('创建缩略图失败', e)
-        return false
-      }
-    }
-
-    return false
+  async makeThumb(filepath) {
+    return this.fs.makeThumb(filepath)
   }
 }
 /**
@@ -120,11 +82,11 @@ export class UploadPlain extends Upload {
    *
    * @param {*} fs
    */
-  constructor(fs: LocalFS) {
+  constructor(fs: LocalFS | MinioFS) {
     super(fs)
   }
   /**
-   *
+   * 保存文件
    * @param {object} file
    * @param {string} dir 指定的文件存储目录
    * @param {string} forceReplace 如果文件已经存在是否替换
@@ -269,27 +231,27 @@ export class UploadImage extends Upload {
     let imageBase64 = base64Content.replace(header, '')
     let imageBuffer = Buffer.from(imageBase64, 'base64')
 
-    let filename
+    let filepath
     if (this.domain.customName === true) {
       // 去掉指定目录开头或结尾的反斜杠
       dir = typeof dir === 'string' ? dir.replace(/(^\/|\/$)/g, '') : ''
       if (dir.length) {
-        filename = `${dir}/${this.autoname()}.${imageType}`
+        filepath = `${dir}/${this.autoname()}.${imageType}`
       } else {
-        filename = this.storename(imageType)
+        filepath = this.storename(imageType)
       }
     } else {
-      filename = this.storename(imageType)
+      filepath = this.storename(imageType)
     }
     if (forceReplace !== 'Y') {
       // 如果文件已经存在
-      if (this.fs.existsSync(filename)) {
-        throw new Error('文件已经存在')
-      }
+      if (this.fs.existsSync(filepath))
+        throw new Error(`文件【${filepath}】已经存在`)
     }
-    let fullname = this.fs.write(filename, imageBuffer)
 
-    return fullname
+    this.fs.write(filepath, imageBuffer)
+
+    return filepath
   }
   /**
    * 将指定的url保存到本地

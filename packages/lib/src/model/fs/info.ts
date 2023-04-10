@@ -39,6 +39,24 @@ class MongodbInfo {
     return info
   }
   /**
+   * 删除文件信息
+   * 
+   * @param domain 
+   * @param bucket 
+   * @param path 
+   
+  * @returns 
+   */
+  async remove(domain: string, bucket: string, path: string) {
+    const client = this.mongoClient
+    const cl = client.db(this.database).collection(this.collection)
+
+    let query: any = { domain, path }
+    if (bucket) query.bucket = bucket
+    const rst = await cl.deleteOne(query)
+    return rst
+  }
+  /**
    *
    * @param {*} query
    * @param {*} skip
@@ -54,7 +72,17 @@ class MongodbInfo {
       .skip(skip)
       .limit(limit)
       .toArray()
-      .then((docs) => docs)
+      .then((docs) => {
+        // 需要把path中domain去掉
+        docs.forEach((doc) => {
+          if (typeof doc?.domain === 'string' && doc.path) {
+            let prefix = doc.domain
+            if (typeof doc?.bucket === 'string') prefix += `/${doc.bucket}`
+            doc.publicUrl = `${prefix}/${doc.path}`
+          }
+        })
+        return docs
+      })
 
     result.total = await cl.find(query).count()
 
@@ -78,6 +106,9 @@ export class Info {
   }
   async get(path) {
     return await this.handler.get(path)
+  }
+  async remove(domain, bucket, path) {
+    return await this.handler.remove(domain, bucket, path)
   }
   async list(query, skip, limit) {
     if (!query) query = {}

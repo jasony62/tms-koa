@@ -1,8 +1,7 @@
 import { BaseCtrl } from './base'
 import { ResultData, ResultFault } from '../../response'
 
-const { LocalFS } = require('../../model/fs/local')
-const { Info } = require('../../model/fs/info')
+import { Info } from '../../model/fs'
 
 /**
  * 文件管理控制器
@@ -28,15 +27,17 @@ export class BrowseCtrl extends BaseCtrl {
    */
   async list() {
     let { dir } = this.request.query
-    let localFS = new LocalFS(this.tmsContext, this.domain, this.bucket)
-    let { files, dirs } = localFS.list(dir)
+    let tmsFS = this.fsModel()
+    let { files, dirs } = await tmsFS.list(dir, 1)
 
-    /**合并在数据库中保存的信息*/
-    const fsInfo = await Info.ins(this.domain)
-    if (fsInfo) {
-      for (let i = 0, ii = files.length; i < ii; i++) {
+    /**
+     * 合并在数据库中保存的信息
+     */
+    const fsInfoModel = await Info.ins(this.domain)
+    if (fsInfoModel) {
+      for (let i = 0, l = files.length; i < l; i++) {
         let file = files[i]
-        let info = await fsInfo.get(file.path)
+        let info = await fsInfoModel.get(file.path)
         if (info) {
           delete info._id
           delete info.path

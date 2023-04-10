@@ -34,12 +34,11 @@ export class ImageCtrl extends UploadCtrl {
 
     try {
       const filepath = upload.storeBase64(base64Content, dir, forceReplace)
-      const publicPath = upload.publicPath(filepath)
       // 获取文件信息
       let stat = fs.statSync(filepath)
-      let result: any = { path: publicPath, size: stat.size }
+      let result: any = { path: filepath, size: stat.size }
       let thumbInfo
-      if (thumb === 'Y') {
+      if (thumb === 'Y' && this.fsContext.backService === 'local') {
         thumbInfo = await upload.makeThumb(filepath, false)
         result.thumbPath = thumbInfo.path
         result.thumbSize = thumbInfo.size
@@ -57,7 +56,7 @@ export class ImageCtrl extends UploadCtrl {
             info.thumbSize = thumbInfo.size
           }
 
-          fsInfo.set(publicPath, info)
+          fsInfo.set(filepath, info)
         }
       }
 

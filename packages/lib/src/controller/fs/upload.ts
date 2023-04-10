@@ -1,7 +1,8 @@
 import { BaseCtrl } from './base'
 import { ResultData, ResultFault } from '../../response'
-import { UploadPlain, Info, LocalFS } from '../../model/fs'
+import { UploadPlain, Info } from '../../model/fs'
 import * as fs from 'fs'
+import type { File } from 'formidable'
 
 /**
  * 文件管理控制器（上传）
@@ -17,47 +18,45 @@ export class UploadCtrl extends BaseCtrl {
     const { dir, forceReplace, thumb } = this.request.query
 
     // 上传的原始文件，由formidable定义
-    const { file } = this.request.files
+    const { file }: { file: File } = this.request.files
 
-    const tmsFs = new LocalFS(this.tmsContext, this.domain, this.bucket)
+    const tmsFs = this.fsModel()
     const uploader = new UploadPlain(tmsFs)
     try {
       const filepath = await uploader.store(file, dir, forceReplace)
-
       let thumbInfo
-      if (thumb === 'Y') {
+      if (thumb === 'Y' && this.fsContext.backService === 'local') {
         if (
-          this?.fsContext?.thumbnail &&
+          this.fsContext?.thumbnail &&
           typeof this.fsContext.thumbnail === 'object'
         ) {
-          thumbInfo = await uploader.makeThumb(filepath, false)
+          thumbInfo = await uploader.makeThumb(filepath)
         } else {
           return new ResultFault('未设置缩略图服务，无法创建缩略图')
         }
       }
 
-      const publicPath = uploader.publicPath(filepath)
-
-      let result: any = { path: publicPath, size: file.size }
+      let result: any = { path: filepath, size: file.size }
       if (thumbInfo) {
         result.thumbPath = thumbInfo.path
         result.thumbSize = thumbInfo.size
       }
 
       /**在数据库中记录文件信息*/
-      const fsInfo = await Info.ins(this.domain)
-      if (fsInfo) {
+      const fsInfoModel = await Info.ins(this.domain)
+      if (fsInfoModel) {
         const info = this.request.body
         info.userid = this.client ? this.client.id : ''
         info.bucket = this.bucket
         info.name = file.originalFilename
         info.type = file.mimetype
         info.size = file.size
-        info.lastModified = file.lastModifiedDate
-          ? file.lastModifiedDate.getTime()
-          : Date.now()
+        // info.lastModified = file.lastModifiedDate
+        //   ? file.lastModifiedDate.getTime()
+        //   : Date.now()
+        info.lastModified = Date.now()
         if (thumbInfo) {
-          info.thumbPath = thumbInfo.path
+          info.thumbUrl = thumbInfo.url
           info.thumbSize = thumbInfo.size
           info.thumbType = info.type
         }
@@ -71,13 +70,83 @@ export class UploadCtrl extends BaseCtrl {
             info[schemasRootName] = data
           }
         }
-
-        fsInfo.set(publicPath, info)
+        fsInfoModel.set(filepath, info)
       }
 
       return new ResultData(result)
     } catch (e) {
       return new ResultFault(e.message)
     }
+  }
+  /**
+   * 删除文件
+   */
+  async remove() {
+    const { file } = this.request.query
+    /**
+     * 删除文件
+     */
+    const tmsFs = this.fsModel()
+    const result = await tmsFs.remove(file)
+    if (false === result[0]) return new ResultFault(result[1])
+    /**
+     * 删除info
+     */
+    const fsInfoModel = await Info.ins(this.domain)
+    if (fsInfoModel) {
+      let rst = await fsInfoModel.remove(tmsFs.domain.name, tmsFs.bucket, file)
+    }
+
+    return new ResultData('ok')
+  }
+  /**
+   * @swagger
+   *
+   * /file/upload/mkdir:
+   *   get:
+   *     tags:
+   *       - upload
+   *     summary: 在指定目录下创建目录
+   *     parameters:
+   *       - $ref: '#/components/parameters/domain'
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dir'
+   *     responses:
+   *       200:
+   *         $ref: '#/components/responses/ResponseOK'
+   *
+   */
+  async mkdir() {
+    const { dir } = this.request.query
+    const tmsFs = this.fsModel()
+    const result = await tmsFs.mkdir(dir)
+    if (false === result[0]) return new ResultFault(result[1])
+
+    return new ResultData('ok')
+  }
+  /**
+   * @swagger
+   *
+   * /file/upload/rmdir:
+   *   get:
+   *     tags:
+   *       - upload
+   *     summary: 在指定目录下删除目录
+   *     parameters:
+   *       - $ref: '#/components/parameters/domain'
+   *       - $ref: '#/components/parameters/bucket'
+   *       - $ref: '#/components/parameters/dir'
+   *     responses:
+   *       200:
+   *         $ref: '#/components/responses/ResponseOK'
+   *
+   */
+  async rmdir() {
+    const { dir } = this.request.query
+    const tmsFs = this.fsModel()
+    const result = await tmsFs.rmdir(dir)
+    if (false === result[0]) return new ResultFault(result[1])
+
+    return new ResultData('ok')
   }
 }

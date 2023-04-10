@@ -313,20 +313,20 @@ class TmsKoa extends Koa {
     /**
      * 启动数据库连接池
      */
-    const dbConfig = loadConfig('db')
-    if (dbConfig && dbConfig.disabled !== true) {
-      DbContext = require('tms-db').DbContext
-      try {
-        await DbContext.init(dbConfig)
-        Context.DbContext = DbContext
-      } catch (e) {
-        let logMsg = `初始化[db]配置失败`
-        logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
-      }
-    }
-    debug.extend('db')(
-      '完成【db】服务配置\n' + JSON.stringify(dbConfig, null, 2)
-    )
+    // const dbConfig = loadConfig('db')
+    // if (dbConfig && dbConfig.disabled !== true) {
+    //   DbContext = require('tms-db').DbContext
+    //   try {
+    //     await DbContext.init(dbConfig)
+    //     Context.DbContext = DbContext
+    //   } catch (e) {
+    //     let logMsg = `初始化[db]配置失败`
+    //     logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
+    //   }
+    // }
+    // debug.extend('db')(
+    //   '完成【db】服务配置\n' + JSON.stringify(dbConfig, null, 2)
+    // )
 
     /**
      * 初始化mongodb

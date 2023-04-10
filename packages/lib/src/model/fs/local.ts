@@ -1,17 +1,19 @@
-const fs = require('fs-extra')
-const path = require('path')
-const _ = require('lodash')
+import fs from 'fs-extra'
+import path from 'path'
+import * as _ from 'lodash'
 
+import type { TmsDir, TmsFile } from './types'
 import type { File } from 'formidable'
 
 /**
  * 本地文件系统
  */
 const LFS_APPROOTDIR = Symbol('lfs_appRootDir')
-const LFS_ROOTDIR = Symbol('lfs_rootDir')
+const LFS_PREFIX = Symbol('lfs_prefix')
 const LFS_DOMAIN = Symbol('lfs_domain')
 const LFS_BUCKET = Symbol('lfs_bucket')
-const LFS_THUMBDIR = Symbol('lfs_rootThumb')
+const LFS_THUMB_ROOTDIR = Symbol('lfs_thumb_root')
+const LFS_THUMB_PREFIX = Symbol('lfs_thumb_prefix')
 const LFS_THUMB_WIDTH = Symbol('lfs_thumb_width')
 const LFS_THUMB_HEIGHT = Symbol('lfs_thumb_height')
 
@@ -24,6 +26,7 @@ export class LocalFS {
    */
   constructor(TmsContext, domain, bucket = '') {
     if (!domain) Error('没有提供文件服务[domain]参数')
+
     let domainName
     if (typeof domain === 'string') {
       domainName = domain
@@ -32,8 +35,10 @@ export class LocalFS {
       if (typeof domainName !== 'string' || domainName.length === 0)
         throw Error('没有提供文件服务[domain.name]参数')
     } else {
-      if (!domain) Error('文件服务[domain]参数类型错误')
+      throw Error('文件服务[domain]参数类型错误')
     }
+    // 去掉开头结尾的反斜杠
+    domainName = domainName.replace(/^\/|\/$/g, '')
 
     const fsContext = TmsContext.FsContext.insSync()
     domain = fsContext.getDomain(domainName)
@@ -41,33 +46,31 @@ export class LocalFS {
 
     const appRootDir = fsContext.rootDir
 
-    domainName = domainName.replace(/^\/|\/$/g, '')
-
-    let rootDir = `${appRootDir}/${domainName}`
+    let prefix = domainName
     if (bucket) {
+      // 去掉开头和结尾的反斜杠
       bucket = bucket.replace(/^\/|\/$/g, '')
-      rootDir += `/${bucket}`
+      prefix += `/${bucket}`
     }
 
-    if (!fs.existsSync(rootDir))
-      throw new Error(`指定的文件系统起始路径(${rootDir})不存在`)
+    if (!fs.existsSync(`${appRootDir}/${prefix}`))
+      throw new Error(`指定的文件系统起始路径(${appRootDir}/${prefix})不存在`)
 
     this.tmsContext = TmsContext
     this[LFS_APPROOTDIR] = appRootDir
-    this[LFS_ROOTDIR] = rootDir
+    this[LFS_PREFIX] = prefix
     this[LFS_DOMAIN] = domain
     this[LFS_BUCKET] = bucket
     /**
-     * 缩略图存放位置
+     * 缩略图存放位置和大小
      */
     const { thumbnail } = fsContext
     if (thumbnail && typeof thumbnail === 'object') {
-      // this[LFS_THUMBDIR] = `${rootDir}/${thumbnail.dir || '_thumbs'}`
-      let thumbnailRootDir = `${appRootDir}/${domainName}/${
-        thumbnail.dir || '_thumbs'
-      }`
-      if (bucket) thumbnailRootDir += `/${bucket}`
-      this[LFS_THUMBDIR] = thumbnailRootDir
+      let thumbPrefix = `${domainName}/${thumbnail.dir || '_thumbs'}`
+      if (bucket) thumbPrefix += `/${bucket}`
+      let thumbRootDir = `${appRootDir}/${thumbPrefix}`
+      this[LFS_THUMB_PREFIX] = thumbPrefix
+      this[LFS_THUMB_ROOTDIR] = thumbRootDir
       this[LFS_THUMB_WIDTH] = parseInt(thumbnail.width) || 100
       this[LFS_THUMB_HEIGHT] = parseInt(thumbnail.height) || 100
     }
@@ -75,11 +78,20 @@ export class LocalFS {
   get appRootDir() {
     return this[LFS_APPROOTDIR]
   }
-  get rootDir() {
-    return this[LFS_ROOTDIR]
+  get prefix() {
+    return this[LFS_PREFIX]
   }
-  get thumbDir() {
-    return this[LFS_THUMBDIR]
+  get domain() {
+    return this[LFS_DOMAIN]
+  }
+  get bucket() {
+    return this[LFS_BUCKET]
+  }
+  get thumbRootdir() {
+    return this[LFS_THUMB_ROOTDIR]
+  }
+  get thumbPrefix() {
+    return this[LFS_THUMB_PREFIX]
   }
   get thumbWidth() {
     return this[LFS_THUMB_WIDTH]
@@ -87,70 +99,46 @@ export class LocalFS {
   get thumbHeight() {
     return this[LFS_THUMB_HEIGHT]
   }
-  get domain() {
-    return this[LFS_DOMAIN]
-  }
   /**
-   * 文件的完整路径
+   * 文件从rootDir开始
    *
    * @param {string} filename
    * @param {boolean} isRelative
    */
-  fullpath(filename, isRelative = true) {
-    let fullpath = isRelative ? path.join(this.rootDir, filename) : filename
+  pathWithRoot(filename, isRelative = true) {
+    let fullpath = isRelative
+      ? path.join(this.appRootDir, this.prefix, filename)
+      : filename
 
     return fullpath
   }
   /**
-   * 用于公开访问的路径，例如：下载
+   * 文件路径从domain开始
    *
-   * 去掉rootDir部分，从domain开始，如果设置了文件下载服务，添加下载服务前缀
-   *
-   * @param {string} fullpath
+   * @param {string} filename
+   * @param {boolean} isRelative
    */
-  publicPath(fullpath) {
-    let publicPath = fullpath.replace(path.normalize(this.appRootDir), '')
+  pathWithPrefix(filename, isRelative = true) {
+    let fullpath = isRelative ? path.join(this.prefix, filename) : filename
 
-    /* 如果开放了文件下载服务添加前缀 */
-    const { AppContext } = this.tmsContext
-    const prefix = _.get(AppContext.insSync(), 'router.fsdomain.prefix')
-    if (prefix) publicPath = path.join(prefix, publicPath)
-
-    return publicPath
-  }
-  /**
-   * 在domain中的路径
-   *
-   * @param {string} fullpath
-   */
-  relativePath(fullpath) {
-    let relativePath = fullpath.replace(path.normalize(this.rootDir), '')
-
-    return relativePath
+    return fullpath
   }
   /**
    * 缩略图位置
    *
-   * @param {sting} filename
-   * @param {boolean} isRelative
+   * @param {sting} filepath
    */
-  thumbPath(filename, isRelative = true) {
-    const thumbpath = path.join(
-      this.thumbDir,
-      isRelative ? filename : this.relativePath(filename)
-    )
-
-    return thumbpath
+  private thumbPathWithRoot(filepath) {
+    return path.join(this.thumbRootdir, filepath)
   }
   /**
-   *
-   * @param {*} filename
+   * 检查文件是否已经存在
+   * @param {*} filepath
    * @param {*} isRelative
    */
-  existsSync(filename, isRelative = true) {
+  existsSync(filepath, isRelative = true) {
     // 文件的完整路径
-    let fullpath = this.fullpath(filename, isRelative)
-
+    let fullpath = this.pathWithRoot(filepath, isRelative)
     return fs.existsSync(fullpath)
   }
   /**
@@ -159,44 +147,48 @@ export class LocalFS {
    * @param {string} dir
    */
   list(dir = '') {
-    let fullpath = this.fullpath(dir)
-    let names = fs.readdirSync(path.resolve(fullpath))
+    let dirRootpath = this.pathWithRoot(dir)
+    let names = fs.readdirSync(path.resolve(dirRootpath))
 
-    let files = []
-    let dirs = []
+    let files: TmsFile[] = []
+    let dirs: TmsDir[] = []
     names.forEach((name) => {
-      let resolvedPath = path.resolve(fullpath, name)
+      let publicUrl = path.join(this.prefix, dir, name)
+      let resolvedPath = path.resolve(dirRootpath, name)
 
-      if (this.thumbDir) {
-        if (new RegExp(`/${name}$`).test(this.thumbDir)) return
-      }
+      // 排除缩略图目录下的文件
+      if (this.thumbRootdir)
+        if (new RegExp(`/${name}$`).test(this.thumbRootdir)) return
 
-      let stats = fs.statSync(resolvedPath)
-      if (stats.isFile()) {
-        let publicPath = path.join(this.publicPath(fullpath), name)
+      let stat = fs.statSync(resolvedPath)
+      if (stat.isFile()) {
         let fileinfo: any = {
           name,
-          size: stats.size,
-          birthtime: stats.birthtimeMs, // 有可能是0
-          mtime: stats.mtimeMs,
-          path: publicPath,
+          size: stat.size,
+          birthtime: stat.birthtimeMs, // 有可能是0
+          mtime: stat.mtimeMs,
+          path: `${dir}/${name}`,
+          publicUrl,
         }
         files.push(fileinfo)
-        if (/\.[png|jpg|jpeg]/i.test(name)) {
-          if (this.thumbDir) {
-            let thumbPath = this.publicPath(
-              path.join(this.thumbPath(fullpath, false), name)
-            )
-            fileinfo.thumbPath = thumbPath
-          }
+        // 包含缩略图？
+        if (this.thumbRootdir) {
+          if (/\.[png|jpg|jpeg]/i.test(name))
+            fileinfo.thumbPath = path.join(this.thumbPrefix, dir, name)
         }
-      } else if (stats.isDirectory()) {
+      } else if (stat.isDirectory()) {
         let dirents = fs.readdirSync(resolvedPath, { withFileTypes: true })
         let sub = { files: 0, dirs: 0 }
         dirents.forEach((dirent) => {
           dirent.isFile() ? sub.files++ : dirent.isDirectory ? sub.dirs++ : 0
         })
-        dirs.push({ name, birthtime: stats.birthtimeMs, sub })
+        dirs.push({
+          name,
+          birthtime: stat.birthtimeMs,
+          sub,
+          path: `${dir}/${name}`,
+          publicUrl,
+        })
       }
     })
     return { files, dirs }
@@ -204,57 +196,122 @@ export class LocalFS {
   /**
    * 写文件，如果已存在覆盖现有文件
    *
-   * @param {string} filename
+   * @param {string} filepath
    * @param {*} content
    * @param {boolean} isRelative
    */
-  write(filename, content, isRelative = true, options = {}) {
+  write(filepath, content, isRelative = true, options = {}) {
     // 文件的完整路径
-    let fullpath = this.fullpath(filename, isRelative)
+    let storepath = this.pathWithRoot(filepath, isRelative)
 
     /* 文件目录是否存在，不存在则创建，默认权限777 */
-    let dirname = path.dirname(fullpath)
+    let dirname = path.dirname(storepath)
     fs.ensureDirSync(dirname, 0o2777)
 
-    fs.writeFileSync(fullpath, content, options)
+    fs.writeFileSync(storepath, content, options)
 
-    return fullpath
+    return filepath
   }
   /**
    * 保存通过koa-body上传的文件
    *
-   * @param {string} filename
+   * @param {string} filepath
    * @param {*} file
    * @param {*} isRelative
    */
-  writeStream(filename: string, file: File, isRelative = true) {
+  writeStream(filepath: string, file: File, isRelative = true) {
     // 文件的完整路径
-    let fullpath = this.fullpath(filename, isRelative)
+    let storepath = this.pathWithRoot(filepath, isRelative)
 
     // 创建目录
-    let dirname = path.dirname(fullpath)
+    let dirname = path.dirname(storepath)
     fs.ensureDirSync(dirname, 0o2777)
 
     const reader = fs.createReadStream(file.filepath)
     // 创建可写流，如果文件已经存在替换已有文件
-    const writer = fs.createWriteStream(fullpath)
+    const writer = fs.createWriteStream(storepath)
     // 可读流通过管道写入可写流
     reader.pipe(writer)
 
     return new Promise((resolve) => {
       writer.on('close', function () {
-        resolve(fullpath)
+        resolve(filepath)
       })
     })
   }
   /**
    * 删文件
    *
-   * @param {string} filename
+   * @param {string} filepath
    * @param {*} isRelative
    */
-  remove(filename, isRelative = true) {
-    let fullpath = this.fullpath(filename, isRelative)
-    fs.removeSync(fullpath)
+  remove(filepath, isRelative = true) {
+    let storepath = this.pathWithRoot(filepath, isRelative)
+    fs.removeSync(storepath)
+    return [true]
+  }
+  /**
+   * 新建指定的目录
+   *
+   * @param {*} path
+   */
+  mkdir(path: string): [boolean, string?] {
+    let storepath = this.pathWithRoot(path)
+    if (fs.existsSync(storepath)) return [false, '目录已经存在，无法创建目录']
+
+    fs.mkdirSync(storepath)
+
+    return [true]
+  }
+  /**
+   * 删除指定的目录
+   *
+   * @param {*} path
+   */
+  rmdir(path: string): [boolean, string?] {
+    let storepath = this.pathWithRoot(path)
+    if (!fs.existsSync(storepath)) return [false, '目录不存在，无法删除目录']
+
+    const stat = fs.statSync(storepath)
+    if (!stat.isDirectory()) return [false, '指定路径不是目录，无法删除目录']
+
+    const names = fs.readdirSync(storepath)
+    if (names.length) return [false, '目录不为空，无法删除目录']
+
+    fs.rmdirSync(storepath)
+
+    return [true]
+  }
+  /**
+   * 生成缩略图
+   * 目前只支持图片文件
+   */
+  async makeThumb(filepath, isRelative = true) {
+    const ext = path.extname(filepath)
+    if (!/\.[png|jpg|jpeg]/i.test(ext)) return false
+
+    try {
+      const sharp = require('sharp')
+      const fullpath = isRelative ? this.pathWithRoot(filepath) : filepath
+      const thumbPath = this.thumbPathWithRoot(filepath)
+
+      const thumbnail = await sharp(fullpath)
+        .resize(this.thumbWidth, this.thumbHeight, { fit: 'inside' })
+        .toBuffer()
+
+      this.write(thumbPath, thumbnail, false)
+      // 获取文件信息
+      let stat = fs.statSync(thumbPath)
+
+      return {
+        url: path.join(this.thumbPrefix, filepath),
+        size: stat.size,
+        width: this.thumbWidth,
+        height: this.thumbHeight,
+      }
+    } catch (e) {
+      console.log('生成缩略图失败，原因：', e.message)
+      return false
+    }
   }
 }

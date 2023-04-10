@@ -1,5 +1,5 @@
 /**
- * 文件下载服务
+ * 本地文件下载服务
  */
 const path = require('path')
 const _ = require('lodash')

@@ -9,7 +9,7 @@
     <button>提交</button>
   </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/axios/1.3.4/axios.min.js"></script>
 <script>
   const submitButton = document.querySelector('button')
   submitButton.addEventListener('click', () => {
@@ -47,7 +47,7 @@
     const headers = {
       'Content-Type': 'multipart/form-data'
     }
-    const url = 'http://localhost:3001/api/fs/upload/plain?thumb=Y'
+    const url = 'http://localhost:3009/api/fs/upload/plain'
     axios.post(url, formData, {
       headers
     }).then((rsp) => {

@@ -51,12 +51,10 @@ export class ExcelCtrl {
     let filePath =
       dir && this.domain.customName === true
         ? PATH.join(dir, fileName)
-        : tmsFs.fullpath(PATH.join(uploadObj.autodir(), fileName))
+        : PATH.join(uploadObj.autodir(), fileName)
     if (forceReplace === 'N') {
       // 如果文件已经存在
-      if (fs.existsSync(filePath)) {
-        return [false, '文件已经存在']
-      }
+      if (fs.existsSync(filePath)) return [false, `文件【${filePath}】已经存在`]
     }
 
     if (!fs.existsSync(PATH.dirname(filePath)))
@@ -66,7 +64,7 @@ export class ExcelCtrl {
       bookType: 'xlsx',
     })
 
-    return [true, tmsFs.publicPath(filePath)]
+    return [true, filePath]
   }
 
   static init = (function () {

@@ -1,7 +1,7 @@
 import { Ctrl } from '../ctrl'
 import { ResultData, ResultFault } from '../../response'
+import { LocalFS, MinioFS, Info } from '../../model/fs'
 
-const { Info } = require('../../model/fs/info')
 const fs = require('fs')
 const crypto = require('crypto')
 const log4js = require('@log4js-node/log4js-api')
@@ -15,6 +15,15 @@ export class BaseCtrl extends Ctrl {
 
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
+  }
+  /**
+   * 根据配置文件，提供文件服务模型实例
+   * @returns
+   */
+  protected fsModel() {
+    if (this.fsContext.minioClient)
+      return new MinioFS(this.tmsContext, this.domain, this.bucket)
+    else return new LocalFS(this.tmsContext, this.domain, this.bucket)
   }
   /**
    * 检查访问权限

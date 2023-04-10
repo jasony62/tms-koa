@@ -1,9 +1,11 @@
+import fs from 'fs'
+import path from 'path'
+import * as Minio from 'minio'
+import Debug from 'debug'
+
 /* eslint-disable require-atomic-updates */
 const log4js = require('@log4js-node/log4js-api')
 const logger = log4js.getLogger('tms-koa-fs')
-const fs = require('fs')
-const path = require('path')
-const Debug = require('debug')
 
 const debug = Debug('tms-koa:fs:context')
 
@@ -49,16 +51,16 @@ function initThumb(instance, lfsConfig) {
   }
 }
 /**
- * 文件服务的域
+ * 初始化文件服务域
  */
-async function initDomains(instance, lfsConfig) {
+async function initDomains(instance, lfsConfig, isLocal = false) {
   const domains: any = {}
   if (lfsConfig.domains && typeof lfsConfig.domains === 'object') {
     const { domains: lfsDomains } = lfsConfig
     let configDomainNames = Object.keys(lfsDomains)
     for (let i = 0; i < configDomainNames.length; i++) {
       let name = configDomainNames[i]
-      let domain = await initDomain(instance, name, lfsDomains[name])
+      let domain = await initDomain(instance, name, lfsDomains[name], isLocal)
       if (domain) domains[name] = domain
     }
   }
@@ -68,7 +70,7 @@ async function initDomains(instance, lfsConfig) {
     logger.info(
       `文件服务的配置文件中未指定可用的存储域，创建默认存储域【update】`
     )
-    domains.upload = await initDomain(instance, 'upload')
+    domains.upload = await initDomain(instance, 'upload', isLocal)
     domainNames = ['upload']
   }
   let { defaultDomain } = lfsConfig
@@ -87,23 +89,27 @@ async function initDomains(instance, lfsConfig) {
   return instance
 }
 /**
- * 初始化单个域
+ * 初始化单个文件服务域
  *
  * @param {*} instance
  * @param {*} name
  * @param {*} lfsDomain
  */
-async function initDomain(instance, name: string, lfsDomain?) {
+async function initDomain(instance, name: string, lfsDomain?, isLocal = false) {
   if (lfsDomain && lfsDomain.disabled === true) {
     logger.warn(`文件服务的存储域【${name}】设置为禁用，不进行初始化`)
     return false
   }
-  const { rootDir } = instance
-  const domainDir = `${rootDir}/${name}`
-  if (!fs.existsSync(domainDir)) {
-    fs.mkdirSync(domainDir, { recursive: true })
-    logger.info(`创建文件服务域目录(${domainDir})`)
+  if (isLocal === true) {
+    const { rootDir } = instance
+    const domainDir = `${rootDir}/${name}`
+    if (!fs.existsSync(domainDir)) {
+      fs.mkdirSync(domainDir, { recursive: true })
+      logger.info(`创建文件服务域目录(${domainDir})`)
+    }
+    logger.info(`文件服务域起始目录(${domainDir})`)
   }
+
   const domain: any = { name }
 
   if (lfsDomain) {
@@ -127,10 +133,7 @@ async function initDomain(instance, name: string, lfsDomain?) {
  * @param {object} lfsConfig
  */
 async function initMongoDb(domain, lfsConfig) {
-  if (
-    typeof lfsConfig.database !== 'object' ||
-    lfsConfig.database.disabled === true
-  ) {
+  if (lfsConfig?.database?.disabled === true) {
     logger.warn(`文件服务配置文件中没有给域（${domain.name}）指定数据库`)
     return false
   }
@@ -205,12 +208,57 @@ function initACL(domain, lfsDomain) {
 
   return domain
 }
+/**
+ * 初始化minio客户端
+ * @param instance
+ * @param fsConfig
+ */
+function initMinio(instance, fsConfig) {
+  let { endPoint, port, useSSL, accessKey, secretKey } = fsConfig
+
+  if (!endPoint || typeof endPoint !== 'string') {
+    logger.warn(`文件服务minio初始化失败，没有指定endPoint`)
+    return false
+  }
+  port = parseInt(port)
+  if (!port) {
+    logger.warn(`文件服务minio初始化失败，没有指定port`)
+    return false
+  }
+  useSSL = useSSL === true
+  if (!accessKey || typeof accessKey !== 'string') {
+    logger.warn(`文件服务minio初始化失败，没有指定accessKey`)
+    return false
+  }
+  if (!secretKey || typeof secretKey !== 'string') {
+    logger.warn(`文件服务minio初始化失败，没有指定secretKey`)
+    return false
+  }
+
+  instance.minioClient = new Minio.Client({
+    endPoint,
+    port,
+    useSSL,
+    accessKey,
+    secretKey,
+  })
+
+  return true
+}
 
 // 全局单例
 let _instance
 
 export class Context {
+  backService
+
+  minioClient
+
+  rootDir = ''
+
   domains
+
+  defaultDemain
   /**
    * 检查domain是否可用
    */
@@ -240,27 +288,52 @@ export class Context {
 
   static async init(fsConfig) {
     if (_instance) return _instance
-
-    if (typeof fsConfig.local !== 'object') {
-      logger.warn(`文件服务配置文件中没有指定本地文件服务信息`)
-      return false
-    }
-    const lfsConfig = fsConfig.local
-
-    _instance = new Context()
-
-    initRootDir(_instance, lfsConfig)
-
-    initThumb(_instance, lfsConfig)
-
-    if (!(await initDomains(_instance, lfsConfig))) {
-      logger.warn(`文件服务初始化域失败`)
+    let { local, minio } = fsConfig
+    if (typeof local !== 'object' && typeof minio !== 'object') {
+      logger.warn('文件服务配置文件中没有指定local或minio')
       return false
     }
 
-    logger.info(`完成文件服务设置【rootDir=${_instance.rootDir}】`)
+    if (minio?.enabled === true) {
+      _instance = new Context()
 
-    return _instance
+      debug('文件服务指定了【minio】')
+
+      if (!initMinio(_instance, minio)) {
+        logger.warn(`文件服务minio初始化失败`)
+        debug(`文件服务minio初始化失败`)
+        return false
+      }
+      if (!(await initDomains(_instance, minio))) {
+        logger.warn(`文件服务minio初始化域失败`)
+        debug(`文件服务minio初始化域失败`)
+        return false
+      }
+      _instance.backService = 'minio'
+
+      logger.info(`完成minio文件服务设置`)
+
+      return _instance
+    } else if (local?.disabled !== true) {
+      _instance = new Context()
+
+      initRootDir(_instance, local)
+
+      initThumb(_instance, local)
+
+      if (!(await initDomains(_instance, local, true))) {
+        logger.warn(`文件服务初始化域失败`)
+        return false
+      }
+
+      _instance.backService = 'local'
+
+      logger.info(`完成local文件服务设置【rootDir=${_instance.rootDir}】`)
+      return _instance
+    }
+
+    logger.warn('文件服务配置文件中没有指定local或minio被禁用')
+    return false
   }
 
   static insSync() {
