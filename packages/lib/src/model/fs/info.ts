@@ -3,10 +3,13 @@ import _ from 'lodash'
  * 在mongodb中保存文件信息
  */
 class MongodbInfo {
+  domain
   mongoClient
   database
   collection
-  constructor(mongoClient, database, collection) {
+  constructor(domain) {
+    let { mongoClient, database, collection } = domain
+    this.domain = domain
     this.mongoClient = mongoClient
     this.database = database
     this.collection = collection
@@ -75,10 +78,16 @@ class MongodbInfo {
       .then((docs) => {
         // 需要把path中domain去掉
         docs.forEach((doc) => {
-          if (typeof doc?.domain === 'string' && doc.path) {
-            let prefix = doc.domain
-            if (typeof doc?.bucket === 'string') prefix += `/${doc.bucket}`
+          let { domain, bucket } = doc
+          if (typeof domain === 'string' && doc.path) {
+            let prefix = domain
+            if (typeof bucket === 'string') prefix += `/${bucket}`
             doc.publicUrl = `${prefix}/${doc.path}`
+            if (this.domain.thumbnail) {
+              let thumbPrefix = `${domain}/${this.domain.thumbnail.dir}`
+              if (typeof bucket === 'string') thumbPrefix += `/${bucket}`
+              doc.thumbUrl = `${thumbPrefix}/${doc.path}`
+            }
           }
         })
         return docs
@@ -89,7 +98,9 @@ class MongodbInfo {
     return result
   }
 }
-
+/**
+ * 文件对象扩展信息管理
+ */
 export class Info {
   domain
   handler
@@ -107,8 +118,8 @@ export class Info {
   async get(path) {
     return await this.handler.get(path)
   }
-  async remove(domain, bucket, path) {
-    return await this.handler.remove(domain, bucket, path)
+  async remove(bucket: string, path: string) {
+    return await this.handler.remove(this.domain.name, bucket, path)
   }
   async list(query, skip, limit) {
     if (!query) query = {}
@@ -124,11 +135,7 @@ export class Info {
       if (!domain.mongoClient || !domain.database || !domain.collection)
         return false
 
-      const mongo = new MongodbInfo(
-        domain.mongoClient,
-        domain.database,
-        domain.collection
-      )
+      const mongo = new MongodbInfo(domain)
       const domainInfo = new Info(domain, mongo)
       _instance.set(domain.name, domainInfo)
 

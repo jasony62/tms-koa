@@ -2,6 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import * as Minio from 'minio'
 import Debug from 'debug'
+import { TmsFsDomain } from '../types/fs'
 
 /* eslint-disable require-atomic-updates */
 const log4js = require('@log4js-node/log4js-api')
@@ -95,7 +96,12 @@ async function initDomains(instance, lfsConfig, isLocal = false) {
  * @param {*} name
  * @param {*} lfsDomain
  */
-async function initDomain(instance, name: string, lfsDomain?, isLocal = false) {
+async function initDomain(
+  instance,
+  name: string,
+  lfsDomain?,
+  isLocal = false
+): Promise<TmsFsDomain | boolean> {
   if (lfsDomain && lfsDomain.disabled === true) {
     logger.warn(`文件服务的存储域【${name}】设置为禁用，不进行初始化`)
     return false
@@ -110,7 +116,7 @@ async function initDomain(instance, name: string, lfsDomain?, isLocal = false) {
     logger.info(`文件服务域起始目录(${domainDir})`)
   }
 
-  const domain: any = { name }
+  const domain: TmsFsDomain = { name }
 
   if (lfsDomain) {
     domain.customName = !!lfsDomain.customName
@@ -122,6 +128,8 @@ async function initDomain(instance, name: string, lfsDomain?, isLocal = false) {
 
     initACL(domain, lfsDomain)
   }
+
+  if (instance.thumbnail) domain.thumbnail = instance.thumbnail
 
   logger.info(`文件服务的存储域【${name}】完成初始化`)
 

@@ -2,7 +2,7 @@ import fs from 'fs-extra'
 import path from 'path'
 import * as _ from 'lodash'
 
-import type { TmsDir, TmsFile } from './types'
+import type { TmsDir, TmsFile } from '../../types/fs'
 import type { File } from 'formidable'
 
 /**
@@ -174,7 +174,7 @@ export class LocalFS {
         // 包含缩略图？
         if (this.thumbRootdir) {
           if (/\.[png|jpg|jpeg]/i.test(name))
-            fileinfo.thumbPath = path.join(this.thumbPrefix, dir, name)
+            fileinfo.thumbUrl = path.join(this.thumbPrefix, dir, name)
         }
       } else if (stat.isDirectory()) {
         let dirents = fs.readdirSync(resolvedPath, { withFileTypes: true })

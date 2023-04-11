@@ -56,7 +56,7 @@ export class UploadCtrl extends BaseCtrl {
         //   : Date.now()
         info.lastModified = Date.now()
         if (thumbInfo) {
-          info.thumbUrl = thumbInfo.url
+          // info.thumbUrl = thumbInfo.url
           info.thumbSize = thumbInfo.size
           info.thumbType = info.type
         }
@@ -92,9 +92,9 @@ export class UploadCtrl extends BaseCtrl {
     /**
      * 删除info
      */
-    const fsInfoModel = await Info.ins(this.domain)
+    const fsInfoModel = await Info.ins(tmsFs.domain)
     if (fsInfoModel) {
-      let rst = await fsInfoModel.remove(tmsFs.domain.name, tmsFs.bucket, file)
+      await fsInfoModel.remove(tmsFs.bucket, file)
     }
 
     return new ResultData('ok')

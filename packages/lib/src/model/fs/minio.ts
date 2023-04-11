@@ -1,9 +1,8 @@
 import path from 'path'
 import * as _ from 'lodash'
 
-import type { TmsDir, TmsFile } from './types'
-
 import type { File } from 'formidable'
+import type { TmsDir, TmsFile } from '../../types/fs'
 
 const LFS_APPROOTDIR = Symbol('lfs_appRootDir')
 const LFS_PREFIX = Symbol('lfs_prefix')
@@ -15,7 +14,6 @@ const LFS_BUCKET = Symbol('lfs_bucket')
 export class MinioFS {
   tmsContext
   minioClient
-
   /**
    * @param {object} TmsContext 文件服务定义
    * @param {object|string} domain
