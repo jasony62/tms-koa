@@ -15,17 +15,21 @@ class MongodbInfo {
     this.collection = collection
   }
   /**
+   * 更新文件关联的业务信息
    *
    * @param {*} path
    * @param {*} info
    */
-  async set(path: string, info) {
+  async set(path: string, info: any) {
+    let query: any = { domain: this.domain.name, path }
+    if (info.bucket) query.bucket = info.bucket
+
     const cl = this.mongoClient.db(this.database).collection(this.collection)
-    const beforeInfo = await cl.find({ path }).toArray()
+    const beforeInfo = await cl.find(query).toArray()
     if (beforeInfo.length <= 1) {
-      const updatedInfo = _.omit(info, ['_id'])
+      const updatedInfo = _.omit(info, ['_id', 'domain', 'bucket'])
       return cl
-        .updateOne({ path }, { $set: updatedInfo }, { upsert: true })
+        .updateOne(query, { $set: updatedInfo }, { upsert: true })
         .then(() => info)
     } else {
       throw new Error(`数据错误，文件[${path}]有多条信息数据`)
@@ -43,21 +47,20 @@ class MongodbInfo {
   }
   /**
    * 删除文件信息
-   * 
-   * @param domain 
-   * @param bucket 
-   * @param path 
-   
-  * @returns 
+   *
+   * @param bucket
+   * @param path
+   *
+   * @returns
    */
-  async remove(domain: string, bucket: string, path: string) {
+  async remove(bucket: string, path: string) {
     const client = this.mongoClient
     const cl = client.db(this.database).collection(this.collection)
 
-    let query: any = { domain, path }
+    let query: any = { domain: this.domain.name, path }
     if (bucket) query.bucket = bucket
-    const rst = await cl.deleteOne(query)
-    return rst
+    const { deletedCount } = await cl.deleteOne(query)
+    return deletedCount === 1
   }
   /**
    *
@@ -119,7 +122,7 @@ export class Info {
     return await this.handler.get(path)
   }
   async remove(bucket: string, path: string) {
-    return await this.handler.remove(this.domain.name, bucket, path)
+    return await this.handler.remove(bucket, path)
   }
   async list(query, skip, limit) {
     if (!query) query = {}

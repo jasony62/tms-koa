@@ -15,10 +15,12 @@ export class UploadCtrl extends BaseCtrl {
     if (!this.request.files?.file) return new ResultFault('没有上传文件')
 
     // 指定的文件存储目录，如果不指定按时间自动生成目录
-    const { dir, forceReplace, thumb } = this.request.query
+    const { dir, forceReplace, thumb, name } = this.request.query
 
     // 上传的原始文件，由formidable定义
     const { file }: { file: File } = this.request.files
+    // 改为用户指定的名称
+    if (name) file.originalFilename = name
 
     const tmsFs = this.fsModel()
     const uploader = new UploadPlain(tmsFs)
@@ -56,11 +58,12 @@ export class UploadCtrl extends BaseCtrl {
         //   : Date.now()
         info.lastModified = Date.now()
         if (thumbInfo) {
-          // info.thumbUrl = thumbInfo.url
           info.thumbSize = thumbInfo.size
           info.thumbType = info.type
         }
-        /**用户自定义的扩展信息*/
+        /**
+         * 保存用户自定义的扩展信息
+         */
         const { schemasRootName } = this.domain
         if (schemasRootName) {
           let extraInfo = this.request.files[schemasRootName]
@@ -79,22 +82,22 @@ export class UploadCtrl extends BaseCtrl {
     }
   }
   /**
-   * 删除文件
+   * 删除指定的文件
    */
   async remove() {
     const { file } = this.request.query
     /**
      * 删除文件
      */
-    const tmsFs = this.fsModel()
-    const result = await tmsFs.remove(file)
+    const fsModel = this.fsModel()
+    const result = await fsModel.remove(file)
     if (false === result[0]) return new ResultFault(result[1])
     /**
      * 删除info
      */
-    const fsInfoModel = await Info.ins(tmsFs.domain)
+    const fsInfoModel = await Info.ins(fsModel.domain)
     if (fsInfoModel) {
-      await fsInfoModel.remove(tmsFs.bucket, file)
+      await fsInfoModel.remove(fsModel.bucket, file)
     }
 
     return new ResultData('ok')

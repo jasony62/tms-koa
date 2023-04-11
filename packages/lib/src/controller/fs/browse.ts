@@ -27,6 +27,9 @@ export class BrowseCtrl extends BaseCtrl {
    */
   async list() {
     let { dir } = this.request.query
+    // 去掉开头的反斜杠
+    dir = dir.replace(/^\//, '')
+
     let tmsFS = this.fsModel()
     let { files, dirs } = await tmsFS.list(dir, 1)
 

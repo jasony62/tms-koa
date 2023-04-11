@@ -193,9 +193,10 @@ async function initMongoDb(domain, lfsConfig) {
     let fsSchemas = lfsConfig.schemas
     if (fsSchemas) {
       let { schemasRootName } = lfsConfig
-      domain.schemas = fsSchemas
-      if (schemasRootName && typeof schemasRootName === 'string')
+      if (schemasRootName && typeof schemasRootName === 'string') {
+        domain.schemas = fsSchemas
         domain.schemasRootName = schemasRootName
+      }
     }
 
     return domain

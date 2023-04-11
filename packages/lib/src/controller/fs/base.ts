@@ -62,8 +62,8 @@ export class BaseCtrl extends Ctrl {
    */
   async schemas() {
     if (!this.domain.schemas) return new ResultFault('没有设置文件扩展信息定义')
-
-    return new ResultData(this.domain.schemas)
+    let { schemas, schemasRootName } = this.domain
+    return new ResultData({ schemas, schemasRootName })
   }
   /**
    * 设置上传文件信息
@@ -78,11 +78,11 @@ export class BaseCtrl extends Ctrl {
     if (!path) return new ResultFault('未指定文件路径')
 
     // 检查path是否在指定的空间下
-    let space = domain.name
-    if (bucket) space += `/${bucket}`
-    if (!new RegExp(space).test(path)) {
-      return new ResultFault('没有修改当前文件信息的权限')
-    }
+    // let space = domain.name
+    // if (bucket) space += `/${bucket}`
+    // if (!new RegExp(space).test(path)) {
+    //   return new ResultFault('没有修改当前文件信息的权限')
+    // }
 
     const info = this.request.body
     info.userid = this.client ? this.client.id : ''
