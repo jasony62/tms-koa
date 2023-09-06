@@ -1,9 +1,12 @@
 /* eslint-disable node/no-unsupported-features/es-syntax */
-const log4js = require('@log4js-node/log4js-api')
-const logger = log4js.getLogger('tms-koa-redis')
-const uuidv4 = require('uuid').v4
+import log4js from '@log4js-node/log4js-api'
+import { v4 as uuidv4 } from 'uuid'
 
-const { AppContext } = require('../app').Context
+import { Context } from '../app.js'
+
+const { AppContext } = Context
+const logger = log4js.getLogger('tms-koa-redis')
+
 const { auth: authConfig } = AppContext.insSync()
 if (!authConfig) {
   let msg = '没有设置启用认证令牌参数'
@@ -30,8 +33,8 @@ class TokenInRedis {
     this.redisClient = redisClient
   }
   // 连接redis
-  static create() {
-    const { RedisContext } = require('../app').Context
+  static async create() {
+    const { RedisContext } = (await import('../app.js')).Context
     return RedisContext.ins(redisConfig).then(
       (redisContext) => new TokenInRedis(redisContext.redisClient)
     )
@@ -183,8 +186,8 @@ class TokenInRedis {
     return returnKey
   }
   /**
-   * 
-   * 
+   *
+   *
    */
   async logout(token, clientId) {
     return this.del(token, clientId)
@@ -253,7 +256,7 @@ class Token {
       if (!oResult) {
         return [false, '没有找到和access_token匹配的数据']
       }
-      let oTmsClient = require('./client').createByData(oResult.data)
+      let oTmsClient = (await import('./client.js')).createByData(oResult.data)
       return [true, oTmsClient]
     } catch (e) {
       return [false, e]
@@ -313,4 +316,4 @@ async function multiLogin(token, tokenRedis) {
   return [true, { access_token: token, expire_in: expireIn }]
 }
 
-export = Token
+export { Token }

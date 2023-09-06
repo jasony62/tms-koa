@@ -1,8 +1,9 @@
-const log4jsConfig = require('./config/log4js')
-const log4js = require('log4js')
+import log4js from 'log4js'
+import { TmsKoa } from 'tms-koa'
+import log4jsConfig from '../config/log4js.js'
+
 log4js.configure(log4jsConfig)
 const logger = log4js.getLogger('tms-koa-demo')
-const { TmsKoa } = require('tms-koa')
 
 const tmsKoa = new TmsKoa()
 

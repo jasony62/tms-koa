@@ -23,7 +23,7 @@ const database = {
   file_collection: 'files',
 }
 
-module.exports = {
+export default {
   local: {
     rootDir: '', // 上传文件存储的起始位置
     thumbnail: { dir: '/_thumbs/', width: 100, height: 100 },

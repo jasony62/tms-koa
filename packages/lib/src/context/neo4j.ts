@@ -1,6 +1,7 @@
-const log4js = require('@log4js-node/log4js-api')
+import log4js from '@log4js-node/log4js-api'
+import neo4j from 'neo4j-driver'
+
 const logger = log4js.getLogger('tms-koa-neo4j')
-const neo4j = require('neo4j-driver')
 
 class Neo4jConfig {
   host: string

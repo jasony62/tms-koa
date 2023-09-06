@@ -1,20 +1,21 @@
-const log4js = require('@log4js-node/log4js-api')
-const logger = log4js.getLogger('tms-koa-auth')
-const Router = require('@koa/router')
-const _ = require('lodash')
-const jwt = require('jsonwebtoken')
+import log4js from '@log4js-node/log4js-api'
+import Router from '@koa/router'
+import _ from 'lodash'
+import jwt from 'jsonwebtoken'
 
-const { ResultData, ResultFault, AccessTokenFault } = require('../response')
-const { Context: TmsContext, getAccessTokenByRequest } = require('../app')
+import { ResultData, ResultFault, AccessTokenFault } from '../response.js'
+import { Context as TmsContext, getAccessTokenByRequest } from '../app.js'
+import { Metrics } from './metrics.js'
+
 const { AppContext } = TmsContext
 let { routerAuthPrefix, routerAuthTrustedHosts } = AppContext.insSync()
 const router = new Router({ prefix: routerAuthPrefix })
+const logger = log4js.getLogger('tms-koa-auth')
 logger.info(`指定Auth控制器前缀：${routerAuthPrefix}`)
 
 const authConfig = AppContext.insSync().auth
 
 // 记录指标
-const { Metrics } = require('./metrics')
 const metrics = new Metrics()
 
 // 获取error msg
@@ -160,9 +161,9 @@ router.get('/client', async (ctx) => {
     let tmsClient
     if (authConfig.jwt) {
       let decoded = jwt.decode(access_token)
-      tmsClient = require('./client').createByData(decoded)
+      tmsClient = (await import('./client.js')).createByData(decoded)
     } else if (authConfig.redis) {
-      const Token = require('./token')
+      const { Token } = await import('./token.js')
       let aResult = await Token.fetch(access_token)
       if (false === aResult[0]) {
         return (response.body = new AccessTokenFault(aResult[1]))
@@ -239,9 +240,9 @@ const authenticate = async (ctx) => {
       labels.stage = 'authorized'
       metrics.total(labels)
     } else if (authConfig.redis) {
-      const Token = require('./token')
+      const { Token } = await import('./token.js')
       let aResult = await Token.create(tmsClient)
-      if (false === aResult[0]) {
+      if (false === aResult[0] && typeof aResult[1] === 'string') {
         return (response.body = new ResultFault(aResult[1], 20001))
       }
 
@@ -288,7 +289,7 @@ const logout = async (ctx) => {
     if (authConfig.jwt) {
       // let decoded = jwt.decode(access_token)
     } else if (authConfig.redis) {
-      const Token = require('./token')
+      const { Token } = await import('./token.js')
       let aResult = await Token.logout(access_token)
       if (false === aResult[0]) {
         return (response.body = new AccessTokenFault(getErrMsg(aResult[1])))
@@ -396,4 +397,4 @@ const checkCaptcha = async (ctx) => {
 router.get('/checkCaptcha', checkCaptcha)
 router.post('/checkCaptcha', checkCaptcha)
 
-export = router
+export { router }

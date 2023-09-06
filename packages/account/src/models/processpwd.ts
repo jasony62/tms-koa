@@ -1,8 +1,8 @@
 import { customAlphabet } from 'nanoid'
-import * as _ from 'lodash'
-import * as PwdValidator from 'password-validator'
-import * as Crypto from 'crypto'
-import { AccountConfig } from '../config'
+import _ from 'lodash'
+import PwdValidator from 'password-validator'
+import Crypto from 'crypto'
+import { AccountConfig } from '../config.js'
 
 /**
  *

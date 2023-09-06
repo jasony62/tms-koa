@@ -1,8 +1,8 @@
-const log4js = require('@log4js-node/log4js-api')
-const logger = log4js.getLogger('tms-koa-mongodb')
-const { MongoClient, MongoError } = require('mongodb')
-const Debug = require('debug')
+import log4js from '@log4js-node/log4js-api'
+import { MongoClient, MongoError } from 'mongodb'
+import Debug from 'debug'
 
+const logger = log4js.getLogger('tms-koa-mongodb')
 const debug = Debug('tms-koa:mongodb:context')
 
 class TmsMongoDb {
@@ -18,7 +18,7 @@ class TmsMongoDb {
     return this._mongoClient
   }
 
-  static connect(url, connectionOptions) {
+  static async connect(url, connectionOptions) {
     const options = Object.assign(
       {
         useUnifiedTopology: true,
@@ -26,13 +26,15 @@ class TmsMongoDb {
       },
       connectionOptions
     )
-    return MongoClient.connect(url, options)
-      .then((client) => client)
-      .catch((err) => {
-        const msg = `连接[${url}]失败：${err.message}`
-        logger.error(msg)
-        return Promise.reject(new MongoError(msg))
-      })
+    try {
+      const client = new MongoClient(url, options)
+      await client.connect()
+      return client
+    } catch (e) {
+      const msg = `连接[${url}]失败：${e.message}`
+      logger.error(msg)
+      throw new MongoError(msg)
+    }
   }
 }
 

@@ -2,6 +2,7 @@
   "name": "tms-koa-captcha",
   "version": "0.1.7",
   "description": "为提供tms-koa框架提供验证码功能",
+  "type": "module",
   "main": "dist/captcha.js",
   "scripts": {
     "build": "rimraf ./dist && tsc"
@@ -12,14 +13,14 @@
   "author": "jasony62",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^18.7.23",
-    "rimraf": "^3.0.2"
+    "@types/node": "^20.5.9",
+    "rimraf": "^5.0.1"
   },
   "dependencies": {
     "@log4js-node/log4js-api": "^1.0.2",
     "lodash": "^4.17.21",
-    "lowdb": "1.0.0",
-    "nanoid": "3.3.6",
+    "lowdb": "6.0.1",
+    "nanoid": "4.0.2",
     "svg-captcha": "^1.4.0",
     "tms-koa": "workspace:*"
   }

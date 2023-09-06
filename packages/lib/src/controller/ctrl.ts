@@ -2,7 +2,7 @@
  * 处理http请求的接口
  */
 
-import { ResultFault } from '../response'
+import { ResultFault } from '../response.js'
 
 // 应用上下文
 const CTRL_FIELD_CTX = Symbol('ctx')
@@ -98,15 +98,17 @@ export abstract class Ctrl {
    * 执行每个控制器方法前执行的操作
    * 如果返回的是ResultFault类型，返回，不继续执行方法
    */
-  abstract tmsBeforeEach?(method: string): Promise<ResultFault | true>
+  tmsBeforeEach?(method: string): Promise<ResultFault | true> {
+    return Promise.resolve(true)
+  }
   /**
    * 加载指定的model包，传递数据库实例
    *
    * @param {string} name 模型的名称（从models目录下开始）
    */
-  model(name) {
-    let path = `${process.cwd()}/models/${name}`
-    let model = require(path).create({ db: this.db })
+  async model(name) {
+    let path = `${process.cwd()}/models/${name}.js`
+    let model = (await import(path)).create({ db: this.db })
     return model
   }
   /**

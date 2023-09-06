@@ -1,12 +1,14 @@
-const xlsx = require('xlsx')
-const _ = require('lodash')
-const fs = require('fs')
-const PATH = require('path')
+import xlsx from 'xlsx'
+import _ from 'lodash'
+import fs from 'fs'
+import PATH from 'path'
 //
-const { LocalFS } = require('../../model/fs/local')
-const { Upload } = require('../../model/fs/upload')
+import { LocalFS } from '../../model/fs/local.js'
+import { Upload } from '../../model/fs/upload.js'
 
-const TmsContext = require('../../app').Context
+import { Context } from '../../app.js'
+
+const { TmsContext } = Context
 const { AppContext, FsContext } = TmsContext
 
 /**
@@ -59,7 +61,7 @@ export class ExcelCtrl {
 
     if (!fs.existsSync(PATH.dirname(filePath)))
       fs.mkdirSync(PATH.dirname(filePath), { recursive: true })
-    xlsx.writeFileSync(workBook, filePath, {
+    xlsx.writeFileAsync(filePath, workBook, {
       compression: true,
       bookType: 'xlsx',
     })
@@ -98,3 +100,5 @@ export class ExcelCtrl {
     return [false, '系统错误，实例不存在']
   }
 }
+
+export default ExcelCtrl

@@ -1,6 +1,6 @@
-import { BaseCtrl } from './base'
-import { ResultData, ResultFault } from '../../response'
-import { Info } from '../../model/fs'
+import { BaseCtrl } from './base.js'
+import { ResultData, ResultFault } from '../../response.js'
+import { Info } from '../../model/fs/index.js'
 
 /**
  * 文件管理控制器
@@ -27,3 +27,5 @@ export class ManageCtrl extends BaseCtrl {
     return new ResultData(result)
   }
 }
+
+export default ManageCtrl

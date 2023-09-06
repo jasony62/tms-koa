@@ -35,4 +35,4 @@ if (/yes|true/i.test(process.env.TMW_REDIS_CLUSTER)) {
   // config.master.masterAuthPasswor = '********'
 }
 
-module.exports = config
+export default config

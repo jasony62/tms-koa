@@ -1,5 +1,7 @@
-const { TmsKoa } = require('./app')
-const debug = require('debug')('tms-koa:startup')
+import { TmsKoa } from './app.js'
+import Debug from 'debug'
+
+const debug = Debug('tms-koa:startup')
 
 const tmsKoa = new TmsKoa()
 

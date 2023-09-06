@@ -1,10 +1,10 @@
-import { UploadCtrl } from './upload'
-import { ResultData, ResultFault } from '../../response'
+import { UploadCtrl } from './upload.js'
+import { ResultData, ResultFault } from '../../response.js'
 
-const { LocalFS } = require('../../model/fs/local')
-const { Info } = require('../../model/fs/info')
-const { UploadImage } = require('../../model/fs/upload')
-const fs = require('fs-extra')
+import { LocalFS } from '../../model/fs/local.js'
+import { Info } from '../../model/fs/info.js'
+import { UploadImage } from '../../model/fs/upload.js'
+import fs from 'fs-extra'
 
 /**
  * 文件管理控制器
@@ -39,7 +39,7 @@ export class ImageCtrl extends UploadCtrl {
       let result: any = { path: filepath, size: stat.size }
       let thumbInfo
       if (thumb === 'Y' && this.fsContext.backService === 'local') {
-        thumbInfo = await upload.makeThumb(filepath, false)
+        thumbInfo = await upload.makeThumb(filepath)
         result.thumbPath = thumbInfo.path
         result.thumbSize = thumbInfo.size
       }
@@ -66,3 +66,5 @@ export class ImageCtrl extends UploadCtrl {
     }
   }
 }
+
+export default ImageCtrl

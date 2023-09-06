@@ -1,11 +1,11 @@
 import { Ctrl, ResultData, ResultFault } from 'tms-koa'
-import { createModel } from '../../models/store'
+import { createModel } from '../../models/store/index.js'
 
 /**
  * 管理系统账号
  */
 export class Admin extends Ctrl {
-  tmsBeforeEach() {
+  async tmsBeforeEach(): Promise<ResultFault | true> {
     if (!this.client || this.client.isAdmin !== true)
       return new ResultFault('只有管理员账号可进行该操作')
   }

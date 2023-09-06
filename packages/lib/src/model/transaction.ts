@@ -1,4 +1,4 @@
-import { DbModel } from './model'
+import { DbModel } from './model.js'
 /**
  * 事物
  */

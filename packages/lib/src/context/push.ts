@@ -1,8 +1,9 @@
 /**
  * 消息推送服务
  */
-const fs = require('fs')
-const log4js = require('@log4js-node/log4js-api')
+import fs from 'fs'
+import log4js from '@log4js-node/log4js-api'
+
 const logger = log4js.getLogger('tms-koa-push')
 
 const MAP_SOCKETS = Symbol('push.map_sockets')
@@ -34,23 +35,25 @@ export class Context {
     if (typeof pushConfig.https === 'object') {
       const { port, key, cert } = pushConfig.https
       if (parseInt(port) && fs.existsSync(key) && fs.existsSync(cert)) {
-        const httpsServer = require('https').createServer({
+        const httpsServer = (await import('https')).createServer({
           key: fs.readFileSync(key, 'utf8').toString(),
           cert: fs.readFileSync(cert, 'utf8').toString(),
         })
-        const io = require('socket.io')(httpsServer)
+        const { Server } = await import('socket.io')
+        const io = new Server(httpsServer)
         const p = new Promise((resolve, reject) => {
-          httpsServer.listen(port, (err) => {
+          httpsServer.listen(port, () => {
+            logger.info(`完成启动推送服务https端口：${port}`)
+            io.on('connection', (socket) => {
+              _instance[MAP_HTTPS_SOCKETS].set(socket.id, socket)
+              socket.emit('tms-koa-push', { status: 'connected' })
+            })
+            resolve('ok')
+          })
+          httpsServer.on('error', (err) => {
             if (err) {
               logger.error(`启动推送服务https端口【${port}】失败: `, err)
               reject(err)
-            } else {
-              logger.info(`完成启动推送服务https端口：${port}`)
-              io.on('connection', (socket) => {
-                _instance[MAP_HTTPS_SOCKETS].set(socket.id, socket)
-                socket.emit('tms-koa-push', { status: 'connected' })
-              })
-              resolve('ok')
             }
           })
         })
@@ -58,8 +61,9 @@ export class Context {
       }
     }
     if (parseInt(pushConfig.port)) {
-      const httpServer = require('http').createServer()
-      const io = require('socket.io')(httpServer)
+      const httpServer = (await import('http')).createServer()
+      const { Server } = await import('socket.io')
+      const io = new Server(httpServer)
       const p = new Promise((resolve) => {
         httpServer.listen(pushConfig.port, () => {
           logger.info(`完成推送服务启动，开始监听端口：${pushConfig.port}`)

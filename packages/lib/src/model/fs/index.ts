@@ -1,6 +1,6 @@
-import { Upload, UploadPlain } from './upload'
-import { Info } from './info'
-import { LocalFS } from './local'
-import { MinioFS } from './minio'
+import { Upload, UploadPlain } from './upload.js'
+import { Info } from './info.js'
+import { LocalFS } from './local.js'
+import { MinioFS } from './minio.js'
 
 export { Upload, UploadPlain, Info, LocalFS, MinioFS }

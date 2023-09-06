@@ -1,9 +1,9 @@
 /**
  * 消息推送服务
  */
-import * as path from 'path'
-import * as low from 'lowdb'
-import * as fileSync from 'lowdb/adapters/FileSync'
+import path from 'path'
+import { Low } from 'lowdb'
+import { JSONFile } from 'lowdb/node'
 import { loadConfig } from 'tms-koa'
 
 import { getLogger } from '@log4js-node/log4js-api'
@@ -20,8 +20,8 @@ export class Context {
   }
 
   getDBSync() {
-    const adapter = new fileSync(this.dbFile)
-    const db = new low(adapter)
+    const adapter = new JSONFile(this.dbFile)
+    const db = new Low(adapter, {})
     return db
   }
 }
@@ -32,7 +32,7 @@ Context.init = (function () {
     if (_instance) return _instance
 
     if (!lowdbConfig) {
-      lowdbConfig = loadConfig('lowdb', {})
+      lowdbConfig = loadConfig('lowdb', { captchas: [] })
     }
 
     if (!lowdbConfig.file) {

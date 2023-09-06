@@ -1,11 +1,11 @@
-import { AccountConfig } from '../config'
-import * as PATH from 'path'
-import * as fs from 'fs'
+import { AccountConfig } from '../config.js'
+import PATH from 'path'
+import fs from 'fs'
 
 import { getLogger } from '@log4js-node/log4js-api'
 const logger = getLogger('tms-koa-account')
 
-import { createModel } from './store'
+import { createModel } from './store/index.js'
 
 /**
  * 根据http请求中包含的信息获得用户数据，支持异步调用

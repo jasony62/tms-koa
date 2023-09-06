@@ -1,9 +1,9 @@
 /** @module context/metrics */
 /* eslint-disable require-atomic-updates */
-const log4js = require('@log4js-node/log4js-api')
+import log4js from '@log4js-node/log4js-api'
+import PromClient from 'prom-client'
+
 const logger = log4js.getLogger('tms-koa-metrics')
-const PromClient = require('prom-client')
-const { Registry } = PromClient
 
 let _instance
 

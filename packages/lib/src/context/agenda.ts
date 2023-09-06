@@ -1,13 +1,13 @@
-const log4js = require('@log4js-node/log4js-api')
-const logger = log4js.getLogger('tms-koa-agenda')
-const Agenda = require('agenda')
-const MongoContext = require('./mongodb').Context
-const path = require('path')
-const glob = require('glob')
-const Debug = require('debug')
+import log4js from '@log4js-node/log4js-api'
+import { Agenda } from 'agenda'
+import path from 'path'
+import { glob } from 'glob'
+import Debug from 'debug'
 
+const logger = log4js.getLogger('tms-koa-agenda')
 const debug = Debug('tms-koa:agenda:context')
 
+const MongoContext = (await import('./mongodb.js')).Context
 /**
  * 上下文实例
  */
@@ -87,7 +87,7 @@ export class Context {
         logger.info(`从目录[${absDir}]读取agenda任务文件`)
         let files: string[] = glob.sync(`${absDir}/*.js`)
         for (let file of files) {
-          let { plan, createJob } = require(file)
+          let { plan, createJob } = await import(file)
           if (!plan || typeof plan !== 'object') {
             logger.warn(`agenda任务文件[${file}]不可用，没有导出[plan]对象`)
             continue

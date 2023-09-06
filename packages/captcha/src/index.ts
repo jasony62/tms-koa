@@ -1,1 +1,1 @@
-export { createCaptcha, checkCaptcha } from './captcha'
+export { createCaptcha, checkCaptcha } from './captcha.js'

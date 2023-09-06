@@ -1,6 +1,7 @@
-const log4js = require('@log4js-node/log4js-api')
+import log4js from '@log4js-node/log4js-api'
+import redis from 'redis'
+
 const logger = log4js.getLogger('tms-koa-redis')
-const redis = require('redis')
 
 let _instancesByUrl = new Map()
 let _instancesByName = new Map()
@@ -102,7 +103,7 @@ export class Context {
     if (!config || typeof config !== 'object') {
       let msg = '没有指定连接redis配置信息'
       logger.error(msg)
-      throw new redis.RedisError(msg)
+      throw new Error(msg)
     }
 
     if (config.diabled === true) {
@@ -113,7 +114,7 @@ export class Context {
     if (names.length === 0) {
       let msg = '指定连接redis配置信息为空'
       logger.error(msg)
-      throw new redis.RedisError(msg)
+      throw new Error(msg)
     }
 
     let instances

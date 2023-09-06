@@ -1,9 +1,10 @@
-const _ = require('lodash')
-const log4js = require('@log4js-node/log4js-api')
-const logger = log4js.getLogger('tms-koa-swagger')
-const Router = require('@koa/router')
+import _ from 'lodash'
+import log4js from '@log4js-node/log4js-api'
+import Router from '@koa/router'
+import { Context } from '../app.js'
 
-const { AppContext, MetricsContext } = require('../app').Context
+const { AppContext, MetricsContext } = Context
+const logger = log4js.getLogger('tms-koa-swagger')
 
 /* 访问地址 */
 let prefix = _.get(
@@ -27,4 +28,4 @@ router.get(prefix, async (ctx) => {
   response.body = metrics
 })
 
-export = router
+export { router }

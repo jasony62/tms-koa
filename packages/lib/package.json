@@ -2,34 +2,34 @@
   "name": "tms-koa",
   "version": "0.1.7",
   "description": "基于koa的API服务框架，内置：基于token的API访问控制机制，MySQL数据库的连接管理机制和防SQL注入，连接MongoDb，连接Redis，文件上传下载，API在线文档服务。",
+  "type": "module",
   "main": "dist/index.js",
   "files": [
     "dist"
   ],
   "dependencies": {
-    "@koa/cors": "^3.3.0",
+    "@koa/cors": "^4.0.0",
     "@koa/router": "^12.0.0",
     "@log4js-node/log4js-api": "^1.0.2",
-    "agenda": "^4.3.0",
-    "axios": "^0.27.2",
+    "agenda": "^5.0.0",
+    "axios": "^1.5.0",
     "dayjs": "^1.11.7",
     "debug": "^4.3.4",
     "dotenv-flow": "^3.1.0",
-    "fs-extra": "^10.0.1",
-    "glob": "^8.0.3",
-    "jsonwebtoken": "^8.5.1",
-    "koa": "^2.8.1",
-    "koa-body": "^5.0.0",
+    "fs-extra": "^11.1.1",
+    "glob": "^10.3.4",
+    "jsonwebtoken": "^9.0.2",
+    "koa": "^2.14.2",
+    "koa-body": "^6.0.1",
     "koa-send": "^5.0.0",
     "koa-static": "^5.0.0",
     "lodash": "^4.17.15",
     "minio": "^7.0.33",
-    "mongodb": "^4.8.1",
+    "mongodb": "^6.0.0",
     "prom-client": "^14.1.0",
-    "sharp": "^0.30.7",
-    "socket.io": "^4.4.1",
+    "socket.io": "^4.7.2",
     "swagger-jsdoc": "^6.2.0",
-    "uuid": "^8.3.2",
+    "uuid": "^9.0.0",
     "xlsx": "^0.18.5"
   },
   "peerDependencies": {
@@ -37,17 +37,13 @@
     "redis": "4.1.0"
   },
   "devDependencies": {
-    "@types/formidable": "^2.0.5",
+    "@types/formidable": "^3.4.2",
+    "@types/koa": "^2.13.8",
     "@types/minio": "^7.0.18",
-    "@types/node": "^18.6.1",
-    "babel-plugin-module-resolver": "^3.2.0",
-    "eslint": "^6.3.0",
-    "eslint-import-resolver-alias": "^1.1.2",
-    "eslint-plugin-import": "^2.18.2",
-    "eslint-plugin-jest": "^22.17.0",
-    "eslint-plugin-node": "^10.0.0",
+    "@types/node": "^20.5.9",
     "jest": "^24.9.0",
-    "rimraf": "^3.0.2",
+    "log4js": "^6.9.1",
+    "rimraf": "^5.0.1",
     "tms-koa-account": "workspace:*",
     "tms-koa-captcha": "workspace:*"
   },
@@ -68,8 +64,5 @@
   "bugs": {
     "url": "https://github.com/jasony62/tms-koa/issues"
   },
-  "homepage": "https://github.com/jasony62/tms-koa#readme",
-  "engines": {
-    "node": ">=16.15.0"
-  }
+  "homepage": "https://github.com/jasony62/tms-koa#readme"
 }

@@ -1,4 +1,5 @@
-module.exports = {
+export default {
+  disabled: true,
   mongodb: {
     source: 'master',
     database: 'agenda',

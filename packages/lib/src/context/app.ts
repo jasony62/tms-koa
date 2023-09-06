@@ -1,7 +1,8 @@
-const _ = require('lodash')
-const fs = require('fs')
-const modPath = require('path')
-const log4js = require('@log4js-node/log4js-api')
+import _ from 'lodash'
+import fs from 'fs'
+import modPath from 'path'
+import log4js from '@log4js-node/log4js-api'
+
 const logger = log4js.getLogger('tms-koa-app')
 
 /**
@@ -35,7 +36,7 @@ async function localCreateTmsClient(ctx, accounts) {
       delete data.password
       delete data.isAdmin
       delete data.allowMultiLogin
-      const tmsClient = require('../auth/client').createByData({
+      const tmsClient = (await import('../auth/client.js')).createByData({
         id: found.id,
         data,
         isAdmin: found.isAdmin === true,
@@ -217,7 +218,7 @@ async function initAuth(instance, appConfig) {
     let { host } = redis
     if (typeof host === 'string' || Array.isArray(host)) {
       try {
-        await require('./redis').Context.init(redis)
+        ;(await import('./redis.js')).Context.init(redis)
         authConfig.mode = 'redis'
         authConfig.redis = redis
       } catch (e) {
@@ -236,24 +237,24 @@ async function initAuth(instance, appConfig) {
         let createTmsClient, registerTmsClient
         if (module && typeof module === 'string') {
           if (authentication && typeof authentication === 'string') {
-            createTmsClient = require(`${id}/${module}`)[authentication]
+            createTmsClient = (await import(`${id}/${module}`))[authentication]
           } else {
-            createTmsClient = require(`${id}/${module}`)
+            createTmsClient = await import(`${id}/${module}`)
           }
           // 注册方法
           if (typeof register === 'string') {
             if (register) {
-              registerTmsClient = require(`${id}/${module}`)[register]
+              registerTmsClient = (await import(`${id}/${module}`))[register]
             } else {
-              registerTmsClient = require(`${id}/${module}`)
+              registerTmsClient = await import(`${id}/${module}.js`)
             }
           }
         } else {
           // 如果没有指定module 那么 authentication、register 指定的应该是一个独立的模块文件
           if (authentication && typeof authentication === 'string') {
-            createTmsClient = require(`${id}/${authentication}`)
+            createTmsClient = await import(`${id}/${authentication}.js`)
           } else {
-            createTmsClient = require(id)
+            createTmsClient = await import(id)
           }
           if (typeof createTmsClient.default === 'function') {
             createTmsClient = createTmsClient.default
@@ -261,9 +262,9 @@ async function initAuth(instance, appConfig) {
           // 注册方法
           if (typeof register === 'string') {
             if (register) {
-              registerTmsClient = require(`${id}/${register}`)
+              registerTmsClient = await import(`${id}/${register}.js`)
             } else {
-              registerTmsClient = require(id)
+              registerTmsClient = await import(id)
             }
             if (typeof registerTmsClient.default === 'function') {
               registerTmsClient = registerTmsClient.default
@@ -284,7 +285,7 @@ async function initAuth(instance, appConfig) {
         const pathClient = modPath.resolve(path)
         if (!fs.existsSync(pathClient))
           throw Error('设置的用户认证外部方法不存在')
-        let createTmsClient = require(pathClient)
+        let createTmsClient = await import(pathClient)
         if (typeof createTmsClient !== 'function')
           throw Error('设置的用户认证外部方法的类型不是函数')
         authConfig.client = { createTmsClient }
@@ -294,7 +295,7 @@ async function initAuth(instance, appConfig) {
           const regPathClient = modPath.resolve(registerPath)
           if (!fs.existsSync(regPathClient))
             throw Error('设置的用户注册外部方法不存在')
-          let registerTmsClient = require(regPathClient)
+          let registerTmsClient = await import(regPathClient)
           if (typeof registerTmsClient !== 'function')
             throw Error('设置的用户注册外部方法的类型不是函数')
           authConfig.client.registerTmsClient = registerTmsClient
@@ -325,22 +326,22 @@ async function initAuth(instance, appConfig) {
       let createCaptcha, checkCaptcha
       if (module && typeof module === 'string') {
         if (generator && typeof generator === 'string')
-          createCaptcha = require(`${id}/${module}`)[generator]
-        else createCaptcha = require(`${id}/${module}`)
+          createCaptcha = (await import(`${id}/${module}`))[generator]
+        else createCaptcha = await import(`${id}/${module}`)
         // 检查验证码方法
         if (typeof checker === 'string') {
-          if (checker) checkCaptcha = require(`${id}/${module}`)[checker]
-          else checkCaptcha = require(`${id}/${module}`)
+          if (checker) checkCaptcha = (await import(`${id}/${module}`))[checker]
+          else checkCaptcha = await import(`${id}/${module}`)
         }
       } else {
         // 如果没有指定module 那么 generator、checker 指定的应该是一个独立的模块文件
         if (generator && typeof generator === 'string')
-          createCaptcha = require(`${id}/${generator}`)
-        else createCaptcha = require(id)
+          createCaptcha = await import(`${id}/${generator}`)
+        else createCaptcha = await import(id)
         // 检查验证码方法
         if (typeof checker === 'string') {
-          if (checker) checkCaptcha = require(`${id}/${checker}`)
-          else checkCaptcha = require(id)
+          if (checker) checkCaptcha = await import(`${id}/${checker}`)
+          else checkCaptcha = await import(id)
         }
       }
 
@@ -358,7 +359,7 @@ async function initAuth(instance, appConfig) {
       const pathCaptcha = modPath.resolve(path)
       if (!fs.existsSync(pathCaptcha))
         throw Error('未设置用验证码限制调用用户认证接口的方法')
-      const fnCreateCaptcha = require(pathCaptcha)
+      const fnCreateCaptcha = await import(pathCaptcha)
       if (typeof fnCreateCaptcha !== 'function')
         throw Error('设置的生成验证码方法的类型不是函数')
       authConfig.captcha = {
@@ -371,7 +372,7 @@ async function initAuth(instance, appConfig) {
         const pathCheckCaptcha = modPath.resolve(checkPath)
         if (!fs.existsSync(pathCheckCaptcha))
           throw Error('未设置检查验证码的方法')
-        const fnCheckCaptcha = require(pathCheckCaptcha)
+        const fnCheckCaptcha = await import(pathCheckCaptcha)
         if (typeof fnCheckCaptcha !== 'function')
           throw Error('设置的检查验证码方法的类型不是函数')
         authConfig.captcha.checkCaptcha = fnCheckCaptcha
@@ -397,7 +398,7 @@ async function initAuth(instance, appConfig) {
     if (typeof bucket.validator === 'string') {
       let validatorPath = modPath.resolve(bucket.validator)
       try {
-        const validator = require(validatorPath)
+        const validator = await import(validatorPath)
         if (typeof validator === 'function') {
           instance.bucketValidator = validator
           instance.checkClientBucket = checkClientBucket

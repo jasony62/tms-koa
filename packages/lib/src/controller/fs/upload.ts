@@ -1,6 +1,6 @@
-import { BaseCtrl } from './base'
-import { ResultData, ResultFault } from '../../response'
-import { UploadPlain, Info } from '../../model/fs'
+import { BaseCtrl } from './base.js'
+import { ResultData, ResultFault } from '../../response.js'
+import { UploadPlain, Info } from '../../model/fs/index.js'
 import * as fs from 'fs'
 import type { File } from 'formidable'
 
@@ -153,3 +153,5 @@ export class UploadCtrl extends BaseCtrl {
     return new ResultData('ok')
   }
 }
+
+export default UploadCtrl

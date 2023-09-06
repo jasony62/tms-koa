@@ -1,13 +1,15 @@
 /**
  * 本地文件下载服务
  */
-const path = require('path')
-const _ = require('lodash')
-const log4js = require('@log4js-node/log4js-api')
+import path from 'path'
+import _ from 'lodash'
+import log4js from '@log4js-node/log4js-api'
+import Router from '@koa/router'
+import send from 'koa-send'
+import { Context } from '../app.js'
+
 const logger = log4js.getLogger('tms-koa-fsdomain')
-const Router = require('@koa/router')
-const send = require('koa-send')
-const { AppContext, FsContext } = require('../app').Context
+const { AppContext, FsContext } = Context
 
 const prefix = _.get(
   AppContext.insSync(),
@@ -53,4 +55,4 @@ async function findDiskFile(ctx, next) {
 
 router.all('/(.*)', findDiskFile)
 
-export = router
+export { router }

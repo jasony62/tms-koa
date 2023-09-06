@@ -1,11 +1,11 @@
-declare type returnType = [boolean, string];
-declare type accountInfoType = {
+type returnType = [boolean, string];
+type accountInfoType = {
     username: string;
     password: string;
     adc?: any;
 };
-declare type returnAccountType = [boolean, accountInfoType | string];
-declare type ctxType = {
+type returnAccountType = [boolean, accountInfoType | string];
+type ctxType = {
     [key: string]: any;
 };
 declare class Encrypt {

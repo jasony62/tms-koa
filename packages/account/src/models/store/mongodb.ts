@@ -1,6 +1,6 @@
 import { ObjectId } from 'mongodb'
 
-import { PasswordProcess as ProcessPwd } from '../processpwd'
+import { PasswordProcess as ProcessPwd } from '../processpwd.js'
 
 import Debug from 'debug'
 const debug = Debug('tms-koa-account')

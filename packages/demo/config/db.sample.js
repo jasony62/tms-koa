@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   disabled: false, // 可省略
   mysql: {
     master: {
@@ -8,7 +8,7 @@ module.exports = {
       port: '',
       user: '',
       password: '',
-      database: ''
+      database: '',
     },
     write: {
       connectionLimit: 10,
@@ -17,10 +17,10 @@ module.exports = {
       port: '',
       user: '',
       password: '',
-      database: ''
-    }
+      database: '',
+    },
   },
   sqlite: {
-    path: ''
-  }
+    path: '',
+  },
 }

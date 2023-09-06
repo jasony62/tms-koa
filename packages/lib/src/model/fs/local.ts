@@ -1,8 +1,8 @@
 import fs from 'fs-extra'
 import path from 'path'
-import * as _ from 'lodash'
+import _ from 'lodash'
 
-import type { TmsDir, TmsFile } from '../../types/fs'
+import type { TmsDir, TmsFile } from '../../types/fs/index.js'
 import type { File } from 'formidable'
 
 /**
@@ -291,7 +291,8 @@ export class LocalFS {
     if (!/\.[png|jpg|jpeg]/i.test(ext)) return false
 
     try {
-      const sharp = require('sharp')
+      let name = 'sharp'
+      const sharp = await import(name)
       const fullpath = isRelative ? this.pathWithRoot(filepath) : filepath
       const thumbPath = this.thumbPathWithRoot(filepath)
 

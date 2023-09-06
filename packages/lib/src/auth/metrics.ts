@@ -1,4 +1,4 @@
-const { Context } = require('../app')
+import { Context } from '../app.js'
 const { MetricsContext } = Context
 
 const Prefix = 'tmskoa'

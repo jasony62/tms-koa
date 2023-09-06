@@ -1,6 +1,9 @@
-const { Ctrl, ResultData } = require('tms-koa')
+import { Ctrl, ResultData, ResultFault } from 'tms-koa/dist/index.js'
 
-class Main extends Ctrl {
+export class Main extends Ctrl {
+  tmsBeforeEach?(method: string): Promise<true | ResultFault> {
+    return Promise.resolve(true)
+  }
   /**
    * 检查请求是否来源于可信主机，跳过鉴权机制
    */
@@ -13,5 +16,3 @@ class Main extends Ctrl {
     return new ResultData(`收到：${value}`)
   }
 }
-
-module.exports = Main

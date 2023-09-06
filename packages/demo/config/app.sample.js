@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   port: 3001,
   https: { port: 3002, key: '', cert: '' },
   name: 'tms-koa-0',

@@ -1,10 +1,11 @@
-import { Ctrl } from '../ctrl'
-import { ResultData, ResultFault } from '../../response'
-import { LocalFS, MinioFS, Info } from '../../model/fs'
+import { Ctrl } from '../ctrl.js'
+import { ResultData, ResultFault } from '../../response.js'
+import { LocalFS, MinioFS, Info } from '../../model/fs/index.js'
 
-const fs = require('fs')
-const crypto = require('crypto')
-const log4js = require('@log4js-node/log4js-api')
+import fs from 'fs'
+import crypto from 'crypto'
+import log4js from '@log4js-node/log4js-api'
+
 const logger = log4js.getLogger('tms-koa-fs-base')
 
 /**
@@ -97,7 +98,7 @@ export class BaseCtrl extends Ctrl {
    */
   async _setFileInfo(fsInfo, path, info, setMD5 = 'N') {
     if (setMD5 === 'Y') {
-      const PATH = require('path')
+      const PATH = await import('path')
       let md5 = await this.getFileMD5(PATH.join(this.fsContext.rootDir, path))
       if (md5 !== false) info.md5 = md5
     }

@@ -1,6 +1,6 @@
 /** @module context/swagger */
 /* eslint-disable require-atomic-updates */
-const log4js = require('@log4js-node/log4js-api')
+import log4js from '@log4js-node/log4js-api'
 const logger = log4js.getLogger('tms-koa-swagger')
 
 let _instance

@@ -1,5 +1,5 @@
 import { loadConfig } from 'tms-koa'
 
-const AccountConfig = loadConfig('account', {})
+const AccountConfig = await loadConfig('account', {})
 
 export { AccountConfig }

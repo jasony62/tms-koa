@@ -1,9 +1,9 @@
 import { ResultData } from 'tms-koa'
 import * as crypto from 'tms-koa-crypto'
 
-import authenticate from './models/authenticate'
-import register from './models/register'
-import processPwd from './models/processpwd'
+import authenticate from './models/authenticate.js'
+import register from './models/register.js'
+import processPwd from './models/processpwd.js'
 
 class Main {
   /**

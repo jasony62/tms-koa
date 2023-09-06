@@ -5,7 +5,7 @@ const logger = getLogger('tms-koa-captcha')
 
 import { loadConfig } from 'tms-koa'
 
-import { Context as lowdbContext } from './lowdb'
+import { Context as lowdbContext } from './lowdb.js'
 
 const CaptchaConfig = loadConfig('captcha', {})
 
@@ -222,7 +222,7 @@ class Captcha {
     await this.removeCodeByUser(appid, captchaid) // 清空此用户的验证码
     if (this.storageType === 'lowdb') {
       const lowClient = this.getLowDbClient()
-      lowClient.get('captchas').push(data).write() // 添加
+      lowClient.data.captchas.push(data).write() // 添加
     } else if (this.storageType === 'redis') {
       const redisClient = await this.getRedisClient()
       await redisClient.store(appid, captchaid, data, this.expire)
@@ -255,8 +255,8 @@ class Captcha {
       current = Date.now()
     if (this.storageType === 'lowdb') {
       const lowClient = this.getLowDbClient()
-      let captchaCodes = lowClient
-        .get('captchas')
+      lowClient.read()
+      let captchaCodes = lowClient.data.captchas
         .filter((v) => {
           let pass = v.appid === appid && v.captchaid === captchaid
           if (pass) {
@@ -304,7 +304,7 @@ class Captcha {
    */
   async removeCodeByUser(appid, captchaid) {
     if (this.storageType === 'lowdb') {
-      this.getLowDbClient().get('captchas').remove({ appid, captchaid }).write()
+      this.getLowDbClient().data.captchas.remove({ appid, captchaid }).write()
     } else if (this.storageType === 'redis') {
       const redisClient = await this.getRedisClient()
       await redisClient.del(appid, captchaid)
@@ -324,7 +324,6 @@ class Captcha {
 
     const instance = lowdbContext.ins()
     const db = instance.getDBSync()
-    db.defaults({ captchas: [] }).write()
 
     this.lowClient = db
     return this.lowClient

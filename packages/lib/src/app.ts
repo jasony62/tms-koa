@@ -1,17 +1,17 @@
-const fs = require('fs')
-const path = require('path')
-const http = require('http')
-const https = require('https')
-const _ = require('lodash')
-const Koa = require('koa')
-const koaBody = require('koa-body')
-const koaStatic = require('koa-static')
-const cors = require('@koa/cors')
-const log4js = require('@log4js-node/log4js-api')
-const logger = log4js.getLogger('tms-koa')
-const Debug = require('debug')
+import 'dotenv-flow/config.js'
+import fs from 'fs'
+import path from 'path'
+import http from 'http'
+import https from 'https'
+import _ from 'lodash'
+import Koa from 'koa'
+import { koaBody } from 'koa-body'
+import koaStatic from 'koa-static'
+import cors from '@koa/cors'
+import log4js from '@log4js-node/log4js-api'
+import Debug from 'debug'
 
-require('dotenv-flow').config()
+const logger = log4js.getLogger('tms-koa')
 
 const debug = Debug('tms-koa')
 
@@ -104,11 +104,11 @@ if (process.env.TMS_KOA_CLIENT_ACCOUNT_DIR) {
  *
  * @return {object} 配置数据对象
  */
-function loadConfig(name, defaultConfig?) {
+async function loadConfig(name, defaultConfig?) {
   let basepath = path.resolve(ConfigDir, `${name}.js`)
   let baseConfig
   if (fs.existsSync(basepath)) {
-    baseConfig = require(basepath)
+    baseConfig = (await import(basepath)).default
     logger.info(`从[${basepath}]加载配置`)
   } else {
     logger.warn(`[${name}]配置文件[${basepath}]不存在`)
@@ -116,7 +116,7 @@ function loadConfig(name, defaultConfig?) {
   let localpath = path.resolve(ConfigDir, `${name}.local.js`)
   let localConfig
   if (fs.existsSync(localpath)) {
-    localConfig = require(localpath)
+    localConfig = (await import(localpath)).default
     logger.info(`从[${localpath}]加载本地配置`)
   }
   if (defaultConfig || baseConfig || localConfig) {
@@ -249,27 +249,25 @@ function loadClientAccountFromDir(appDefaultConfig: any) {
 
 type KoaMiddleware = (ctx: any, next: Function) => void
 
+type TmsKoaStartupOptions = {
+  beforeController?: KoaMiddleware[]
+  afterController?: KoaMiddleware[]
+  afterInit?: (context: any) => void
+}
 class TmsKoa extends Koa {
   /**
    *
    * @param {*} options
    */
-  constructor(options) {
-    super(options)
-  }
+  // constructor(options) {
+  //   super(options)
+  // }
   /**
    * 启动应用
    */
-  async startup({
-    beforeController,
-    afterController,
-    afterInit,
-  }: {
-    beforeController: KoaMiddleware[]
-    afterController: KoaMiddleware[]
-    afterInit: (context: any) => void
-  }) {
+  async startup(options: TmsKoaStartupOptions) {
     const { env } = process
+    const { beforeController, afterController, afterInit } = options
     /**
      * 应用配置
      */
@@ -293,7 +291,7 @@ class TmsKoa extends Koa {
       loadCtrlPluginsNpmFromEnv(appDefaultConfig)
     }
     applog(`应用的默认配置：\n` + JSON.stringify(appDefaultConfig, null, 2))
-    const appConfig = loadConfig('app', appDefaultConfig)
+    const appConfig = await loadConfig('app', appDefaultConfig)
     /**从指定目录加载账号数据，覆盖配置文件中的设置*/
     if (typeof ClientAccountDir === 'string') {
       loadClientAccountFromDir(appConfig)
@@ -301,7 +299,8 @@ class TmsKoa extends Koa {
     applog(`完整的应用配置信息：\n` + JSON.stringify(appConfig, null, 2))
 
     try {
-      AppContext = require('./context/app').Context
+      // AppContext = await import('./context/app').Context
+      AppContext = (await import('./context/app.js')).Context
       await AppContext.init(appConfig)
       Context.AppContext = AppContext
     } catch (e) {
@@ -315,7 +314,7 @@ class TmsKoa extends Koa {
      */
     // const dbConfig = loadConfig('db')
     // if (dbConfig && dbConfig.disabled !== true) {
-    //   DbContext = require('tms-db').DbContext
+    //   DbContext = await import('tms-db').DbContext
     //   try {
     //     await DbContext.init(dbConfig)
     //     Context.DbContext = DbContext
@@ -351,10 +350,10 @@ class TmsKoa extends Koa {
       debug(msg)
       mongodbDefaultConfig = { master: mdb }
     }
-    const mongoConfig = loadConfig('mongodb', mongodbDefaultConfig)
+    const mongoConfig = await loadConfig('mongodb', mongodbDefaultConfig)
     if (mongoConfig && mongoConfig.disabled !== true) {
       try {
-        MongoContext = require('./context/mongodb').Context
+        MongoContext = (await import('./context/mongodb.js')).Context
         await MongoContext.init(mongoConfig)
         Context.MongoContext = MongoContext
       } catch (e) {
@@ -370,9 +369,9 @@ class TmsKoa extends Koa {
     /**
      * 初始化redis
      */
-    const redisConfig = loadConfig('redis')
+    const redisConfig = await loadConfig('redis')
     if (redisConfig && redisConfig.disabled !== true) {
-      RedisContext = require('./context/redis').Context
+      RedisContext = (await import('./context/redis.js')).Context
       try {
         await RedisContext.init(redisConfig)
         Context.RedisContext = RedisContext
@@ -388,9 +387,9 @@ class TmsKoa extends Koa {
     /**
      * 初始化neo4j
      */
-    const neo4jConfig = loadConfig('neo4j')
+    const neo4jConfig = await loadConfig('neo4j')
     if (neo4jConfig && neo4jConfig.disabled !== true) {
-      Neo4jContext = require('./context/neo4j').Context
+      Neo4jContext = (await import('./context/neo4j.js')).Context
       try {
         await Neo4jContext.init(neo4jConfig)
         Context.Neo4jContext = Neo4jContext
@@ -406,9 +405,9 @@ class TmsKoa extends Koa {
     /**
      * 文件管理模块初始化
      */
-    const fsConfig = loadConfig('fs')
+    const fsConfig = await loadConfig('fs')
     if (fsConfig && fsConfig.disabled !== true) {
-      FsContext = require('./context/fs').Context
+      FsContext = (await import('./context/fs.js')).Context
       try {
         await FsContext.init(fsConfig)
         Context.FsContext = FsContext
@@ -426,9 +425,9 @@ class TmsKoa extends Koa {
     /**
      * 推送服务模块初始化
      */
-    const pushConfig = loadConfig('push')
+    const pushConfig = await loadConfig('push')
     if (pushConfig && pushConfig.disabled !== true) {
-      PushContext = require('./context/push').Context
+      PushContext = (await import('./context/push.js')).Context
       try {
         await PushContext.init(pushConfig)
         Context.PushContext = PushContext
@@ -445,9 +444,9 @@ class TmsKoa extends Koa {
     /**
      * Agenda服务模块初始化
      */
-    const agendaConfig = loadConfig('agenda')
+    const agendaConfig = await loadConfig('agenda')
     if (agendaConfig && agendaConfig.disabled !== true) {
-      AgendaContext = require('./context/agenda').Context
+      AgendaContext = (await import('./context/agenda.js')).Context
       try {
         await AgendaContext.init(agendaConfig)
         Context.AgendaContext = AgendaContext
@@ -464,9 +463,9 @@ class TmsKoa extends Koa {
     /**
      * Swagger服务模块初始化
      */
-    const swaggerConfig = loadConfig('swagger')
+    const swaggerConfig = await loadConfig('swagger')
     if (swaggerConfig && swaggerConfig.disabled !== true) {
-      SwaggerContext = require('./context/swagger').Context
+      SwaggerContext = (await import('./context/swagger.js')).Context
       try {
         await SwaggerContext.init(swaggerConfig)
         Context.SwaggerContext = SwaggerContext
@@ -483,9 +482,9 @@ class TmsKoa extends Koa {
     /**
      * 监控服务
      */
-    const metricsConfig = loadConfig('metrics')
+    const metricsConfig = await loadConfig('metrics')
     if (metricsConfig && metricsConfig.disabled !== true) {
-      MetricsContext = require('./context/metrics').Context
+      MetricsContext = (await import('./context/metrics.js')).Context
       try {
         await MetricsContext.init(metricsConfig)
         Context.MetricsContext = MetricsContext
@@ -508,15 +507,15 @@ class TmsKoa extends Koa {
      * 开放Swagger服务
      */
     if (Context.SwaggerContext) {
-      let swaggerRouter = require('./swagger/router')
-      this.use(swaggerRouter.routes())
+      let { router } = await import('./swagger/router.js')
+      this.use(router.routes())
     }
     /**
      * 开放监控服务
      */
     if (Context.MetricsContext) {
-      let metricsRouter = require('./metrics/router')
-      this.use(metricsRouter.routes())
+      let { router } = await import('./metrics/router.js')
+      this.use(router.routes())
     }
     /**
      * 支持访问静态文件
@@ -529,23 +528,23 @@ class TmsKoa extends Koa {
      * 开放文件服务的下载服务
      */
     if (Context.FsContext) {
-      let diskRouter = require('./fsdomain/router')
-      this.use(diskRouter.routes())
+      let { router } = await import('./fsdomain/router.js')
+      this.use(router.routes())
     }
     /**
      * 支持post，上传文件
      */
-    this.use(
-      koaBody({
-        jsonLimit: (appConfig.body && appConfig.body.jsonLimit) || '1mb', // {String|Integer} The byte (if integer) limit of the JSON body, default 1mb
-        formLimit: (appConfig.body && appConfig.body.formLimit) || '56kb', // {String|Integer} The byte (if integer) limit of the form body, default 56kb
-        textLimit: (appConfig.body && appConfig.body.textLimit) || '56kb', // {String|Integer} The byte (if integer) limit of the text body, default 56kb
-        multipart: true,
-        formidable: {
-          maxFileSize: 200 * 1024 * 1024,
-        },
-      })
-    )
+    const koaBodyOptions = {
+      jsonLimit: (appConfig.body && appConfig.body.jsonLimit) || '1mb', // {String|Integer} The byte (if integer) limit of the JSON body, default 1mb
+      formLimit: (appConfig.body && appConfig.body.formLimit) || '56kb', // {String|Integer} The byte (if integer) limit of the form body, default 56kb
+      textLimit: (appConfig.body && appConfig.body.textLimit) || '56kb', // {String|Integer} The byte (if integer) limit of the text body, default 56kb
+      multipart: true,
+      formidable: {
+        maxFileSize: 200 * 1024 * 1024,
+      },
+    }
+
+    this.use(koaBody(koaBodyOptions))
 
     /**
      * 获得access_token
@@ -556,7 +555,7 @@ class TmsKoa extends Koa {
       typeof authConfig === 'object' &&
       Object.keys(authConfig).length
     ) {
-      let router = require('./auth/router')
+      let { router } = await import('./auth/router.js')
       this.use(router.routes())
       if (authConfig.mode)
         logger.info(`启用API调用认证机制【mode=${authConfig.mode}】`)
@@ -575,7 +574,7 @@ class TmsKoa extends Koa {
     /**
      * 控制器
      */
-    let router = require('./controller/router')
+    let { router } = await import('./controller/router.js')
     this.use(router.routes())
     /**
      * 其他中间件
@@ -593,19 +592,20 @@ class TmsKoa extends Koa {
     /**
      * 启用端口
      */
-    let serverCallback = this.callback()
+    const serverCallback = this.callback()
     const appContext = AppContext.insSync()
     try {
       const httpServer = http.createServer(serverCallback)
-      httpServer.listen(appContext.port, (err) => {
+      httpServer.listen(appContext.port, () => {
+        let msg = `完成启动http端口：${appContext.port}`
+        debug(msg)
+        logger.info(msg)
+      })
+      httpServer.on('error', (err) => {
         if (err) {
           let msg = `启动http端口【${appContext.port}】失败: `
           debug(msg + '%O', err)
           logger.error(msg, err)
-        } else {
-          let msg = `完成启动http端口：${appContext.port}`
-          debug(msg)
-          logger.info(msg)
         }
       })
     } catch (ex) {
@@ -629,11 +629,12 @@ class TmsKoa extends Koa {
           },
           serverCallback
         )
-        httpsServer.listen(port, (err) => {
+        httpsServer.listen(port, () => {
+          logger.info(`完成启动https端口：${port}`)
+        })
+        httpsServer.on('error', (err) => {
           if (err) {
             logger.error(`启动https端口【${port}】失败: `, err)
-          } else {
-            logger.info(`完成启动https端口：${port}`)
           }
         })
       } catch (ex) {

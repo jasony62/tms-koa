@@ -1,17 +1,18 @@
-import { Ctrl } from './ctrl'
+import { Ctrl } from './ctrl.js'
 
-const log4js = require('@log4js-node/log4js-api')
+import log4js from '@log4js-node/log4js-api'
+import Router from '@koa/router'
+import _ from 'lodash'
+import jwt from 'jsonwebtoken'
+import fs from 'fs'
+import nodePath from 'path'
+import Debug from 'debug'
+
+import { Context as TmsContext, getAccessTokenByRequest } from '../app.js'
+
 const logger = log4js.getLogger('tms-koa-ctrl')
-const Router = require('@koa/router')
-const _ = require('lodash')
-const jwt = require('jsonwebtoken')
-const fs = require('fs')
-const nodePath = require('path')
-const Debug = require('debug')
-
 const debug = Debug('tms-koa:ctrl-router')
 
-const { Context: TmsContext, getAccessTokenByRequest } = require('../app')
 const { AppContext, DbContext, MongoContext, FsContext, PushContext } =
   TmsContext
 
@@ -24,21 +25,21 @@ const TrustedHostsFile = nodePath.resolve(
 const TrustedHosts = {}
 if (fs.existsSync(TrustedHostsFile)) {
   logger.info(`从${TrustedHostsFile}加载信任主机列表`)
-  Object.assign(TrustedHosts, require(TrustedHostsFile))
+  Object.assign(TrustedHosts, await import(TrustedHostsFile))
 } else {
   logger.info(`未从${TrustedHostsFile}获得信任主机列表`)
 }
 
-const { ResultFault, AccessTokenFault } = require('../response')
+const { ResultFault, AccessTokenFault } = await import('../response.js')
 
 // 从控制器路径查找
 const CtrlDir = nodePath.resolve(
-  process.env.TMS_KOA_CONTROLLERS_DIR || process.cwd() + '/controllers'
+  process.env.TMS_KOA_CONTROLLERS_DIR || process.cwd() + '/dist/controllers'
 )
 debug(`控制器目录：${CtrlDir}`)
 
 // 记录指标
-const { Metrics } = require('./metrics')
+const { Metrics } = await import('./metrics.js')
 const metrics = new Metrics()
 /**
  * 记录处理的数据
@@ -95,7 +96,7 @@ type NpmCtrl = { id: string; dir?: string; alias?: string }
 class FindCtrlClassAndMethodNameHandler extends BaseHandler {
   name = 'FindCtrl'
   /**在控制器目录中查找控制器类 */
-  findCtrlClassInCtrlDir(ctrlName, path: string) {
+  async findCtrlClassInCtrlDir(ctrlName, path: string) {
     let ctrlPath = `${CtrlDir}/${ctrlName}.js`
     if (!fs.existsSync(ctrlPath)) {
       ctrlPath = `${CtrlDir}/${ctrlName}/main.js`
@@ -111,12 +112,12 @@ class FindCtrlClassAndMethodNameHandler extends BaseHandler {
       }
     }
 
-    let CtrlClass = require(ctrlPath)
+    let CtrlClass = (await import(`${ctrlPath}`)).default
 
     return CtrlClass
   }
   /**从npm包中查找 */
-  findCtrlClassInNpms(npmCtrl: NpmCtrl, ctrlName: any, path: string) {
+  async findCtrlClassInNpms(npmCtrl: NpmCtrl, ctrlName: any, path: string) {
     logger.debug(`控制器插件${JSON.stringify(npmCtrl)}匹配当前请求`)
     let CtrlClass, ctrlPath
     try {
@@ -131,11 +132,11 @@ class FindCtrlClassAndMethodNameHandler extends BaseHandler {
         // 如果指定了起始目录，在其实报名后面添加起始目录
         ctrlPath = ctrlPath.replace(npmCtrl.id, `${npmCtrl.id}/${npmCtrl.dir}`)
       }
-      CtrlClass = require(ctrlPath)
+      CtrlClass = await import(`${ctrlPath}.js`)
     } catch (e) {
       logger.warn(`查找npm控制器[${ctrlName}]失败[${e.message}]`, e)
       // 从控制器路径查找
-      CtrlClass = this.findCtrlClassInCtrlDir(ctrlName, path)
+      CtrlClass = await this.findCtrlClassInCtrlDir(ctrlName, path)
     }
     return CtrlClass
   }
@@ -143,7 +144,7 @@ class FindCtrlClassAndMethodNameHandler extends BaseHandler {
    *
    * @param {*} request
    */
-  findCtrlClassAndMethodName(request) {
+  async findCtrlClassAndMethodName(request) {
     let { path } = request
 
     if (prefix) path = path.replace(prefix, '')
@@ -172,9 +173,9 @@ class FindCtrlClassAndMethodNameHandler extends BaseHandler {
       )
     }
     if (npmCtrl) {
-      CtrlClass = this.findCtrlClassInNpms(npmCtrl, ctrlName, path)
+      CtrlClass = await this.findCtrlClassInNpms(npmCtrl, ctrlName, path)
     } else {
-      CtrlClass = this.findCtrlClassInCtrlDir(ctrlName, path)
+      CtrlClass = await this.findCtrlClassInCtrlDir(ctrlName, path)
     }
 
     if (CtrlClass.default) CtrlClass = CtrlClass.default
@@ -191,7 +192,7 @@ class FindCtrlClassAndMethodNameHandler extends BaseHandler {
     /* 查找控制器和方法 */
     let findCtrlResult
     try {
-      findCtrlResult = this.findCtrlClassAndMethodName(request)
+      findCtrlResult = await this.findCtrlClassAndMethodName(request)
       const [ctrlName, CtrlClass, method] = findCtrlResult
       let ctrlTarget = new ChainState()
       ctrlTarget.ctrlName = ctrlName
@@ -333,7 +334,7 @@ class CheckAuthHandler extends BaseHandler {
     if (authConfig.jwt) {
       try {
         let decoded = jwt.verify(access_token, authConfig.jwt.privateKey)
-        tmsClient = require('../auth/client').createByData(decoded)
+        tmsClient = (await import('../auth/client.js')).createByData(decoded)
       } catch (e) {
         if (e.name === 'TokenExpiredError') {
           response.body = new AccessTokenFault('JWT认证令牌过期')
@@ -345,7 +346,7 @@ class CheckAuthHandler extends BaseHandler {
         return
       }
     } else if (authConfig.redis) {
-      const Token = require('../auth/token')
+      const { Token } = await import('../auth/token.js')
       let aResult = await Token.fetch(access_token)
       if (false === aResult[0]) {
         response.body = new AccessTokenFault(aResult[1])
@@ -589,4 +590,4 @@ logger.info(`API控制器目录：${CtrlDir}，指定API控制器前缀：${pref
 const router = new Router({ prefix })
 router.all('/(.*)', fnCtrlWrapper)
 
-export = router
+export { router }

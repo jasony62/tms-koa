@@ -1,11 +1,11 @@
 import fs from 'fs'
 import path from 'path'
-import * as Minio from 'minio'
+import Minio from 'minio'
 import Debug from 'debug'
-import { TmsFsDomain } from '../types/fs'
+import { TmsFsDomain } from '../types/fs/index.js'
 
 /* eslint-disable require-atomic-updates */
-const log4js = require('@log4js-node/log4js-api')
+import log4js from '@log4js-node/log4js-api'
 const logger = log4js.getLogger('tms-koa-fs')
 
 const debug = Debug('tms-koa:fs:context')
@@ -164,7 +164,7 @@ async function initMongoDb(domain, lfsConfig) {
       return false
     }
     const { source } = fsDbConfig
-    const MongoContext = require('./mongodb').Context
+    const MongoContext = (await import('./mongodb.js')).Context
     const mongoClient = await MongoContext.mongoClient(source)
     if (!mongoClient) {
       logger.error(
@@ -203,12 +203,12 @@ async function initMongoDb(domain, lfsConfig) {
   }
 }
 
-function initACL(domain, lfsDomain) {
+async function initACL(domain, lfsDomain) {
   // 访问控制
   const { accessControl } = lfsDomain
   if (accessControl && accessControl.path) {
     if (fs.existsSync(accessControl.path)) {
-      const validator = require(accessControl.path)
+      const validator = await import(accessControl.path)
       if (typeof validator === 'function') {
         domain.aclValidator = validator
       }
@@ -297,6 +297,10 @@ export class Context {
 
   static async init(fsConfig) {
     if (_instance) return _instance
+    if (!fsConfig || typeof fsConfig !== 'object') {
+      logger.warn('没有指定文件服务配置')
+      return false
+    }
     let { local, minio } = fsConfig
     if (typeof local !== 'object' && typeof minio !== 'object') {
       logger.warn('文件服务配置文件中没有指定local或minio')

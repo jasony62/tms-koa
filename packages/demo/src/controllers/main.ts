@@ -1,6 +1,6 @@
-const { Ctrl, ResultData } = require('tms-koa')
+import { Ctrl, ResultData } from 'tms-koa'
 
-class Main extends Ctrl {
+export class Main extends Ctrl {
   /**
    * @swagger
    *
@@ -88,4 +88,5 @@ class Main extends Ctrl {
     return new ResultData('ok')
   }
 }
-module.exports = Main
+
+export default Main

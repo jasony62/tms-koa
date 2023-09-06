@@ -1,8 +1,8 @@
 import path from 'path'
-import * as _ from 'lodash'
+import _ from 'lodash'
 
 import type { File } from 'formidable'
-import type { TmsDir, TmsFile } from '../../types/fs'
+import type { TmsDir, TmsFile } from '../../types/fs/index.js'
 
 const LFS_APPROOTDIR = Symbol('lfs_appRootDir')
 const LFS_PREFIX = Symbol('lfs_prefix')

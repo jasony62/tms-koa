@@ -10,23 +10,11 @@
 
 # 安装
 
-`npm install tms-koa --save`
+`pnpm i`
 
 注意：tms_db，mongodb，mongoose，redis 这 4 个依赖包采用`peerDependencies`，不会进行自动安装，如果需要使用可以手动安装。tms-db 的依赖包 mysql 和 better-sqlite3 采用`peerDependencies`，不会进行自动安装，如果需要使用可以手动安装。
 
 # 测试
-
-安装`pm2`（如果没装过）
-
-```
-cnpm i pm2 -g
-```
-
-通过`pm2`启动
-
-```
-npm run pm2
-```
 
 启动 Redis 和 MongoDb
 
@@ -36,14 +24,14 @@ docker-compose up -d
 
 发送获得 token 的请求
 
-```
-http://localhost:3001/auth/authorize
+```shell
+curl -X POST -H "Content-type: application/json" "http://localhost:3009/auth/authenticate" -d '{"username":"admin","password":"admin"}'
 ```
 
 发送调用 api 的请求
 
-```
-http://localhost:3001/api/tryGet?access_token=&value=hello
+```shell
+curl 'http://localhost:3001/api/tryGet?access_token=&value=hello'
 ```
 
 # 建立新应用
@@ -110,12 +98,12 @@ module.exports = {
   master: {
     host: '127.0.0.1',
     port: 6379,
-    password: "*****"
+    password: '*****',
   },
 }
 ```
 
-支持连接redis集群
+支持连接 redis 集群
 
 ```javascript
 module.exports = {

@@ -2,15 +2,17 @@
   "name": "tms-koa-demo",
   "version": "0.0.99",
   "private": true,
+  "type": "module",
   "description": "演示tms-koa框架使用方法。",
   "scripts": {
-    "start": "node server.js"
+    "start": "node ./dist/server.js",
+    "build": "rimraf ./dist && tsc"
   },
   "keywords": [],
   "author": "jasony62",
   "license": "MIT",
   "dependencies": {
-    "log4js": "*",
+    "log4js": "^6.9.1",
     "mongodb": "^4.8.0",
     "redis": "^4.1.0",
     "sharp": "^0.30.7",
@@ -18,5 +20,9 @@
     "tms-koa": "workspace:*",
     "tms-koa-account": "workspace:*",
     "tms-koa-captcha": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.5.9",
+    "rimraf": "^5.0.1"
   }
 }

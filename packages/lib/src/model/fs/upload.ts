@@ -1,12 +1,10 @@
-import * as fs from 'fs-extra'
-import * as path from 'path'
-import { LocalFS, MinioFS } from '.'
+import path from 'path'
+import { LocalFS, MinioFS } from './index.js'
 import dayjs from 'dayjs'
-
-const log4js = require('@log4js-node/log4js-api')
-const logger = log4js.getLogger('tms-koa-model-fs-upload')
-
 import type { File } from 'formidable'
+import log4js from '@log4js-node/log4js-api'
+
+const logger = log4js.getLogger('tms-koa-model-fs-upload')
 
 /**
  * 上传文件
@@ -132,7 +130,7 @@ export class UploadPlain extends Upload {
     fileName = '',
     axiosInstance = null
   ) {
-    const axios = require('axios')
+    const axios = (await import('axios')).default
 
     if (
       !(
@@ -143,9 +141,6 @@ export class UploadPlain extends Upload {
       axiosInstance = axios.create({
         url: fileUrl,
         method: 'get',
-        // transformRequest: [function (data, headers) {
-        //   return JSON.stringify({aa: "bb" });
-        // }]
       })
     }
     axiosInstance.defaults.responseType = 'arraybuffer' // 二进制数据的原始缓存区

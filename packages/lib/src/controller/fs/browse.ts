@@ -1,7 +1,7 @@
-import { BaseCtrl } from './base'
-import { ResultData, ResultFault } from '../../response'
+import { BaseCtrl } from './base.js'
+import { ResultData, ResultFault } from '../../response.js'
 
-import { Info } from '../../model/fs'
+import { Info } from '../../model/fs/index.js'
 
 /**
  * 文件管理控制器
@@ -52,3 +52,5 @@ export class BrowseCtrl extends BaseCtrl {
     return new ResultData({ files, dirs })
   }
 }
+
+export default BrowseCtrl

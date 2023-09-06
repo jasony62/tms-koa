@@ -1,2 +1,2 @@
-export { DbModel } from './model'
-export { RequestTransaction } from './transaction'
+export { DbModel } from './model.js'
+export { RequestTransaction } from './transaction.js'

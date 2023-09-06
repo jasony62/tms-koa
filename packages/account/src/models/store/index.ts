@@ -1,8 +1,8 @@
-import { AccountConfig } from '../../config'
-import { PasswordProcess as ProcessPwd } from '../processpwd'
+import { AccountConfig } from '../../config.js'
+import { PasswordProcess as ProcessPwd } from '../processpwd.js'
 
-import { MongodbModel as MongodbModelBase } from './mongodb'
-import { FileModel } from './file'
+import { MongodbModel as MongodbModelBase } from './mongodb.js'
+import { FileModel } from './file.js'
 
 import { getLogger } from '@log4js-node/log4js-api'
 const logger = getLogger('tms-koa-account')

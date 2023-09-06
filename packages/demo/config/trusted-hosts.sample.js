@@ -1,3 +1,3 @@
-module.exports = {
-  CtrlClassName: []
+export default {
+  CtrlClassName: [],
 }

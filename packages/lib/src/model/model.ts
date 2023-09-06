@@ -65,9 +65,10 @@ export class DbModel extends Model {
    *
    * @return {DbModel} 创建的实例
    */
-  static create({ db = null, debug = false }) {
+  static async create({ db = null, debug = false }) {
     if (db === null) {
-      const { DbServer } = require('tms-db')
+      let name = 'tms-db'
+      const { DbServer } = await import(name)
       db = new DbServer({ debug })
     }
     let dbModelIns = Reflect.construct(this, [{ db, debug }])
@@ -78,9 +79,9 @@ export class DbModel extends Model {
    *
    * @param {string} name 模型的名称（从models目录下开始）
    */
-  model(name: string) {
-    let path = `${process.cwd()}/models/${name}`
-    let model = require(path).create({ db: this[DB_INSTANCE] })
+  async model(name: string) {
+    let path = `${process.cwd()}/models/${name}.js`
+    let model = (await import(path)).create({ db: this[DB_INSTANCE] })
     return model
   }
 

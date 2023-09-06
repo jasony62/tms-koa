@@ -1,10 +1,12 @@
-const _ = require('lodash')
-const log4js = require('@log4js-node/log4js-api')
-const logger = log4js.getLogger('tms-koa-swagger')
-const Router = require('@koa/router')
-const swaggerJSDoc = require('swagger-jsdoc')
+import _ from 'lodash'
+import log4js from '@log4js-node/log4js-api'
+import Router from '@koa/router'
+import swaggerJSDoc from 'swagger-jsdoc'
+import { Context } from '../app.js'
 
-const { AppContext, SwaggerContext } = require('../app').Context
+const { AppContext, SwaggerContext } = Context
+
+const logger = log4js.getLogger('tms-koa-swagger')
 
 let prefix = _.get(
   AppContext.insSync(),
@@ -47,4 +49,4 @@ router.get(prefix, (ctx) => {
   response.body = getSpec(refresh)
 })
 
-export = router
+export { router }

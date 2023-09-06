@@ -1,9 +1,9 @@
-const { TmsKoa, Context, loadConfig } = require('./app')
-const { Ctrl } = require('./controller/ctrl')
-const { Client } = require('./auth/client')
-const { Captcha } = require('./auth/captcha')
-const { ResultData, ResultFault, ResultObjectNotFound } = require('./response')
-const { DbModel } = require('./model')
+import { TmsKoa, Context, loadConfig } from './app.js'
+import { Ctrl } from './controller/ctrl.js'
+import { Client } from './auth/client.js'
+import { Captcha } from './auth/captcha.js'
+import { ResultData, ResultFault, ResultObjectNotFound } from './response.js'
+import { DbModel } from './model/index.js'
 
 export {
   TmsKoa,
@@ -17,3 +17,5 @@ export {
   ResultObjectNotFound,
   DbModel,
 }
+
+export {}
