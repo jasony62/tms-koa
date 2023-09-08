@@ -1,4 +1,4 @@
-import * as _ from 'lodash'
+import _ from 'lodash'
 import { customAlphabet } from 'nanoid'
 import { getLogger } from '@log4js-node/log4js-api'
 const logger = getLogger('tms-koa-captcha')
@@ -7,7 +7,7 @@ import { loadConfig } from 'tms-koa'
 
 import { Context as lowdbContext } from './lowdb.js'
 
-const CaptchaConfig = loadConfig('captcha', {})
+const CaptchaConfig = await loadConfig('captcha', {})
 
 /**
  * 在redis中保存客户端的验证码
@@ -27,11 +27,11 @@ class InRedis {
     return `${'tms-koa-captcha'}:captcha:${appid}:${captchaid}`
   }
   // 连接redis
-  static create() {
-    let redisContext = require('tms-koa').Context.RedisContext
+  static async create() {
+    let redisContext = (await import('tms-koa')).Context.RedisContext
     if (!redisContext) throw new Error('未找到redis连接')
 
-    let redisConfig = loadConfig('redis')
+    let redisConfig = await loadConfig('redis')
     if (!redisConfig.host) {
       // let redisName =
       //   AccountConfig.redis && AccountConfig.redis.name
