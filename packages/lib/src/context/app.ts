@@ -2,9 +2,10 @@ import _ from 'lodash'
 import fs from 'fs'
 import modPath from 'path'
 import log4js from '@log4js-node/log4js-api'
+import Debug from 'debug'
 
 const logger = log4js.getLogger('tms-koa-app')
-
+const debug = Debug('tms-koa:app:context')
 /**
  * 使用配置文件中指定的账号用于请求认证
  * @param {*} ctx
@@ -213,7 +214,14 @@ async function initAuth(instance, appConfig) {
       authConfig.mode = 'jwt'
       authConfig.jwt = jwt
       if (!expiresIn) authConfig.jwt.expiresIn = 3600
-    } else logger.warn(`启用API调用认证机制[jwt]失败，参数不完整`)
+      let msg = `启用API调用认证机制[jwt]`
+      logger.info(msg)
+      debug(msg)
+    } else {
+      let msg = `启用API调用认证机制[jwt]失败，参数不完整`
+      logger.warn(msg)
+      debug(msg)
+    }
   } else if (typeof redis === 'object' && redis.disabled !== true) {
     let { host } = redis
     if (typeof host === 'string' || Array.isArray(host)) {
@@ -221,6 +229,8 @@ async function initAuth(instance, appConfig) {
         ;(await import('./redis.js')).Context.init(redis)
         authConfig.mode = 'redis'
         authConfig.redis = redis
+        let logMsg = `启用API调用认证机制[redis]`
+        debug(logMsg)
       } catch (e) {
         let logMsg = `启用API调用认证机制[redis]失败，${e.message}`
         logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
@@ -246,15 +256,17 @@ async function initAuth(instance, appConfig) {
             if (register) {
               registerTmsClient = (await import(`${id}/${module}`))[register]
             } else {
-              registerTmsClient = await import(`${id}/${module}.js`)
+              registerTmsClient = await import(`${id}/${module}`)
             }
           }
         } else {
           // 如果没有指定module 那么 authentication、register 指定的应该是一个独立的模块文件
           if (authentication && typeof authentication === 'string') {
-            createTmsClient = await import(`${id}/${authentication}.js`)
+            createTmsClient = await import(`${id}/${authentication}`)
+            debug(`使用【${id}/${authentication}】作为认证方法`)
           } else {
             createTmsClient = await import(id)
+            debug(`使用【${id}】作为认证方法`)
           }
           if (typeof createTmsClient.default === 'function') {
             createTmsClient = createTmsClient.default
@@ -466,7 +478,9 @@ export class Context {
 
     await initAuth(_instance, appConfig)
 
-    logger.info(`完成应用基础设置。`)
+    let msg = `完成应用基础设置。`
+    logger.info(msg)
+    debug(msg)
 
     return _instance
   }

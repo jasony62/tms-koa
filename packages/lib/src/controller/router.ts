@@ -25,7 +25,7 @@ const TrustedHostsFile = nodePath.resolve(
 const TrustedHosts = {}
 if (fs.existsSync(TrustedHostsFile)) {
   logger.info(`从${TrustedHostsFile}加载信任主机列表`)
-  Object.assign(TrustedHosts, await import(TrustedHostsFile))
+  Object.assign(TrustedHosts, (await import(TrustedHostsFile)).default)
 } else {
   logger.info(`未从${TrustedHostsFile}获得信任主机列表`)
 }

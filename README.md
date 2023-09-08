@@ -146,7 +146,7 @@ module.exports = {
 在项目的根目录下建立文件`/config/db.js`，指定下列 MySQL 或 Sqlite 数据库（可选）连接信息：
 
 ```javascript
-module.exports = {
+export default {
   mysql: {
     master: {
       connectionLimit: 10,
@@ -180,7 +180,7 @@ module.exports = {
 在项目的根目录下建立文件`/config/mongodb.js`，指定下列 MongoDb 连接信息：
 
 ```js
-module.exports = {
+export default {
   disabled: false, // 可选项，不需要指定。主要用于开发调试阶段。
   master: {
     host, // 如果要连接复制集，这里是复制集节点的主机地址数组，否则是字符串
@@ -192,27 +192,12 @@ module.exports = {
 
 注意：如果项目要使用 mongodb，需要在项目中安装 mongodb 包。
 
-### mongoose
-
-在项目的根目录下建立文件`/config/mongoose.js`，指定下列 mongoose 连接信息：
-
-```js
-module.exports = {
-  disabled: false, // 可选项，不需要指定。主要用于开发调试阶段。
-  host,
-  port: 27017,
-  database: 'test',
-}
-```
-
-注意：如果项目要使用 mongoose，需要在项目中安装 mongoose 包。
-
 ### 文件服务
 
 文件管理，例如：保存上传文件
 
 ```javascript
-module.exports = {
+export default {
   local: {
     rootDir: 'files' // 指定保存文件的根目录
     database: {
@@ -254,7 +239,7 @@ tms-koa 支持保存上传文件的扩展信息。可以指定将信息保存在
 
 建立文件`app.js`（可根据需要自行命名）
 
-```javascript
+```js
 const { TmsKoa } = require('tms-koa')
 
 const tmsKoa = new TmsKoa()
@@ -266,19 +251,21 @@ tmsKoa.startup()
 
 控制器之前
 
-```
-tmsKoa.startup({beforeController:[]})
+```js
+tmsKoa.startup({ beforeController: [] })
 ```
 
 控制器之后
 
-```
-tmsKoa.startup({afterController:[]})
+```js
+tmsKoa.startup({ afterController: [] })
 ```
 
 完成初始化，启动 http 和 https 端口之前
 
-tmsKoa.startup({afterInit:function(context){}})
+```js
+tmsKoa.startup({ afterInit: function (context) {} })
+```
 
 ## API 代码
 
@@ -311,7 +298,7 @@ tmsKoa.startup({afterInit:function(context){}})
 ```javascript
 const { Ctrl, ResultData } = require('tms-koa')
 
-class Main extends Ctrl {
+export class Main extends Ctrl {
   tmsRequireTransaction() {
     return {
       get: true,
@@ -321,7 +308,8 @@ class Main extends Ctrl {
     return new ResultData('I am an api.')
   }
 }
-module.exports = Main
+// 注意，必须要默认导出
+export default Main
 ```
 
 ### 路由与控制器匹配规则
@@ -337,28 +325,6 @@ module.exports = Main
 | method     | 匹配到的`Ctrl`对象的方法。                                                                                                 |
 
 参考：`/lib/controller/router.js`文件。
-
-## 模型（model）
-
-项目根目录下创建`models`目录。
-
-模型必须从 DbModel 继承。
-
-必须在导出包中提供一个用户创建实例的`create`方法。`DbModel`类中已经内置一个创建实例的方法的`create`方法，它的子类可参照下面的例子进行调用。
-
-```javascript
-const { DbModel } = require('tms-koa')
-
-class Template extends DbModel {
-  constructor({ db = null, debug = false } = {}) {
-    super('template', { db, debug })
-  }
-}
-
-module.exports = { Template, create: Template.create.bind(Template) }
-```
-
-已经在 model 层中进行 escape 处理，防止 sql 注入。关于 escape 请参考：tms_db。
 
 ## 静态文件
 
@@ -396,7 +362,7 @@ class Upload extends UploadCtrl {
   }
 }
 
-module.exports = Upload
+export default Upload
 ```
 
 上传文件 api：http://localhost:3001/api/fs/upload/plain
@@ -414,7 +380,7 @@ class Browse extends BrowseCtrl {
   }
 }
 
-module.exports = Browse
+export default Browse
 ```
 
 ## 记录日志

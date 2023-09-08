@@ -358,7 +358,7 @@ class TmsKoa extends Koa {
         Context.MongoContext = MongoContext
       } catch (e) {
         let logMsg = `初始化[mongodb]配置失败`
-        debug(logMsg + '\n', JSON.stringify(e, null, 2))
+        debug(logMsg + '\n%O', e)
         logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
       }
     }

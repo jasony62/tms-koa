@@ -10,17 +10,18 @@
 
 在`tms-koa`的配置文件`./config/app.js`中设置
 
-```
-models/authenticate.js
-module.exports = {
+`models/authenticate.js`
+
+```js
+export default {
   auth: {
     client: {
       npm: {
         disabled: false,
         id: 'tms-koa-account/dist/models',
         // module: '',
-        authentication: 'authenticate',
-        register: 'register',
+        authentication: 'authenticate.js',
+        register: 'register.js',
       },
     },
   },
@@ -39,7 +40,7 @@ module.exports = {
 ./config/account.js
 
 ```javascript
-module.exports = {
+export default {
   disabled: false,
   admin: { username: 'admin', password: 'admin' },
   // accounts: [

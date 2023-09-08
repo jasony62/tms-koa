@@ -19,13 +19,7 @@ class TmsMongoDb {
   }
 
   static async connect(url, connectionOptions) {
-    const options = Object.assign(
-      {
-        useUnifiedTopology: true,
-        keepAliveInitialDelay: 1,
-      },
-      connectionOptions
-    )
+    const options = Object.assign({}, connectionOptions)
     try {
       const client = new MongoClient(url, options)
       await client.connect()

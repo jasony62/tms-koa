@@ -1,6 +1,6 @@
 {
   "name": "tms-koa-captcha",
-  "version": "0.1.7",
+  "version": "0.2.0",
   "description": "为提供tms-koa框架提供验证码功能",
   "type": "module",
   "main": "dist/captcha.js",
