@@ -18,29 +18,34 @@ export async function createTmsClient(
 ) {
   let { username, password } = ctx.request.body
 
-  // 账号、密码前置处理
-
-  if (AccountConfig.accountBeforeEach) {
-    let func
-    if (typeof AccountConfig.accountBeforeEach === 'string') {
-      const funcPath = PATH.resolve(AccountConfig.accountBeforeEach)
-      if (fs.existsSync(funcPath)) func = require(funcPath)
-    } else if (typeof AccountConfig.accountBeforeEach === 'function') {
-      func = AccountConfig.accountBeforeEach
-    }
-    try {
-      let rst = await func(ctx)
-      username = rst.username
-      password = rst.password
-    } catch (error) {
-      logger.error(error)
-      return [false, error.message ? error.message : error.toString()]
-    }
-  }
-
   if (AccountConfig && AccountConfig.disabled !== true) {
+    /**
+     * 账号、密码前置处理
+     */
+    if (AccountConfig.accountBeforeEach) {
+      let func
+      if (typeof AccountConfig.accountBeforeEach === 'string') {
+        const funcPath = PATH.resolve(AccountConfig.accountBeforeEach)
+        if (fs.existsSync(funcPath)) func = require(funcPath)
+      } else if (typeof AccountConfig.accountBeforeEach === 'function') {
+        func = AccountConfig.accountBeforeEach
+      }
+      try {
+        let rst = await func(ctx)
+        username = rst.username
+        password = rst.password
+      } catch (error) {
+        logger.error(error)
+        return [false, error.message ? error.message : error.toString()]
+      }
+    }
+    /**
+     * 验证账号密码
+     */
     const { admin } = AccountConfig
-    /**指定管理员账号 */
+    /**
+     * 指定了管理员账号
+     */
     if (admin && typeof admin === 'object') {
       if (admin.username === username && admin.password === password) {
         let tmsClient = new Client(username, { username }, true)
@@ -52,7 +57,9 @@ export async function createTmsClient(
       const rst = await checkCaptcha(ctx)
       if (rst[0] === false) return rst
     }
-    /**mongodb存储账号 */
+    /**
+     * 茶灶匹配的用户
+     */
     let Model = createModel(tmsContext)
     let [exist, found] = await Model.authenticate(username, password, ctx)
     if (exist === true) {

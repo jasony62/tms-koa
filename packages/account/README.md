@@ -180,7 +180,7 @@ const checkRst = pwdProcess.pwdStrengthCheck()
 ./config/app.js
 
 ```javascript
-module.exports = {
+export default {
   port: process.env.APP_PORT2 || 3002,
   name: 'tms-koa-account-demo2',
   router: {
@@ -191,7 +191,7 @@ module.exports = {
 }
 ```
 
-./config/account.js
+`./config/account.js`
 
 同上【账号管理配置文件】
 

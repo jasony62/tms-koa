@@ -1,4 +1,4 @@
-import 'dotenv-flow/config.js'
+import dotenvFlow from 'dotenv-flow'
 import fs from 'fs'
 import path from 'path'
 import http from 'http'
@@ -10,6 +10,8 @@ import koaStatic from 'koa-static'
 import cors from '@koa/cors'
 import log4js from '@log4js-node/log4js-api'
 import Debug from 'debug'
+
+dotenvFlow.config()
 
 const logger = log4js.getLogger('tms-koa')
 

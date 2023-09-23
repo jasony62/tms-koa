@@ -1,6 +1,6 @@
 {
   "name": "tms-koa-crypto",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "提供加解密方法",
   "type": "module",
   "main": "dist/index.js",

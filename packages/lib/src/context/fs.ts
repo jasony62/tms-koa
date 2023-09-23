@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import Minio from 'minio'
+import * as Minio from 'minio'
 import Debug from 'debug'
 import { TmsFsDomain } from '../types/fs/index.js'
 

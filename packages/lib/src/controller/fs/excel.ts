@@ -6,11 +6,6 @@ import PATH from 'path'
 import { LocalFS } from '../../model/fs/local.js'
 import { Upload } from '../../model/fs/upload.js'
 
-import { Context } from '../../app.js'
-
-const { TmsContext } = Context
-const { AppContext, FsContext } = TmsContext
-
 /**
  * excel文件管理控制器
  */
@@ -25,7 +20,7 @@ export class ExcelCtrl {
    * @param {*} fileName
    * @param {*} options={} sheetName = sheet页名, forceReplace=重复文件是否覆盖 ‘N’, dir= 自定义存储路径
    */
-  _export(columns, datas, fileName, options) {
+  async _export(columns, datas, fileName, options) {
     if (!columns || !datas) return [false, '参数错误']
     let { sheetName = '', forceReplace = 'Y', dir = '' } = options
 
@@ -45,6 +40,9 @@ export class ExcelCtrl {
     workBook.SheetNames = [sheetName]
     workBook.Sheets = {}
     workBook.Sheets[sheetName] = jsonWorkSheet
+
+    const { Context } = await import('../../app.js')
+    const { TmsContext } = Context
 
     const tmsFs = new LocalFS(TmsContext, this.domain)
     const uploadObj = new Upload(tmsFs)
@@ -69,7 +67,11 @@ export class ExcelCtrl {
     return [true, filePath]
   }
 
-  static init = (function () {
+  static init = (async function () {
+    const { Context } = await import('../../app.js')
+    const { TmsContext } = Context
+    const { AppContext, FsContext } = TmsContext
+
     if (!FsContext || !FsContext.insSync) return [false, '文件服务不可用']
 
     let _instance = new ExcelCtrl()
