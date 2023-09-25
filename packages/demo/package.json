@@ -13,10 +13,9 @@
   "license": "MIT",
   "dependencies": {
     "log4js": "^6.9.1",
-    "mongodb": "^4.8.0",
-    "redis": "^4.1.0",
-    "sharp": "^0.30.7",
-    "socket.io": "^4.4.1",
+    "mongodb": "^6.1.0",
+    "redis": "^4.6.10",
+    "socket.io": "^4.7.2",
     "tms-koa": "workspace:*",
     "tms-koa-account": "workspace:*",
     "tms-koa-captcha": "workspace:*"

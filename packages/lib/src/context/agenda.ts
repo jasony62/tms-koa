@@ -18,12 +18,9 @@ let _instance
 export class Context {
   /**
    *
+   * @param _agenda
    */
-  private _agenda
-
-  constructor(agenda) {
-    this._agenda = agenda
-  }
+  constructor(private _agenda: Agenda) {}
 
   get agenda() {
     return this._agenda
@@ -39,7 +36,7 @@ export class Context {
       logger.error(msg)
       throw Error(msg)
     }
-    if (config['diabled'] === true) {
+    if (config.diabled === true) {
       return {}
     }
     const { mongodb, jobDir } = config
