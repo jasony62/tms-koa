@@ -42,6 +42,7 @@ async function localCreateTmsClient(ctx, accounts) {
         data,
         isAdmin: found.isAdmin === true,
         allowMultiLogin: found.allowMultiLogin === true,
+        expiresIn: parseInt(found.expiresIn),
       })
       aResult = [true, tmsClient]
     } else {
@@ -207,7 +208,7 @@ async function initAuth(instance, appConfig) {
   const { captcha, client, jwt, redis, bucket } = auth
   const authConfig: any = {}
 
-  /**用户认证设置*/
+  /**用户认证结果保存机制设置 */
   if (typeof jwt === 'object' && jwt.disabled !== true) {
     let { privateKey, expiresIn } = jwt
     if (typeof privateKey === 'string') {
@@ -241,31 +242,38 @@ async function initAuth(instance, appConfig) {
     if (client && typeof client === 'object') {
       const { path, registerPath, npm, accounts } = client
       if (typeof npm === 'object' && npm.disabled !== true) {
-        const { id, module, authentication, register } = npm
+        const { id, module, authentication, register, node_modules_root } = npm
         if (typeof id !== 'string') throw Error(`通过[auth.client.npm.id]类型`)
-
+        const moduleSpecifier =
+          (node_modules_root ? `${node_modules_root}/node_modules/` : '') +
+          `${id}/${module}`
         let createTmsClient, registerTmsClient
         if (module && typeof module === 'string') {
           if (authentication && typeof authentication === 'string') {
-            createTmsClient = (await import(`${id}/${module}`))[authentication]
+            createTmsClient = (await import(moduleSpecifier))[authentication]
           } else {
-            createTmsClient = await import(`${id}/${module}`)
+            createTmsClient = await import(moduleSpecifier)
           }
           // 注册方法
           if (typeof register === 'string') {
             if (register) {
-              registerTmsClient = (await import(`${id}/${module}`))[register]
+              registerTmsClient = (await import(moduleSpecifier))[register]
             } else {
-              registerTmsClient = await import(`${id}/${module}`)
+              registerTmsClient = await import(moduleSpecifier)
             }
           }
         } else {
+          const moduleSpecifier =
+            (node_modules_root ? `${node_modules_root}/node_modules/` : '') +
+            `${id}`
           // 如果没有指定module 那么 authentication、register 指定的应该是一个独立的模块文件
           if (authentication && typeof authentication === 'string') {
-            createTmsClient = await import(`${id}/${authentication}`)
-            debug(`使用【${id}/${authentication}】作为认证方法`)
+            createTmsClient = await import(
+              `${moduleSpecifier}/${authentication}`
+            )
+            debug(`使用【${moduleSpecifier}/${authentication}】作为认证方法`)
           } else {
-            createTmsClient = await import(id)
+            createTmsClient = await import(moduleSpecifier)
             debug(`使用【${id}】作为认证方法`)
           }
           if (typeof createTmsClient.default === 'function') {
@@ -274,9 +282,9 @@ async function initAuth(instance, appConfig) {
           // 注册方法
           if (typeof register === 'string') {
             if (register) {
-              registerTmsClient = await import(`${id}/${register}.js`)
+              registerTmsClient = await import(`${moduleSpecifier}/${register}`)
             } else {
-              registerTmsClient = await import(id)
+              registerTmsClient = await import(moduleSpecifier)
             }
             if (typeof registerTmsClient.default === 'function') {
               registerTmsClient = registerTmsClient.default
@@ -332,28 +340,35 @@ async function initAuth(instance, appConfig) {
     if (disabled === true) {
       authConfig.captcha = { disabled: true }
     } else if (npm && typeof npm === 'object' && npm.disabled !== true) {
-      const { id, module, generator, checker } = npm
+      const { id, module, generator, checker, node_modules_root } = npm
       if (typeof id !== 'string') throw Error(`通过[auth.captcha.npm.id]类型`)
 
       let createCaptcha, checkCaptcha
       if (module && typeof module === 'string') {
+        const moduleSpecifier =
+          (node_modules_root ? `${node_modules_root}/node_modules/` : '') +
+          `${id}/${module}`
         if (generator && typeof generator === 'string')
-          createCaptcha = (await import(`${id}/${module}`))[generator]
-        else createCaptcha = await import(`${id}/${module}`)
+          createCaptcha = (await import(moduleSpecifier))[generator]
+        else createCaptcha = await import(moduleSpecifier)
         // 检查验证码方法
         if (typeof checker === 'string') {
-          if (checker) checkCaptcha = (await import(`${id}/${module}`))[checker]
-          else checkCaptcha = await import(`${id}/${module}`)
+          if (checker) checkCaptcha = (await import(moduleSpecifier))[checker]
+          else checkCaptcha = await import(moduleSpecifier)
         }
       } else {
+        const moduleSpecifier =
+          (node_modules_root ? `${node_modules_root}/node_modules/` : '') +
+          `${id}`
         // 如果没有指定module 那么 generator、checker 指定的应该是一个独立的模块文件
         if (generator && typeof generator === 'string')
-          createCaptcha = await import(`${id}/${generator}`)
-        else createCaptcha = await import(id)
+          createCaptcha = await import(`${moduleSpecifier}/${generator}`)
+        else createCaptcha = await import(moduleSpecifier)
         // 检查验证码方法
         if (typeof checker === 'string') {
-          if (checker) checkCaptcha = await import(`${id}/${checker}`)
-          else checkCaptcha = await import(id)
+          if (checker)
+            checkCaptcha = await import(`${moduleSpecifier}/${checker}`)
+          else checkCaptcha = await import(moduleSpecifier)
         }
       }
 

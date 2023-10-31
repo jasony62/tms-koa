@@ -15,7 +15,7 @@ export async function createTmsClient(
   ctx: any,
   tmsContext: any,
   checkCaptcha?: Function
-) {
+): Promise<[boolean, Client | string]> {
   let { username, password } = ctx.request.body
 
   if (AccountConfig && AccountConfig.disabled !== true) {
@@ -48,7 +48,14 @@ export async function createTmsClient(
      */
     if (admin && typeof admin === 'object') {
       if (admin.username === username && admin.password === password) {
-        let tmsClient = new Client(username, { username }, true)
+        const { allowMultiLogin = false, expiresIn = 0 } = admin
+        let tmsClient = new Client(
+          username,
+          { username },
+          true,
+          allowMultiLogin,
+          expiresIn
+        )
         return [true, tmsClient]
       }
     }
@@ -58,7 +65,7 @@ export async function createTmsClient(
       if (rst[0] === false) return rst
     }
     /**
-     * 茶灶匹配的用户
+     * 查找匹配的用户
      */
     let Model = createModel(tmsContext)
     let [exist, found] = await Model.authenticate(username, password, ctx)
@@ -67,7 +74,8 @@ export async function createTmsClient(
         username,
         found,
         found.isAdmin === true,
-        found.allowMultiLogin === true
+        found.allowMultiLogin === true,
+        parseInt(found.expiresIn)
       )
       return [true, tmsClient]
     } else return [false, found]

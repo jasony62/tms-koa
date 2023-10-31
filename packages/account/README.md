@@ -2,9 +2,9 @@
 
 `tms-koa`账号管理控制器插件。
 
-- 支持账号的增删改查操作；
-- 支持基于 token 的认证功能；
-- 支持验证码校验服务；
+- 支持账号的增删改查操作
+- 支持基于 token 的认证功能
+- 支持验证码校验服务
 
 # tms-koa 用户认证方法
 
@@ -37,21 +37,22 @@ export default {
 
 # 账号管理配置文件
 
-./config/account.js
+配置文件`./config/account.js`
 
 ```javascript
 export default {
   disabled: false,
-  admin: { username: 'admin', password: 'admin' },
-  // accounts: [
-  //   {
-  //     id: 1,
-  //     username: 'user1',
-  //     password: 'user1',
-  //     isAdmin: true,
-  //     allowMultiLogin: true,
-  //   },
-  // ],
+  admin: { username: 'admin', password: 'admin', expiresIn: 4500 },
+  accounts: [
+    {
+      id: 1,
+      username: 'user1',
+      password: 'user1',
+      isAdmin: true,
+      allowMultiLogin: true,
+      expiresIn: 7200,
+    },
+  ],
   mongodb: {
     disabled: true,
     name: 'master',
@@ -104,6 +105,8 @@ export default {
 | **其他**           |                                           |                 |      |
 | accountBeforeEach  | 登录、注册 前置步骤，如：对账号密码解密等 | string\function | 否   |
 | authConfig         | 登录或注册时的检查                        | object          | 否   |
+
+**注意**：`mongodb`设置优先于`accounts`方式。
 
 ## authConfig 字段说明
 
@@ -167,11 +170,11 @@ const checkRst = pwdProcess.pwdStrengthCheck()
 
 ### 创建账号
 
-> curl -H "Content-Type: application/json" -X POST -d '{"username": "user1", "password":"user1", "nickname": "user1" }' 'http://localhost:3001/api/account/admin/create?access_token='
+> curl -H "Content-Type: application/json" -X POST -d '{"username": "user1", "password":"1a2b3c@TMS", "nickname": "user1" }' 'http://localhost:3009/api/account/admin/create?access_token='
 
 ### 用户注册
 
-> curl -H "Content-Type: application/json" -X POST -d '{"username":"user1","password":"user1","appid":"oauth","captchaid":"aly21","code":"aabb"}' 'http://localhost:3001/auth/register'
+> curl -H "Content-Type: application/json" -X POST -d '{"username":"user1","password":"user1","appid":"oauth","captchaid":"aly21","code":"aabb"}' 'http://localhost:3009/auth/register'
 
 # 启动 tms-koa-account 服务
 

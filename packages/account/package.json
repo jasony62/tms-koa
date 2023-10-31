@@ -1,6 +1,6 @@
 {
   "name": "tms-koa-account",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "tms-koa控制器插件，账号管理。",
   "type": "module",
   "main": "dist/index.js",
@@ -26,8 +26,8 @@
     "dotenv-flow": "^3.1.0",
     "lodash": "^4.17.21",
     "lowdb": "6.0.1",
-    "mongodb": "^4.8.1",
-    "nanoid": "4.0.2",
+    "mongodb": "5.6.0",
+    "nanoid": "5.0.1",
     "password-validator": "^5.3.0",
     "svg-captcha": "^1.4.0",
     "tms-koa": "workspace:*",

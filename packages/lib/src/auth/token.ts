@@ -17,7 +17,7 @@ if (!authConfig) {
 const redisConfig = authConfig.redis
 
 // token过期时间
-const EXPIRE_IN = redisConfig.expiresIn || 3600
+const EXPIRES_IN = redisConfig.expiresIn || 3600
 
 const INS_ID = redisConfig.prefix || 'tms-koa-token'
 /**
@@ -49,11 +49,11 @@ class TokenInRedis {
    * @param {String} clientId
    * @param {Object} data
    */
-  async store(token, clientId, data) {
+  async store(token: any, clientId: any, data: any) {
     let createAt = Math.floor(Date.now() / 1000)
     let keyByToken = this.getKey(token)
     let keyByClientId = this.getKey(null, clientId)
-
+    const clientExpiresIn = data.expresIn > 0 ? data.expresIn : EXPIRES_IN
     const _store = (key, _data) => {
       return new Promise((resolve, reject) => {
         this.redisClient
@@ -69,10 +69,15 @@ class TokenInRedis {
       })
     }
 
-    await _store(keyByToken, { expireAt: createAt + EXPIRE_IN, data })
-    await _store(keyByClientId, { expireAt: createAt + EXPIRE_IN, token, data })
+    const expireAt = createAt + clientExpiresIn
+    await _store(keyByToken, { expireAt, data })
+    await _store(keyByClientId, {
+      expireAt,
+      token,
+      data,
+    })
 
-    return EXPIRE_IN
+    return EXPIRES_IN
   }
   /**
    * 设置过期时间
@@ -83,9 +88,9 @@ class TokenInRedis {
     const _expire = (key) => {
       return new Promise((resolve, reject) => {
         this.redisClient
-          .expire(key, EXPIRE_IN)
+          .expire(key, EXPIRES_IN)
           .then((r) => {
-            return resolve(EXPIRE_IN)
+            return resolve(EXPIRES_IN)
           })
           .catch((e) => {
             logger.error(e)
@@ -237,7 +242,7 @@ class Token {
       true,
       {
         access_token: newToken,
-        expire_in: expireIn,
+        expires_in: expireIn,
       },
     ]
   }
@@ -273,8 +278,8 @@ class Token {
     if (false === tokenRedis) return [false, '连接Redis服务失败']
 
     try {
-      const expire_in = await tokenRedis.expire(token, tmsClient.id)
-      return [true, expire_in]
+      const expires_in = await tokenRedis.expire(token, tmsClient.id)
+      return [true, expires_in]
     } catch (e) {
       return [false, e]
     } finally {
@@ -310,10 +315,10 @@ class Token {
  */
 async function multiLogin(token, tokenRedis) {
   // 获取过期时间
-  const expireIn = await tokenRedis.ttl(token)
-  if (expireIn < 60) return [false, '即将过期']
+  const expiresIn = await tokenRedis.ttl(token)
+  if (expiresIn < 60) return [false, '即将过期']
 
-  return [true, { access_token: token, expire_in: expireIn }]
+  return [true, { access_token: token, expires_in: expiresIn }]
 }
 
 export { Token }

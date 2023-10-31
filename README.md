@@ -31,7 +31,7 @@ curl -X POST -H "Content-type: application/json" "http://localhost:3009/auth/aut
 发送调用 api 的请求
 
 ```shell
-curl 'http://localhost:3001/api/tryGet?access_token=&value=hello'
+curl 'http://localhost:3009/api/tryGet?access_token=<前一步获得的access_token>&value=hello'
 ```
 
 # 建立新应用

@@ -63,12 +63,10 @@ export class Context {
       throw Error(msg)
     }
 
-    let agenda
-    try {
-      agenda = new Agenda({ mongo: mongoClient.db(database) })
-    } catch (e) {
-      console.log(e)
-    }
+    const agenda = new Agenda({
+      mongo: mongoClient.db(database),
+      disableAutoIndex: true,
+    })
 
     _instance = new Context(agenda)
 
@@ -77,13 +75,14 @@ export class Context {
       debug(`指定了agenda任务文件目录：${jobDir}`)
       const dirAry = jobDir.split(',')
       logger.info(`读取插件配置[${dirAry}]`)
-      dirAry.forEach(async (dir) => {
+      for (let dir of dirAry) {
         dir = dir.trim()
         if (dir === '') return
         let absDir = path.resolve(process.cwd(), dir)
         logger.info(`从目录[${absDir}]读取agenda任务文件`)
         let files: string[] = glob.sync(`${absDir}/*.js`)
         for (let file of files) {
+          logger.debug(`从文件【${file}】读取调度任务`)
           let { plan, createJob } = await import(file)
           if (!plan || typeof plan !== 'object') {
             logger.warn(`agenda任务文件[${file}]不可用，没有导出[plan]对象`)
@@ -107,27 +106,26 @@ export class Context {
           debug(`加载agenda任务【name=${name},interval=${interval}】`)
           jobs.push({ name, interval })
         }
-      })
+      }
     }
-
-    try {
-      await agenda.start()
-    } catch (e) {
-      console.log(e)
-    }
-    logger.info(`完成agenda服务设置`)
-
+    agenda.on('ready', () => {
+      logger.info('完成连接数据库')
+    })
+    agenda.on('error', () => {
+      logger.error('连接mongodb失败')
+    })
     agenda.on('start', (job) => {
-      let msg = `agenda任务【${job.attrs.name}】开始执行`
+      let msg = `任务【${job.attrs.name}】开始执行`
       debug(msg)
       logger.debug(msg)
     })
-
     agenda.on('complete', (job) => {
-      let msg = `agenda任务【${job.attrs.name}】完成执行`
+      let msg = `任务【${job.attrs.name}】完成执行`
       debug(msg)
       logger.debug(msg)
     })
+    agenda.start()
+    logger.info(`完成agenda服务设置`)
 
     if (jobs.length) {
       for (let job of jobs) {

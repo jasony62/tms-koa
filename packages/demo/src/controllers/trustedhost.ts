@@ -16,3 +16,5 @@ export class Main extends Ctrl {
     return new ResultData(`收到：${value}`)
   }
 }
+
+export default Main

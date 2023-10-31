@@ -89,7 +89,12 @@ class CheckPathHandler extends BaseHandler {
   }
 }
 /**控制器插件包*/
-type NpmCtrl = { id: string; dir?: string; alias?: string }
+type NpmCtrl = {
+  id: string
+  dir?: string
+  alias?: string
+  node_modules_root?: string
+}
 /**
  * 查找匹配的控制器
  */
@@ -129,10 +134,30 @@ class FindCtrlClassAndMethodNameHandler extends BaseHandler {
         ctrlPath = ctrlName
       }
       if (npmCtrl.dir) {
-        // 如果指定了起始目录，在其实报名后面添加起始目录
+        // 如果指定了起始目录，在起始包名后面添加起始目录
         ctrlPath = ctrlPath.replace(npmCtrl.id, `${npmCtrl.id}/${npmCtrl.dir}`)
       }
-      CtrlClass = await import(`${ctrlPath}.js`)
+      logger.debug(`导入npm控制器[${ctrlName}]的包路径[${ctrlPath}]`)
+      if (npmCtrl.node_modules_root) {
+        /**
+         * 指定包加载的路径，按照文件加载
+         */
+        const prefix = `${npmCtrl.node_modules_root}/node_modules`
+        if (fs.existsSync(`${prefix}/${ctrlPath}.js`))
+          CtrlClass = await import(`${prefix}/${ctrlPath}.js`)
+        else if (fs.existsSync(`${prefix}/${ctrlPath}/index.js`))
+          CtrlClass = await import(`${prefix}/${ctrlPath}/index.js`)
+        else throw new Error(`根据[${ctrlPath}]查找npm控制器[${ctrlName}]失败`)
+      } else {
+        /**
+         * 按照标准的包加载
+         */
+        if (fs.existsSync(`node_modules/${ctrlPath}.js`))
+          CtrlClass = await import(`${ctrlPath}.js`)
+        else if (fs.existsSync(`node_modules/${ctrlPath}/index.js`))
+          CtrlClass = await import(`${ctrlPath}/index.js`)
+        else throw new Error(`根据[${ctrlPath}]查找npm控制器[${ctrlName}]失败`)
+      }
     } catch (e) {
       logger.warn(`查找npm控制器[${ctrlName}]失败[${e.message}]`, e)
       // 从控制器路径查找
@@ -263,6 +288,7 @@ class CheckTmsAuthTrustedHosts extends BaseHandler {
       await next(state)
       return
     }
+    debug(`控制器【${ctrlName}】允许信任主机方案`)
 
     const { request, response } = ctx
     const skip = /yes|true/i.test(process.env.TMS_KOA_SKIP_TRUSTED_HOST ?? 'no')
@@ -280,6 +306,8 @@ class CheckTmsAuthTrustedHosts extends BaseHandler {
 
       if (!request.ip)
         return (response.body = new ResultFault('无法获得请求来源主机的ip地址'))
+
+      debug(`控制器【${ctrlName}】收到来自【${request.ip}】的请求`)
 
       const ipv4 = request.ip.split(':').pop()
 

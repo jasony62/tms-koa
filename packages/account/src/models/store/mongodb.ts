@@ -58,8 +58,15 @@ class MongodbModel {
       if (['password', 'username'].every((v) => userInfo[v]) === false)
         return reject('用户信息不完整')
 
-      let { username, password, nickname, isAdmin, allowMultiLogin, ...other } =
-        userInfo
+      let {
+        username,
+        password,
+        nickname,
+        isAdmin,
+        allowMultiLogin,
+        expiresIn,
+        ...other
+      } = userInfo
 
       // 检查账号是否已存在
       const rst = await this.getAccount(username)
@@ -89,6 +96,7 @@ class MongodbModel {
         allowMultiLogin: new RegExp(/^true$/).test(allowMultiLogin)
           ? true
           : false,
+        expiresIn: parseInt(expiresIn),
         create_at: Date.now(),
         ...other,
       }

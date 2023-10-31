@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken'
 import { ResultData, ResultFault, AccessTokenFault } from '../response.js'
 import { Context as TmsContext, getAccessTokenByRequest } from '../app.js'
 import { Metrics } from './metrics.js'
+import { Client } from './client.js'
 
 const { AppContext } = TmsContext
 let { routerAuthPrefix, routerAuthTrustedHosts } = AppContext.insSync()
@@ -55,7 +56,7 @@ const isTrustedHost = (() => {
 /**
  * 获得用户认证信息
  */
-async function getTmsClient(ctx) {
+async function getTmsClient(ctx): Promise<[boolean, Client | string]> {
   let aResult
 
   let clientConfig = _.get(authConfig, ['client'], {})
@@ -189,8 +190,7 @@ router.get('/client', async (ctx) => {
   }
 })
 /**
- * 换取access_token
- * 用/authenticate代替
+ * 认证用户身份并换取access_token
  */
 const authenticate = async (ctx) => {
   let { response } = ctx
@@ -216,7 +216,10 @@ const authenticate = async (ctx) => {
     /**根据请求中携带的信息，获得访问用户数据*/
     let [passed, tmsClient] = await getTmsClient(ctx)
     if (passed === false) {
-      let msg = tmsClient ? tmsClient : '没有获得有效用户信息'
+      let msg =
+        tmsClient && typeof tmsClient === 'string'
+          ? tmsClient
+          : '没有获得有效用户信息'
       response.body = new ResultFault(msg, 20012)
 
       // 记录指标
@@ -224,17 +227,26 @@ const authenticate = async (ctx) => {
       metrics.total(labels)
       return
     }
+    if (!tmsClient || !(tmsClient instanceof Client)) {
+      response.body = new ResultFault('没有获得可用的用户信息', 20012)
+      return
+    }
+
     /**添加万能码 */
     let { magic } = ctx.request.body
     if (magic && typeof magic === 'string') tmsClient.magic = magic
 
     /**生成token */
     if (authConfig.jwt) {
-      let { privateKey, expiresIn } = authConfig.jwt
-      let token = jwt.sign(tmsClient.toPlainObject(), privateKey, { expiresIn })
+      const { privateKey, expiresIn } = authConfig.jwt
+      const clientExpiresIn =
+        tmsClient.expiresIn > 0 ? tmsClient.expiresIn : expiresIn
+      const token = jwt.sign(tmsClient.toPlainObject(), privateKey, {
+        expiresIn: clientExpiresIn,
+      })
       response.body = new ResultData({
         access_token: token,
-        expire_in: expiresIn,
+        expires_in: clientExpiresIn,
       })
       // 记录指标
       labels.stage = 'authorized'

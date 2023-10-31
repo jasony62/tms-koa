@@ -57,13 +57,13 @@ class InRedis {
    * @param {String} clientId
    * @param {Object} data
    */
-  store(appid, captchaid, data, expire_in) {
+  store(appid, captchaid, data, expires_in) {
     let key = this.key(appid, captchaid)
     return new Promise((resolve, reject) => {
       this.redisClient
         .set(key, JSON.stringify(data))
         .then((r) => {
-          return this.expire(appid, captchaid, expire_in)
+          return this.expire(appid, captchaid, expires_in)
         })
         .then((r) => {
           return resolve(r)
@@ -79,13 +79,13 @@ class InRedis {
    * @param {String} token
    * @param {String} clientId
    */
-  expire(appid, captchaid, expire_in) {
+  expire(appid, captchaid, expires_in) {
     let key = this.key(appid, captchaid)
     return new Promise((resolve, reject) => {
       this.redisClient
-        .expire(key, expire_in)
+        .expire(key, expires_in)
         .then((r) => {
-          return resolve(expire_in)
+          return resolve(expires_in)
         })
         .catch((e) => {
           logger.error(e)
