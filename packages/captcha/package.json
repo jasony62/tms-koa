@@ -5,7 +5,7 @@
   "type": "module",
   "main": "dist/captcha.js",
   "scripts": {
-    "build": "rimraf ./dist && tsc"
+    "build": "rimraf ./dist && tsc && echo 'build done'"
   },
   "keywords": [
     "tms-koa"

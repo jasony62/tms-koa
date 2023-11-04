@@ -6,7 +6,7 @@
   "description": "演示tms-koa框架使用方法。",
   "scripts": {
     "start": "node ./dist/server.js",
-    "build": "rimraf ./dist && tsc"
+    "build": "rimraf ./dist && tsc && echo 'build done'"
   },
   "keywords": [],
   "author": "jasony62",
