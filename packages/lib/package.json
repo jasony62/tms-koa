@@ -1,6 +1,6 @@
 {
   "name": "tms-koa",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "基于koa的API服务框架，内置：基于token的API访问控制机制，MySQL数据库的连接管理机制和防SQL注入，连接MongoDb，连接Redis，文件上传下载，API在线文档服务。",
   "type": "module",
   "main": "dist/index.js",
@@ -12,10 +12,9 @@
     "@koa/router": "^12.0.0",
     "@log4js-node/log4js-api": "^1.0.2",
     "agenda": "^5.0.0",
-    "axios": "^1.5.0",
     "dayjs": "^1.11.7",
     "debug": "^4.3.4",
-    "dotenv-flow": "^3.1.0",
+    "dotenv-flow": "^4.0.0",
     "fs-extra": "^11.1.1",
     "glob": "^10.3.4",
     "jsonwebtoken": "^9.0.2",
@@ -26,11 +25,10 @@
     "lodash": "^4.17.15",
     "minio": "^7.0.33",
     "mongodb": "5.6.0",
-    "prom-client": "^14.1.0",
+    "prom-client": "^15.0.0",
     "socket.io": "^4.7.2",
     "swagger-jsdoc": "^6.2.0",
-    "uuid": "^9.0.0",
-    "xlsx": "^0.18.5"
+    "uuid": "^9.0.0"
   },
   "peerDependencies": {
     "neo4j-driver": "^4.4.2",

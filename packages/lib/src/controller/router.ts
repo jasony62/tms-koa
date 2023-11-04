@@ -202,6 +202,7 @@ class FindCtrlClassAndMethodNameHandler extends BaseHandler {
     } else {
       CtrlClass = await this.findCtrlClassInCtrlDir(ctrlName, path)
     }
+    console.log('cccc', CtrlClass)
 
     if (CtrlClass.default) CtrlClass = CtrlClass.default
 

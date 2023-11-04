@@ -227,21 +227,24 @@ const authenticate = async (ctx) => {
       metrics.total(labels)
       return
     }
-    if (!tmsClient || !(tmsClient instanceof Client)) {
+    // if (!tmsClient || !(tmsClient instanceof Client)) {
+    if (!tmsClient) {
       response.body = new ResultFault('没有获得可用的用户信息', 20012)
       return
     }
+    // 强制指定类型
+    const tmsClient2 = tmsClient as Client
 
     /**添加万能码 */
     let { magic } = ctx.request.body
-    if (magic && typeof magic === 'string') tmsClient.magic = magic
+    if (magic && typeof magic === 'string') tmsClient2.magic = magic
 
     /**生成token */
     if (authConfig.jwt) {
       const { privateKey, expiresIn } = authConfig.jwt
       const clientExpiresIn =
-        tmsClient.expiresIn > 0 ? tmsClient.expiresIn : expiresIn
-      const token = jwt.sign(tmsClient.toPlainObject(), privateKey, {
+        tmsClient2.expiresIn > 0 ? tmsClient2.expiresIn : expiresIn
+      const token = jwt.sign(tmsClient2.toPlainObject(), privateKey, {
         expiresIn: clientExpiresIn,
       })
       response.body = new ResultData({

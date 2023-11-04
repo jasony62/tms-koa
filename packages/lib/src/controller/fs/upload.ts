@@ -82,6 +82,22 @@ export class UploadCtrl extends BaseCtrl {
     }
   }
   /**
+   * 从给定的url下载文件，保存到本地
+   */
+  async storeUrl() {
+    // 指定的文件存储目录，如果不指定按时间自动生成目录
+    const { url, dir, name, forceReplace } = this.request.query
+
+    if (!url) return new ResultFault('没有指定文件地址')
+
+    const tmsFs = this.fsModel()
+    const uploader = new UploadPlain(tmsFs)
+
+    const result = await uploader.storeByUrl(url, dir, forceReplace, name)
+
+    return new ResultData(result)
+  }
+  /**
    * 删除指定的文件
    */
   async remove() {

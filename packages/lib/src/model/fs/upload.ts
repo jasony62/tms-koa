@@ -116,89 +116,67 @@ export class UploadPlain extends Upload {
     return filepath
   }
   /**
-   *
+   * 将指定的远程文件保存在指定位置
    * @param {string} fileUrl
    * @param {string} dir 指定的文件存储目录
    * @param {string} fileName 指定的文件名
    * @param {string} forceReplace 如果文件已经存在是否替换
    *
    */
-  async storeByUrl(
-    fileUrl,
-    dir,
-    forceReplace = 'N',
-    fileName = '',
-    axiosInstance = null
-  ) {
-    const axios = (await import('axios')).default
+  async storeByUrl(fileUrl, dir, forceReplace = 'N', fileName = '') {
+    if (!fileUrl) throw new Error('没有指定要下砸的文件地址')
 
-    if (
-      !(
-        {}.toString.call(axiosInstance) === '[object Function]' &&
-        typeof axiosInstance.request === 'function'
-      )
-    ) {
-      axiosInstance = axios.create({
-        url: fileUrl,
-        method: 'get',
+    const response = await fetch(fileUrl)
+
+    if (response.status !== 200) {
+      throw new Error('下载失败: 状态码错误')
+    }
+    /**
+     * 如果是下载文件，获得其中携带的文件名信息
+     */
+    if (!fileName && response.headers.has('Content-Disposition')) {
+      let dispositions: any = response.headers
+        .get('Content-Disposition')
+        .replace(/\s/g, '')
+      dispositions = dispositions.split(';')
+      dispositions.forEach((dis) => {
+        let disArr = dis.split('=')
+        if (disArr[0] === 'filename') fileName = disArr[1].replace(/('|")/g, '')
       })
     }
-    axiosInstance.defaults.responseType = 'arraybuffer' // 二进制数据的原始缓存区
-    return axiosInstance
-      .request()
-      .catch((err) => {
-        logger.error(err)
-        throw new Error('未知错误: ' + fileUrl)
-      })
-      .then(async (file) => {
-        if (file.status != '200') {
-          throw new Error('下载失败: 状态码错误' + fileUrl)
-        }
-        if (file.headers['content-type'].indexOf('application/json') !== -1) {
-          throw new Error('下载失败, 返回类型错误: ' + fileUrl)
-        }
-        if (!fileName) {
-          if (file.headers['content-disposition']) {
-            let dispositions = file.headers['content-disposition'].replace(
-              /\s/g,
-              ''
-            )
-            dispositions = dispositions.split(';')
-            dispositions.forEach((dis) => {
-              let disArr = dis.split('=')
-              if (disArr[0] === 'filename')
-                fileName = disArr[1].replace(/('|")/g, '')
-            })
-          }
-        }
+    /**
+     * 生成文件名
+     */
+    if (this.domain.customName === true) {
+      if (!fileName) fileName = this.autoname() // 生成无后缀的文件名
+      // 去掉指定目录开头或结尾的反斜杠
+      dir = typeof dir === 'string' ? dir.replace(/(^\/|\/$)/g, '') : ''
+      if (dir.length) {
+        fileName = `${dir}/${fileName}`
+      } else {
+        fileName = this.autodir() + '/' + fileName
+      }
+    } else {
+      const contentType = response.headers.get('Content-Type')
+      const ext = contentType.split('/')[1]
+      fileName = this.storename(ext)
+    }
 
-        if (this.domain.customName === true) {
-          if (!fileName) fileName = this.autoname() // 生成无后缀的文件名
-          // 去掉指定目录开头或结尾的反斜杠
-          dir = typeof dir === 'string' ? dir.replace(/(^\/|\/$)/g, '') : ''
-          if (dir.length) {
-            fileName = `${dir}/${fileName}`
-          } else {
-            fileName = this.autodir() + '/' + fileName
-          }
-        } else {
-          let ext = path.extname(fileName)
-          fileName = this.storename(ext)
-        }
+    if (forceReplace !== 'Y') {
+      // 如果文件已经存在
+      if (this.fs.existsSync(fileName)) {
+        throw new Error('文件已经存在')
+      }
+    }
 
-        if (forceReplace !== 'Y') {
-          // 如果文件已经存在
-          if (this.fs.existsSync(fileName)) {
-            throw new Error('文件已经存在')
-          }
-        }
+    const blob = await response.blob()
+    const size = blob.size
+    const content = Buffer.from(await blob.arrayBuffer())
+    const filepath = await this.fs.write(fileName, content, true, {
+      encoding: 'binary',
+    })
 
-        let filepath = await this.fs.write(fileName, file.data, true, {
-          encoding: 'binary',
-        })
-
-        return filepath
-      })
+    return { path: filepath, size }
   }
 }
 /**

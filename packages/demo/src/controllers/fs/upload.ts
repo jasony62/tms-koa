@@ -5,3 +5,5 @@ export class Upload extends UploadCtrl {
     return ['plain']
   }
 }
+
+export default Upload
