@@ -83,6 +83,7 @@ export class Context {
       maxPoolSize,
       connectionString,
       connectionOptions,
+      authMechanism,
     } = config
     if (
       undefined === connectionString &&
@@ -153,6 +154,10 @@ export class Context {
     if (maxPoolSize) {
       if (url.indexOf('?') !== -1) url += `&maxPoolSize=${maxPoolSize}`
       else url += `?maxPoolSize=${maxPoolSize}`
+    }
+    if (authMechanism) {
+      if (url.indexOf('?') !== -1) url += `&authMechanism=${authMechanism}`
+      else url += `?authMechanism=${authMechanism}`
     }
 
     if (url.indexOf('mongodb://') === -1) {

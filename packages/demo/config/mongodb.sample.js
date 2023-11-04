@@ -5,5 +5,6 @@ export default {
     // password: "root",
     host: 'localhost',
     port: 27017,
+    authMechanism: 'PLAIN',
   },
 }
