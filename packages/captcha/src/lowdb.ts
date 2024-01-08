@@ -2,12 +2,11 @@
  * 消息推送服务
  */
 import path from 'path'
-import { Low } from 'lowdb'
-import { JSONFile } from 'lowdb/node'
+import { JSONFilePreset } from 'lowdb/node'
 import { loadConfig } from 'tms-koa'
 
 import { getLogger } from '@log4js-node/log4js-api'
-const logger = getLogger('tms-koa-account')
+const logger = getLogger('tms-koa-captcha')
 
 export class Context {
   static init
@@ -19,9 +18,8 @@ export class Context {
     this.dbFile = dbFile
   }
 
-  getDBSync() {
-    const adapter = new JSONFile(this.dbFile)
-    const db = new Low(adapter, {})
+  async getDBSync(): Promise<any> {
+    const db = await JSONFilePreset(this.dbFile, { captchas: [] })
     return db
   }
 }
@@ -32,7 +30,7 @@ Context.init = (function () {
     if (_instance) return _instance
 
     if (!lowdbConfig) {
-      lowdbConfig = loadConfig('lowdb', { captchas: [] })
+      lowdbConfig = loadConfig('lowdb', {})
     }
 
     if (!lowdbConfig.file) {

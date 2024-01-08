@@ -7,6 +7,7 @@ export class Metrics {
   totalCounter
   timeCounter
   constructor() {
+    if (!MetricsContext) return
     let promClient = MetricsContext.insSync().client
 
     this.totalCounter = new promClient.Counter({
@@ -23,10 +24,12 @@ export class Metrics {
   }
   // 请求次数
   total(labels: any) {
+    if (!MetricsContext) return
     this.totalCounter.inc(labels)
   }
   // 请求花费时间
   time(labels: any, val: number) {
+    if (!MetricsContext) return
     this.timeCounter.inc(labels, val)
   }
 }

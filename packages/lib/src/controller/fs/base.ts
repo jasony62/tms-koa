@@ -62,7 +62,9 @@ export class BaseCtrl extends Ctrl {
    * 返回扩展信息定义
    */
   async schemas() {
-    if (!this.domain.schemas) return new ResultFault('没有设置文件扩展信息定义')
+    if (!this.domain.schemas)
+      return new ResultData({ schemas: null, schemasRootName: '' })
+
     let { schemas, schemasRootName } = this.domain
     return new ResultData({ schemas, schemasRootName })
   }

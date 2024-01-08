@@ -3,6 +3,8 @@ import { customAlphabet } from 'nanoid'
 import { getLogger } from '@log4js-node/log4js-api'
 const logger = getLogger('tms-koa-captcha')
 
+import svgCaptcha from 'svg-captcha'
+
 import { loadConfig } from 'tms-koa'
 
 import { Context as lowdbContext } from './lowdb.js'
@@ -221,8 +223,12 @@ class Captcha {
 
     await this.removeCodeByUser(appid, captchaid) // 清空此用户的验证码
     if (this.storageType === 'lowdb') {
-      const lowClient = this.getLowDbClient()
-      lowClient.data.captchas.push(data).write() // 添加
+      const lowClient = await this.getLowDbClient()
+      const { captchas } = lowClient.data
+      if (captchas) {
+        captchas?.push(data)
+        lowClient.write() // 添加
+      }
     } else if (this.storageType === 'redis') {
       const redisClient = await this.getRedisClient()
       await redisClient.store(appid, captchaid, data, this.expire)
@@ -254,18 +260,16 @@ class Captcha {
     let captchaCode,
       current = Date.now()
     if (this.storageType === 'lowdb') {
-      const lowClient = this.getLowDbClient()
+      const lowClient = await this.getLowDbClient()
       lowClient.read()
-      let captchaCodes = lowClient.data.captchas
-        .filter((v) => {
-          let pass = v.appid === appid && v.captchaid === captchaid
-          if (pass) {
-            if (strictMode === 'Y') pass = v.code === code
-            else pass = v.code.toLowerCase() === code.toLowerCase()
-          }
-          return pass
-        })
-        .value()
+      let captchaCodes = lowClient.data.captchas.filter((v) => {
+        let pass = v.appid === appid && v.captchaid === captchaid
+        if (pass) {
+          if (strictMode === 'Y') pass = v.code === code
+          else pass = v.code.toLowerCase() === code.toLowerCase()
+        }
+        return pass
+      })
 
       if (captchaCodes.length === 0) return [false, '验证码错误']
       if (captchaCodes.length > 1) {
@@ -304,7 +308,17 @@ class Captcha {
    */
   async removeCodeByUser(appid, captchaid) {
     if (this.storageType === 'lowdb') {
-      this.getLowDbClient().data.captchas.remove({ appid, captchaid }).write()
+      const db = await this.getLowDbClient()
+      let { captchas } = db.data
+      if (captchas) {
+        const index = captchas.findIndex((c) => {
+          return c.appid === appid && c.captchaid === captchaid
+        })
+        if (index !== -1) {
+          captchas.splice(index, 1)
+          db.write()
+        }
+      }
     } else if (this.storageType === 'redis') {
       const redisClient = await this.getRedisClient()
       await redisClient.del(appid, captchaid)
@@ -317,13 +331,13 @@ class Captcha {
   /**
    *
    */
-  getLowDbClient() {
+  async getLowDbClient() {
     if (this.lowClient) {
       return this.lowClient
     }
 
     const instance = lowdbContext.ins()
-    const db = instance.getDBSync()
+    const db = await instance.getDBSync()
 
     this.lowClient = db
     return this.lowClient
@@ -471,7 +485,7 @@ async function createCaptcha(ctx) {
   if (noise) captchaOptions.noise = noise
   if (background) captchaOptions.background = `#${background}`
 
-  const svgCaptcha = require('svg-captcha')
+  //@ts-ignore
   let imageCap = svgCaptcha(code, captchaOptions)
 
   return [true, imageCap]

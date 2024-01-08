@@ -47,6 +47,7 @@ export class UploadCtrl extends BaseCtrl {
       /**在数据库中记录文件信息*/
       const fsInfoModel = await Info.ins(this.domain)
       if (fsInfoModel) {
+        // 支持通过表单传递简单类型
         const info = this.request.body
         info.userid = this.client ? this.client.id : ''
         info.bucket = this.bucket
@@ -63,11 +64,16 @@ export class UploadCtrl extends BaseCtrl {
         }
         /**
          * 保存用户自定义的扩展信息
+         * 传递数据必须是JSON格式
          */
         const { schemasRootName } = this.domain
         if (schemasRootName) {
           let extraInfo = this.request.files[schemasRootName]
-          if (extraInfo && extraInfo.mimetype === 'application/json') {
+          if (
+            extraInfo &&
+            (extraInfo.mimetype === 'application/json' ||
+              /\.json$/.test(extraInfo.originalFilename))
+          ) {
             let data = fs.readFileSync(extraInfo.filepath, 'utf-8')
             data = JSON.parse(data)
             info[schemasRootName] = data

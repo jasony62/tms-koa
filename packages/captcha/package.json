@@ -1,6 +1,6 @@
 {
   "name": "tms-koa-captcha",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "为提供tms-koa框架提供验证码功能",
   "type": "module",
   "main": "dist/captcha.js",
@@ -19,7 +19,7 @@
   "dependencies": {
     "@log4js-node/log4js-api": "^1.0.2",
     "lodash": "^4.17.21",
-    "lowdb": "6.0.1",
+    "lowdb": "7.0.1",
     "nanoid": "5.0.1",
     "svg-captcha": "^1.4.0",
     "tms-koa": "workspace:*"
