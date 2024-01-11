@@ -99,10 +99,18 @@ export class Context {
       throw new MongoError(msg)
     }
     if (replicaSet) {
+      if (typeof host === 'string') {
+        host = host.split(',')
+      }
       if (!Array.isArray(host) || host.length === 0) {
         let msg = '没有指定mongodb的主机地址'
         logger.error(msg)
         throw new MongoError(msg)
+      }
+      if (typeof port === 'string') {
+        port = port.split(',').map((p) => parseInt(p))
+      } else if (typeof port === 'number') {
+        port = [port]
       }
       if (!Array.isArray(port) || port.length === 0) {
         let msg = '没有指定mongodb连接的端口'
@@ -124,20 +132,18 @@ export class Context {
     }
 
     let url = ''
-    if (connectionString) {
-      url = connectionString
-    } else if (replicaSet) {
-      if (Array.isArray(host))
-        host.forEach((h, i) => {
-          if (i > 0) url += ','
-          url += `${h}`
-          if (typeof port[i] === 'number') url += `:${port[i]}`
-        })
+    if (replicaSet) {
+      host.forEach((h, i) => {
+        if (i > 0) url += ','
+        url += `${h}:${port[i]}`
+      })
       url += `/?replicaSet=${replicaSet}`
+    } else if (connectionString) {
+      url = connectionString
     } else {
-      url = `${host}`
-      if (typeof port === 'number') url += `:${port}`
+      url = `${host}:${port}`
     }
+
     if (
       user &&
       typeof user === 'string' &&

@@ -7,26 +7,32 @@ export class Metrics {
   totalCounter
   timeCounter
   constructor() {
-    let promClient = MetricsContext.insSync().client
+    if (MetricsContext) {
+      let promClient = MetricsContext.insSync().client
 
-    this.totalCounter = new promClient.Counter({
-      name: Prefix + '_router_controllers_total',
-      help: '控制器路由调用次数',
-      labelNames: ['url', 'stage', 'ctrlName', 'ctrlMethod'] as const,
-    })
+      this.totalCounter = new promClient.Counter({
+        name: Prefix + '_router_controllers_total',
+        help: '控制器路由调用次数',
+        labelNames: ['url', 'stage', 'ctrlName', 'ctrlMethod'] as const,
+      })
 
-    this.timeCounter = new promClient.Counter({
-      name: Prefix + '_router_controllers_time',
-      help: '控制器路由调用耗时',
-      labelNames: ['url', 'stage', 'ctrlName', 'ctrlMethod'] as const,
-    })
+      this.timeCounter = new promClient.Counter({
+        name: Prefix + '_router_controllers_time',
+        help: '控制器路由调用耗时',
+        labelNames: ['url', 'stage', 'ctrlName', 'ctrlMethod'] as const,
+      })
+    }
   }
   // 请求次数
   total(labels: any) {
-    this.totalCounter.inc(labels)
+    if (MetricsContext) {
+      this.totalCounter.inc(labels)
+    }
   }
   // 请求花费时间
   time(labels: any, val: number) {
-    this.timeCounter.inc(labels, val)
+    if (MetricsContext) {
+      this.timeCounter.inc(labels, val)
+    }
   }
 }

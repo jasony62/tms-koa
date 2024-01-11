@@ -183,9 +183,27 @@ export default {
 export default {
   disabled: false, // 可选项，不需要指定。主要用于开发调试阶段。
   master: {
-    host, // 如果要连接复制集，这里是复制集节点的主机地址数组，否则是字符串
-    port: 27017, // 如果要连接复制集，这里是复制集节点的主机端口数组，否则是整数
-    replicaSet, // 复制集的名称
+    host, // 如果要连接复制集，这里是复制集节点的主机地址数组（或者是逗号分隔的列表），否则是字符串
+    port: 27017, // 如果要连接复制集，这里是复制集节点的主机端口数组（或者是逗号分隔的列表），否则是整数
+    replicaSet: '', // 可选。复制集的名称
+    maxPoolSize, // 可选
+    authSource, // 可选
+    authMechanism, // 可选。例如：PLAIN
+    connectionOptions, // 可选
+  },
+}
+```
+
+```js
+export default {
+  disabled: false, // 可选项，不需要指定。主要用于开发调试阶段。
+  master: {
+    connectionString, // 直接指定连接地址，不用指定host和port
+    replicaSet: '', // 可选。复制集的名称
+    maxPoolSize, // 可选
+    authSource, // 可选
+    authMechanism, // 可选。例如：PLAIN
+    connectionOptions, // 可选
   },
 }
 ```
