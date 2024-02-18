@@ -5,4 +5,7 @@ export default {
     key: '/Users/yangyue/ssl/server.key',
     cert: '/Users/yangyue/ssl/server.crt',
   },
+  cors: {
+    origin: '*',
+  },
 }

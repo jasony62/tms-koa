@@ -1,34 +1,36 @@
 <html>
+  <head>
+    <title>tms-koa push</title>
+  </head>
 
-<head>
-  <title>tms-koa push</title>
-</head>
+  <body>
+    <ul id="messages"></ul>
+    <div>
+      <button id="waitPush">调用REST API等待推送消息</button>
+    </div>
+  </body>
 
-<body>
-  <ul id="messages"></ul>
-  <div>
-    <button id="waitPush">调用REST API等待推送消息</button>
-  </div>
-</body>
-
-<script src="socket.io.js"></script>
-<script>
-  const socket = io('http://localhost:3002');
-  socket.on('tms-koa-push', function (data) {
-    const li = document.createElement('li')
-    li.innerHTML = `收到推送数据：${JSON.stringify(data)}`
-    document.querySelector('#messages').appendChild(li)
-  });
-  socket.on('tms-koa-controller', function (data) {
-    const li = document.createElement('li')
-    li.innerHTML = `收到推送数据：${JSON.stringify(data)}`
-    document.querySelector('#messages').appendChild(li)
-  });
-  document.querySelector('#waitPush').addEventListener('click', function () {
-    const httpRequest = new XMLHttpRequest()
-    httpRequest.open('GET', `http://localhost:3001/api/tryPush?socketid=${socket.id}`, true);
-    httpRequest.send()
-  })
-</script>
-
+  <script src="socket.io.min.js"></script>
+  <script>
+    const socket = io('http://localhost:3010')
+    socket.on('tms-koa-push', function (data) {
+      const li = document.createElement('li')
+      li.innerHTML = `收到推送数据：${JSON.stringify(data)}`
+      document.querySelector('#messages').appendChild(li)
+    })
+    socket.on('tms-koa-controller', function (data) {
+      const li = document.createElement('li')
+      li.innerHTML = `收到推送数据：${JSON.stringify(data)}`
+      document.querySelector('#messages').appendChild(li)
+    })
+    document.querySelector('#waitPush').addEventListener('click', function () {
+      const httpRequest = new XMLHttpRequest()
+      httpRequest.open(
+        'GET',
+        `http://localhost:3001/api/tryPush?socketid=${socket.id}`,
+        true
+      )
+      httpRequest.send()
+    })
+  </script>
 </html>
