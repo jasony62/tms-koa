@@ -1,6 +1,5 @@
 import log4js from '@log4js-node/log4js-api'
 import Router from '@koa/router'
-import _ from 'lodash'
 import jwt from 'jsonwebtoken'
 
 import { ResultData, ResultFault, AccessTokenFault } from '../response.js'
@@ -54,18 +53,21 @@ const isTrustedHost = (() => {
   }
 })()
 /**
- * 获得用户认证信息
+ * 根据请求获得客户端信息
+ *
+ * @param ctx
+ * @returns 客户端信息或失败原因
  */
 async function getTmsClient(ctx): Promise<[boolean, Client | string]> {
   let aResult
 
-  let clientConfig = _.get(authConfig, ['client'], {})
+  const clientConfig = authConfig?.client ?? {}
   const { createTmsClient } = clientConfig
 
   if (typeof createTmsClient === 'function') {
     /**用户认证时需要验证验证码*/
     let fnCheckCaptcha
-    let captchaConfig = _.get(authConfig, ['captcha'], {})
+    let captchaConfig = authConfig?.captcha ?? {}
     if (typeof captchaConfig.checkCaptcha === 'function') {
       fnCheckCaptcha = captchaConfig.checkCaptcha
     }
@@ -82,13 +84,13 @@ async function getTmsClient(ctx): Promise<[boolean, Client | string]> {
 async function registerTmsClient(ctx) {
   let aResult
 
-  let clientConfig = _.get(authConfig, ['client'], {})
+  let clientConfig = authConfig?.client ?? {}
   const { registerTmsClient } = clientConfig
 
   if (typeof registerTmsClient === 'function') {
     /**用户认证时需要验证验证码*/
     let fnCheckCaptcha
-    let captchaConfig = _.get(authConfig, ['captcha'], {})
+    let captchaConfig = authConfig?.captcha ?? {}
     if (typeof captchaConfig.checkCaptcha === 'function') {
       fnCheckCaptcha = captchaConfig.checkCaptcha
     }
@@ -227,6 +229,7 @@ const authenticate = async (ctx) => {
       metrics.total(labels)
       return
     }
+    // 从外部传入的模块不能保证类型
     // if (!tmsClient || !(tmsClient instanceof Client)) {
     if (!tmsClient) {
       response.body = new ResultFault('没有获得可用的用户信息', 20012)
@@ -332,7 +335,7 @@ const createCaptcha = async (ctx) => {
       return (response.body = new ResultFault('不允许调用此接口'))
     }
 
-    let captchaConfig = _.get(authConfig, ['captcha'], {})
+    let captchaConfig = authConfig?.captcha ?? {}
     if (typeof captchaConfig.createCaptcha === 'function') {
       let captcha = await captchaConfig.createCaptcha(ctx)
       if (captcha[0] === false) {
@@ -389,7 +392,7 @@ const checkCaptcha = async (ctx) => {
       return (response.body = new ResultFault('不允许调用此接口'))
     }
 
-    let captchaConfig = _.get(authConfig, ['captcha'], {})
+    let captchaConfig = authConfig?.captcha ?? {}
     if (typeof captchaConfig.checkCaptcha === 'function') {
       let rst = await captchaConfig.checkCaptcha(ctx)
       if (rst[0] === false) {

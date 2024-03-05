@@ -1,8 +1,8 @@
-import _ from 'lodash'
 import fs from 'fs'
 import modPath from 'path'
 import log4js from '@log4js-node/log4js-api'
 import Debug from 'debug'
+import { AuthConfigCaptchaInf, AuthConfigInf } from '../types/auth/index.js'
 
 const logger = log4js.getLogger('tms-koa-app')
 const debug = Debug('tms-koa:app:context')
@@ -12,7 +12,7 @@ const debug = Debug('tms-koa:app:context')
  */
 async function localCreateTmsClient(ctx, accounts) {
   const authConfig = Context.insSync().auth
-  let captchaConfig = _.get(authConfig, ['captcha'], {})
+  let captchaConfig: AuthConfigCaptchaInf = authConfig?.captcha ?? {}
 
   /**检查验证码*/
   if (captchaConfig.disabled !== true) {
@@ -58,7 +58,7 @@ async function localCreateTmsClient(ctx, accounts) {
  */
 async function localRegisterTmsClient(ctx, accounts) {
   const authConfig = Context.insSync().auth
-  let captchaConfig = _.get(authConfig, ['captcha'], {})
+  let captchaConfig = authConfig?.captcha ?? {}
 
   /**检查验证码*/
   if (captchaConfig.disabled !== true) {
@@ -206,7 +206,7 @@ async function initAuth(instance, appConfig) {
   if (!auth || auth.disabled === true) return
 
   const { captcha, client, jwt, redis, bucket } = auth
-  const authConfig: any = {}
+  const authConfig: Partial<AuthConfigInf> = {}
 
   /**用户认证结果保存机制设置 */
   if (typeof jwt === 'object' && jwt.disabled !== true) {
@@ -242,6 +242,7 @@ async function initAuth(instance, appConfig) {
     if (client && typeof client === 'object') {
       const { path, registerPath, npm, accounts } = client
       if (typeof npm === 'object' && npm.disabled !== true) {
+        logger.debug('客户端认证使用npm包')
         const { id, module, authentication, register, node_modules_root } = npm
         if (typeof id !== 'string') throw Error(`通过[auth.client.npm.id]类型`)
         const moduleSpecifier =
@@ -301,11 +302,18 @@ async function initAuth(instance, appConfig) {
           authConfig.client.registerTmsClient = registerTmsClient
         }
       } else if (typeof path === 'string') {
+        logger.debug(`客户端认证使用path=${path}`)
         /* 指定了外部认证方法 */
         const pathClient = modPath.resolve(path)
         if (!fs.existsSync(pathClient))
           throw Error('设置的用户认证外部方法不存在')
         let createTmsClient = await import(pathClient)
+        // 获得指定的方法
+        if (createTmsClient.createTmsClient)
+          createTmsClient = createTmsClient.createTmsClient
+        else if (createTmsClient.default)
+          createTmsClient = createTmsClient.default
+
         if (typeof createTmsClient !== 'function')
           throw Error('设置的用户认证外部方法的类型不是函数')
         authConfig.client = { createTmsClient }
@@ -321,6 +329,7 @@ async function initAuth(instance, appConfig) {
           authConfig.client.registerTmsClient = registerTmsClient
         }
       } else if (Array.isArray(accounts) && accounts.length) {
+        logger.debug(`客户端认证使用accounts`)
         /* 指定了本地账号 */
         authConfig.client = {
           accounts,
@@ -450,32 +459,35 @@ let _instance
 
 export class Context {
   appConfig
-
+  /**
+   * 路由配置信息
+   */
+  router?: any
   constructor(appConfig) {
     this.appConfig = appConfig
   }
 
   get routerControllersPrefix() {
-    let prefix = _.get(this, ['router', 'controllers', 'prefix'], '')
+    let prefix = this?.router?.controllers?.prefix ?? ''
     if (prefix && !/^\//.test(prefix)) prefix = `/${prefix}`
     return prefix
   }
 
   get routerAuthPrefix() {
     // 路由前缀必须以反斜杠开头
-    let prefix = _.get(this, ['router', 'auth', 'prefix'], 'auth')
+    let prefix = this?.router?.auth?.prefix ?? 'auth'
     if (prefix && !/^\//.test(prefix)) prefix = `/${prefix}`
     return prefix
   }
 
   get routerAuthTrustedHosts() {
-    let trustedHosts = _.get(this, ['router', 'auth', 'trustedHosts'], [])
+    let trustedHosts = this?.router?.auth?.trustedHosts ?? []
     if (!Array.isArray(trustedHosts)) return []
     return trustedHosts
   }
 
   get excelDomainName() {
-    return _.get(this, ['router', 'controllers', 'excel', 'outputDomain'], '')
+    return this.router?.controllers?.excel?.outputDomain ?? ''
   }
   /**
    * 根据配置数据初始化上下文对象

@@ -33,7 +33,7 @@
     "tms-koa-crypto": "workspace:*"
   },
   "peerDependencies": {
-    "redis": "4.1.0"
+    "redis": "4.6.10"
   },
   "devDependencies": {
     "@types/node": "^20.5.9",
