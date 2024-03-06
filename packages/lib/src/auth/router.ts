@@ -192,6 +192,67 @@ router.get('/client', async (ctx) => {
   }
 })
 /**
+ * 登出
+ * 使accessToken失效
+ */
+router.get('/logout', async (ctx) => {
+  let { response } = ctx
+  let labels: any = { name: 'client' }
+
+  try {
+    if (!authConfig.jwt && !authConfig.redis)
+      return (response.body = new ResultFault('没有指定用户认证方法'))
+
+    const [success, access_token] = getAccessTokenByRequest(ctx)
+    if (false === success) {
+      response.body = new ResultData('指定的access_token无效')
+
+      // 记录指标
+      labels.stage = 'check'
+      metrics.total(labels)
+
+      return
+    }
+
+    let tmsClient
+    if (authConfig.jwt) {
+      let decoded = jwt.decode(access_token)
+      tmsClient = (await import('./client.js')).createByData(decoded)
+    } else if (authConfig.redis) {
+      const { Token } = await import('./token.js')
+      let aResult = await Token.fetch(access_token)
+      if (false === aResult[0]) {
+        return (response.body = new AccessTokenFault(aResult[1]))
+      }
+      tmsClient = aResult[1]
+    }
+    /**
+     * 执行指定的logout方法
+     */
+    const logoutTmsClient = authConfig?.client?.logoutTmsClient
+    if (typeof logoutTmsClient === 'function') {
+      await logoutTmsClient(tmsClient, access_token)
+    }
+
+    response.body = new ResultData('ok')
+
+    // 记录指标
+    labels.stage = 'success'
+    metrics.total(labels)
+
+    return
+  } catch (error) {
+    logger.error(error)
+    response.body = new ResultFault(
+      error.message ? error.message : error.toString(),
+      20050
+    )
+    // 记录指标
+    labels.stage = 'error'
+    metrics.total(labels)
+  }
+})
+/**
  * 认证用户身份并换取access_token
  */
 const authenticate = async (ctx) => {

@@ -74,6 +74,12 @@ async function localRegisterTmsClient(ctx, accounts) {
   return [true, userInfo]
 }
 /**
+ *
+ * @param ctx
+ * @param accounts
+ */
+async function localLogoutTmsClient() {}
+/**
  * 使用配置文件指定的验证码用于生产验证码
  * @param {*} ctx
  * @returns
@@ -240,15 +246,22 @@ async function initAuth(instance, appConfig) {
   }
   if (authConfig.mode) {
     if (client && typeof client === 'object') {
-      const { path, registerPath, npm, accounts } = client
+      const { path, registerPath, logoutPath, npm, accounts } = client
       if (typeof npm === 'object' && npm.disabled !== true) {
         logger.debug('客户端认证使用npm包')
-        const { id, module, authentication, register, node_modules_root } = npm
+        const {
+          id,
+          module,
+          authentication,
+          register,
+          logout,
+          node_modules_root,
+        } = npm
         if (typeof id !== 'string') throw Error(`通过[auth.client.npm.id]类型`)
         const moduleSpecifier =
           (node_modules_root ? `${node_modules_root}/node_modules/` : '') +
           `${id}/${module}`
-        let createTmsClient, registerTmsClient
+        let createTmsClient, registerTmsClient, logoutTmsClient
         if (module && typeof module === 'string') {
           if (authentication && typeof authentication === 'string') {
             createTmsClient = (await import(moduleSpecifier))[authentication]
@@ -261,6 +274,14 @@ async function initAuth(instance, appConfig) {
               registerTmsClient = (await import(moduleSpecifier))[register]
             } else {
               registerTmsClient = await import(moduleSpecifier)
+            }
+          }
+          // 登出方法
+          if (typeof logout === 'string') {
+            if (logout) {
+              logoutTmsClient = (await import(moduleSpecifier))[logout]
+            } else {
+              logoutTmsClient = await import(moduleSpecifier)
             }
           }
         } else {
@@ -291,15 +312,32 @@ async function initAuth(instance, appConfig) {
               registerTmsClient = registerTmsClient.default
             }
           }
+          // 登出方法
+          if (typeof logout === 'string') {
+            if (logout) {
+              logoutTmsClient = await import(`${moduleSpecifier}/${logout}`)
+            } else {
+              logoutTmsClient = await import(moduleSpecifier)
+            }
+            if (typeof logoutTmsClient.default === 'function') {
+              logoutTmsClient = logoutTmsClient.default
+            }
+          }
         }
         if (typeof createTmsClient !== 'function')
           throw Error(`通过[npm=${id}]设置的用户认证外部方法的类型不是函数`)
         authConfig.client = { createTmsClient }
-        // 外部注册方法
+        // 注册方法
         if (registerTmsClient) {
           if (typeof registerTmsClient !== 'function')
             throw Error(`通过[npm=${id}]设置的用户注册外部方法的类型不是函数`)
           authConfig.client.registerTmsClient = registerTmsClient
+        }
+        // 登出方法
+        if (logoutTmsClient) {
+          if (typeof logoutTmsClient !== 'function')
+            throw Error(`通过[npm=${id}]设置的用户注册外部方法的类型不是函数`)
+          authConfig.client.logoutTmsClient = logoutTmsClient
         }
       } else if (typeof path === 'string') {
         logger.debug(`客户端认证使用path=${path}`)
@@ -324,9 +362,32 @@ async function initAuth(instance, appConfig) {
           if (!fs.existsSync(regPathClient))
             throw Error('设置的用户注册外部方法不存在')
           let registerTmsClient = await import(regPathClient)
+
+          // 获得指定的方法
+          if (registerTmsClient.registerTmsClient)
+            registerTmsClient = registerTmsClient.registerTmsClient
+          else if (registerTmsClient.default)
+            registerTmsClient = registerTmsClient.default
+
           if (typeof registerTmsClient !== 'function')
             throw Error('设置的用户注册外部方法的类型不是函数')
           authConfig.client.registerTmsClient = registerTmsClient
+        }
+        /* 指定了外部注册方法 */
+        if (typeof logoutPath === 'string') {
+          const logoutPathClient = modPath.resolve(logoutPath)
+          if (!fs.existsSync(logoutPathClient))
+            throw Error('设置的用户登出外部方法不存在')
+          let logoutTmsClient = await import(logoutPathClient)
+          // 获得指定的方法
+          if (logoutTmsClient.logoutTmsClient)
+            logoutTmsClient = logoutTmsClient.logoutTmsClient
+          else if (logoutTmsClient.default)
+            logoutTmsClient = logoutTmsClient.default
+
+          if (typeof logoutTmsClient !== 'function')
+            throw Error('设置的用户登出外部方法的类型不是函数')
+          authConfig.client.logoutTmsClient = logoutTmsClient
         }
       } else if (Array.isArray(accounts) && accounts.length) {
         logger.debug(`客户端认证使用accounts`)
@@ -338,6 +399,9 @@ async function initAuth(instance, appConfig) {
           },
           registerTmsClient: function (ctx) {
             return localRegisterTmsClient(ctx, accounts)
+          },
+          logoutTmsClient: function (ctx) {
+            return localLogoutTmsClient()
           },
         }
       }

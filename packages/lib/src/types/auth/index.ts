@@ -15,6 +15,12 @@ export interface AuthConfigClientInf {
    */
   registerTmsClient?: (ctx: any) => {}
   /**
+   * 客户端登出方法
+   * @param ctx
+   * @returns
+   */
+  logoutTmsClient?: (ctx: any) => {}
+  /**
    * 服务本地账号
    */
   accounts?: any[]
