@@ -2,8 +2,8 @@ export default {
   port: 3001,
   https: {
     port: 3444,
-    key: '/Users/yangyue/ssl/server.key',
-    cert: '/Users/yangyue/ssl/server.crt',
+    key: '/XXXXX/ssl/server.key',
+    cert: '/XXXXX/ssl/server.crt',
   },
   cors: {
     origin: '*',

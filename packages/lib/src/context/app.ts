@@ -339,7 +339,7 @@ async function initAuth(instance, appConfig) {
             throw Error(`通过[npm=${id}]设置的用户注册外部方法的类型不是函数`)
           authConfig.client.logoutTmsClient = logoutTmsClient
         }
-      } else if (typeof path === 'string') {
+      } else if (path && typeof path === 'string') {
         logger.debug(`客户端认证使用path=${path}`)
         /* 指定了外部认证方法 */
         const pathClient = modPath.resolve(path)
@@ -357,7 +357,7 @@ async function initAuth(instance, appConfig) {
         authConfig.client = { createTmsClient }
 
         /* 指定了外部注册方法 */
-        if (typeof registerPath === 'string') {
+        if (registerPath && typeof registerPath === 'string') {
           const regPathClient = modPath.resolve(registerPath)
           if (!fs.existsSync(regPathClient))
             throw Error('设置的用户注册外部方法不存在')
@@ -374,7 +374,7 @@ async function initAuth(instance, appConfig) {
           authConfig.client.registerTmsClient = registerTmsClient
         }
         /* 指定了外部注册方法 */
-        if (typeof logoutPath === 'string') {
+        if (logoutPath && typeof logoutPath === 'string') {
           const logoutPathClient = modPath.resolve(logoutPath)
           if (!fs.existsSync(logoutPathClient))
             throw Error('设置的用户登出外部方法不存在')
