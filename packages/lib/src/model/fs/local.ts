@@ -148,6 +148,10 @@ export class LocalFS {
    */
   list(dir = '') {
     let dirRootpath = this.pathWithRoot(dir)
+
+    if (!fs.existsSync(dirRootpath)) throw Error(`指定的目录不存在`)
+    if (!fs.statSync(dirRootpath).isDirectory()) throw Error(`指定的不是目录`)
+
     let names = fs.readdirSync(path.resolve(dirRootpath))
 
     let files: TmsFile[] = []
@@ -247,7 +251,11 @@ export class LocalFS {
    */
   remove(filepath, isRelative = true) {
     let storepath = this.pathWithRoot(filepath, isRelative)
+
+    if (!fs.existsSync(storepath)) throw Error(`指定的文件不存在`)
+
     fs.removeSync(storepath)
+
     return [true]
   }
   /**
