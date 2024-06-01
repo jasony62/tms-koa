@@ -218,6 +218,22 @@ export default {
 export default {
   local: {
     rootDir: 'files' // 指定保存文件的根目录
+    accept: [
+      'text/plain',
+      'application/json',
+      'text/markdown',
+      'text/csv',
+      'application/pdf',
+      'image/.*',
+      'audio/.*',
+      'video/.*',
+      'application/vnd\\.openxmlformats-officedocument\\.spreadsheetml\\.sheet',
+      'application/vnd\\.ms-excel',
+      'application/vnd\\.openxmlformats-officedocument\\.wordprocessingml\\.document',
+      'application/msword',
+      'application/vnd\\.openxmlformats-officedocument\\.presentationml\\.presentation',
+      'application/vnd\\.ms-powerpoint',
+    ],  // 允许上传文件的类型的正则表达式
     database: {
       dialect: 'mongodb',
       database:'upload',

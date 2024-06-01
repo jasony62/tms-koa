@@ -56,11 +56,15 @@ export class BaseCtrl extends Ctrl {
         return new ResultFault('没有访问指定目录或文件的权限')
     }
 
-    // 检查目录值是否合法，
-    const { dir } = this.request.query
+    // 检查目录和名称值是否合法
+    const { dir, name } = this.request.query
     if (dir) {
       // 不允许包含'..'
       if (/\.\./.test(dir)) return new ResultFault('参数格式不合规')
+    }
+    if (name) {
+      // 不允许包含'..'
+      if (/\.\./.test(name)) return new ResultFault('参数格式不合规')
     }
 
     return true

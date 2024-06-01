@@ -9,6 +9,25 @@ import log4js from '@log4js-node/log4js-api'
 const logger = log4js.getLogger('tms-koa-fs')
 
 const debug = Debug('tms-koa:fs:context')
+/**
+ * 默认支持的上传文件类型
+ */
+const Default_Accept_File_Type = [
+  'text/plain',
+  'application/json',
+  'text/markdown',
+  'text/csv',
+  'application/pdf',
+  'image/.*',
+  'audio/.*',
+  'video/.*',
+  'application/vnd\\.openxmlformats-officedocument\\.spreadsheetml\\.sheet',
+  'application/vnd\\.ms-excel',
+  'application/vnd\\.openxmlformats-officedocument\\.wordprocessingml\\.document',
+  'application/msword',
+  'application/vnd\\.openxmlformats-officedocument\\.presentationml\\.presentation',
+  'application/vnd\\.ms-powerpoint',
+]
 
 // 本地文件存储起始位置
 function initRootDir(instance, lfsConfig) {
@@ -322,6 +341,10 @@ export class Context {
         debug(`文件服务minio初始化域失败`)
         return false
       }
+
+      // 支持的上传文件类型
+      _instance.accept = minio.accept ?? Default_Accept_File_Type
+
       _instance.backService = 'minio'
 
       logger.info(`完成minio文件服务设置`)
@@ -338,7 +361,8 @@ export class Context {
         logger.warn(`文件服务初始化域失败`)
         return false
       }
-
+      // 支持的上传文件类型
+      _instance.accept = local.accept ?? Default_Accept_File_Type
       _instance.backService = 'local'
 
       logger.info(`完成local文件服务设置【rootDir=${_instance.rootDir}】`)

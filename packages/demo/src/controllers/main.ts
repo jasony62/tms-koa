@@ -1,4 +1,5 @@
 import { Ctrl, ResultData } from 'tms-koa'
+import { ResultSSE } from 'tms-koa/dist/response.js'
 
 export class Main extends Ctrl {
   /**
@@ -89,6 +90,31 @@ export class Main extends Ctrl {
       }, 1000)
     }
     return new ResultData('ok')
+  }
+  async trySse() {
+    const { ctx } = this
+    ctx.set({
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    })
+
+    let counter = 0
+    const { PassThrough } = await import('stream')
+    const stream = new PassThrough()
+    ctx.status = 200
+    ctx.body = stream
+
+    const timer = setInterval(() => {
+      counter++
+      stream.write(`data:[${counter}] - ${new Date()}\n\n`)
+      if (counter === 10) {
+        clearInterval(timer)
+        stream.end('data:end')
+      }
+    }, 200)
+
+    return new ResultSSE()
   }
 }
 

@@ -9,6 +9,7 @@ import nodePath from 'path'
 import Debug from 'debug'
 
 import { Context as TmsContext, getAccessTokenByRequest } from '../app.js'
+import { ResultSSE } from '../response.js'
 
 const logger = log4js.getLogger('tms-koa-ctrl')
 const debug = Debug('tms-koa:ctrl-router')
@@ -538,7 +539,10 @@ class ExecCtrlMethodHandler extends BaseHandler {
 
     /* 执行方法调用 */
     const result = await oCtrl[method](request)
-    response.body = result
+    // 如果是SSE方式返回结果，由控制器自己写response
+    if (!(result instanceof ResultSSE)) {
+      response.body = result
+    }
 
     // 记录耗时
     state.ctrlTime = Date.now() - start

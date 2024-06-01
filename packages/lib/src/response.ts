@@ -40,3 +40,11 @@ export class AccessTokenFault extends ResultBase {
     super(result, msg, code)
   }
 }
+/**
+ * SSE方式返回结果
+ */
+export class ResultSSE extends ResultBase {
+  constructor(msg = 'SSE方式返回结果', code = 10101, result = null) {
+    super(result, msg, code)
+  }
+}
