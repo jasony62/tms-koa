@@ -57,7 +57,7 @@ export class BaseCtrl extends Ctrl {
     }
 
     // 检查目录和名称值是否合法
-    const { dir, name } = this.request.query
+    const { dir, name, file } = this.request.query
     if (dir) {
       // 不允许包含'..'
       if (/\.\./.test(dir)) return new ResultFault('参数格式不合规')
@@ -65,6 +65,11 @@ export class BaseCtrl extends Ctrl {
     if (name) {
       // 不允许包含'..'
       if (/\.\./.test(name)) return new ResultFault('参数格式不合规')
+    }
+    // 删除文件时使用
+    if (file) {
+      // 不允许包含'..'
+      if (/\.\./.test(file)) return new ResultFault('参数格式不合规')
     }
 
     return true

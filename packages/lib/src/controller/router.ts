@@ -83,7 +83,7 @@ class CheckPathHandler extends BaseHandler {
     /**只处理api请求（不能包含点），其它返回找不到*/
     if (/\./.test(request.path)) {
       response.status = 404
-      response.body = 'Not Found'
+      response.body = `TMS_KOA Not Found${request.path}`
       return
     }
     await next()
