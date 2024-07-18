@@ -62,6 +62,7 @@ export interface AuthConfigInf {
   mode: string
   jwt?: any
   redis?: any
+  token?: Record<string, any>
   client: AuthConfigClientInf
   captcha?: Partial<AuthConfigCaptchaInf>
 }

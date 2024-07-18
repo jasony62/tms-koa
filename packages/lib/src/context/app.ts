@@ -211,11 +211,14 @@ async function initAuth(instance, appConfig) {
   const { auth } = appConfig
   if (!auth || auth.disabled === true) return
 
-  const { captcha, client, jwt, redis, bucket } = auth
+  const { captcha, client, jwt, redis, token, bucket } = auth
   const authConfig: Partial<AuthConfigInf> = {}
-
+  /**指定的accesstoken*/
+  if (token && typeof token === 'object' && Object.keys(token).length) {
+    authConfig.token = token
+  }
   /**用户认证结果保存机制设置 */
-  if (typeof jwt === 'object' && jwt.disabled !== true) {
+  if (jwt && typeof jwt === 'object' && jwt.disabled !== true) {
     let { privateKey, expiresIn } = jwt
     if (typeof privateKey === 'string') {
       authConfig.mode = 'jwt'
@@ -229,7 +232,7 @@ async function initAuth(instance, appConfig) {
       logger.warn(msg)
       debug(msg)
     }
-  } else if (typeof redis === 'object' && redis.disabled !== true) {
+  } else if (redis && typeof redis === 'object' && redis.disabled !== true) {
     let { host } = redis
     if (typeof host === 'string' || Array.isArray(host)) {
       try {

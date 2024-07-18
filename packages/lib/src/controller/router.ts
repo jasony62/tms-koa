@@ -360,30 +360,44 @@ class CheckAuthHandler extends BaseHandler {
     let [success, access_token] = getAccessTokenByRequest(ctx)
     if (false === success)
       return (response.body = new ResultFault(access_token))
-    if (authConfig.jwt) {
-      try {
-        let decoded = jwt.verify(access_token, authConfig.jwt.privateKey)
-        tmsClient = (await import('../auth/client.js')).createByData(decoded)
-      } catch (e) {
-        if (e.name === 'TokenExpiredError') {
-          response.body = new AccessTokenFault('JWT认证令牌过期')
-        } else {
-          let msg = `JWT令牌验证失败：${e.message}`
-          debug(msg + ` (${authConfig.jwt.privateKey})`)
-          response.body = new ResultFault(msg)
-        }
-        return
+    // 指定的accesstoken
+    if (
+      authConfig.token?.local &&
+      typeof authConfig.token.local === 'object' &&
+      Object.keys(authConfig.token.local).length
+    ) {
+      const matched = authConfig.token.local[access_token]
+      if (matched && typeof matched === 'object') {
+        tmsClient = (await import('../auth/client.js')).createByData(matched)
       }
-    } else if (authConfig.redis) {
-      const { Token } = await import('../auth/token.js')
-      let aResult = await Token.fetch(access_token)
-      if (false === aResult[0]) {
-        response.body = new AccessTokenFault(aResult[1])
-        return
-      }
-      tmsClient = aResult[1]
-      await Token.expire(access_token, tmsClient) // 重置token过期时间
     }
+    if (!tmsClient) {
+      if (authConfig.jwt) {
+        try {
+          let decoded = jwt.verify(access_token, authConfig.jwt.privateKey)
+          tmsClient = (await import('../auth/client.js')).createByData(decoded)
+        } catch (e) {
+          if (e.name === 'TokenExpiredError') {
+            response.body = new AccessTokenFault('JWT认证令牌过期')
+          } else {
+            let msg = `JWT令牌验证失败：${e.message}`
+            debug(msg + ` (${authConfig.jwt.privateKey})`)
+            response.body = new ResultFault(msg)
+          }
+          return
+        }
+      } else if (authConfig.redis) {
+        const { Token } = await import('../auth/token.js')
+        let aResult = await Token.fetch(access_token)
+        if (false === aResult[0]) {
+          response.body = new AccessTokenFault(aResult[1])
+          return
+        }
+        tmsClient = aResult[1]
+        await Token.expire(access_token, tmsClient) // 重置token过期时间
+      }
+    }
+
     state.tmsClient = tmsClient
     await next(state)
   }
