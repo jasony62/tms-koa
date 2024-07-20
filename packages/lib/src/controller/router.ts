@@ -349,7 +349,9 @@ class CheckAuthHandler extends BaseHandler {
     }
 
     const authConfig = AppContext.insSync().auth
-    if (!authConfig?.mode) {
+
+    // 如果没有指定保存认证信息的机制就跳过
+    if (!authConfig?.jwt && !authConfig?.redis && !authConfig?.token) {
       await next(state)
       return
     }
@@ -399,6 +401,7 @@ class CheckAuthHandler extends BaseHandler {
     }
 
     state.tmsClient = tmsClient
+
     await next(state)
   }
 }

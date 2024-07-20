@@ -297,6 +297,22 @@ class TmsKoa extends Koa {
     if (typeof ClientAccountDir === 'string') {
       loadClientAccountFromDir(appConfig)
     }
+    /**指定了无需认证直接使用的token */
+    if (env.TMS_KOA_APP_AUTH_TOKEN_LOCAL) {
+      const localToken = env.TMS_KOA_APP_AUTH_TOKEN_LOCAL.split(',').reduce(
+        (localToken, tokenAndId) => {
+          let [token, id] = tokenAndId.split(':')
+          if (token && id) {
+            localToken[token] = { id, data: {} }
+          }
+          return localToken
+        },
+        {}
+      )
+      if (Object.keys(localToken).length) {
+        _.set(appConfig, 'auth.token.local', localToken)
+      }
+    }
     applog(`完整的应用配置信息：\n` + JSON.stringify(appConfig, null, 2))
 
     try {
