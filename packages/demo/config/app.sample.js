@@ -59,5 +59,6 @@ export default {
     jsonLimit: '1mb',
     formLimit: '56kb',
     textLimit: '56kb',
+    maxFileSize: '200mb', // 上传文件最大限制
   },
 }

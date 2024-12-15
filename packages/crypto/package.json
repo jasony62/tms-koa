@@ -1,6 +1,6 @@
 {
   "name": "tms-koa-crypto",
-  "version": "0.2.5",
+  "version": "0.2.15",
   "description": "提供加解密方法",
   "type": "module",
   "main": "dist/index.js",
@@ -13,10 +13,10 @@
   "author": "jasony62",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^20.5.9",
-    "rimraf": "^5.0.1"
+    "@types/node": "22.7.4",
+    "rimraf": "6.0.1"
   },
   "dependencies": {
-    "crypto-js": "^4.1.1"
+    "crypto-js": "4.2.0"
   }
 }

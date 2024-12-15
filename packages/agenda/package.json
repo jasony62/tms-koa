@@ -1,6 +1,6 @@
 {
   "name": "tms-koa-agenda",
-  "version": "0.2.5",
+  "version": "0.2.15",
   "description": "tms-koa控制器插件，任务调度。",
   "type": "module",
   "main": "dist/index.js",
@@ -19,11 +19,11 @@
   "dependencies": {
     "@log4js-node/log4js-api": "^1.0.2",
     "agenda": "^5.0.0",
-    "debug": "^4.3.4",
+    "debug": "4.4.0",
     "tms-koa": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^20.5.9",
-    "rimraf": "^5.0.1"
+    "@types/node": "22.7.4",
+    "rimraf": "6.0.1"
   }
 }

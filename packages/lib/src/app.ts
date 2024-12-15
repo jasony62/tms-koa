@@ -534,15 +534,14 @@ class TmsKoa extends Koa {
      * 支持post，上传文件
      */
     const koaBodyOptions = {
-      jsonLimit: (appConfig.body && appConfig.body.jsonLimit) || '1mb', // {String|Integer} The byte (if integer) limit of the JSON body, default 1mb
-      formLimit: (appConfig.body && appConfig.body.formLimit) || '56kb', // {String|Integer} The byte (if integer) limit of the form body, default 56kb
-      textLimit: (appConfig.body && appConfig.body.textLimit) || '56kb', // {String|Integer} The byte (if integer) limit of the text body, default 56kb
+      jsonLimit: appConfig.body?.jsonLimit || '1mb', // {String|Integer} The byte (if integer) limit of the JSON body, default 1mb
+      formLimit: appConfig.body?.formLimit || '56kb',
+      textLimit: appConfig.body?.textLimit || '56kb',
       multipart: true,
       formidable: {
-        maxFileSize: 200 * 1024 * 1024,
+        maxFileSize: appConfig.body?.maxFileSize ?? '200mb',
       },
     }
-
     this.use(koaBody(koaBodyOptions))
 
     /**

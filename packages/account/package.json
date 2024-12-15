@@ -1,6 +1,6 @@
 {
   "name": "tms-koa-account",
-  "version": "0.2.9",
+  "version": "0.2.15",
   "description": "tms-koa控制器插件，账号管理。",
   "type": "module",
   "main": "dist/index.js",
@@ -22,21 +22,21 @@
   },
   "dependencies": {
     "@log4js-node/log4js-api": "^1.0.2",
-    "debug": "^4.3.4",
-    "dotenv-flow": "^3.1.0",
+    "debug": "4.4.0",
+    "dotenv-flow": "4.1.0",
     "lodash": "^4.17.21",
-    "mongodb": "5.6.0",
-    "nanoid": "5.0.1",
+    "mongodb": "5.9.2",
+    "nanoid": "5.0.9",
     "password-validator": "^5.3.0",
     "svg-captcha": "^1.4.0",
     "tms-koa": "workspace:*",
     "tms-koa-crypto": "workspace:*"
   },
   "peerDependencies": {
-    "redis": "4.6.10"
+    "redis": "^4.7.0"
   },
   "devDependencies": {
-    "@types/node": "^20.5.9",
-    "rimraf": "^5.0.1"
+    "@types/node": "22.7.4",
+    "rimraf": "6.0.1"
   }
 }
