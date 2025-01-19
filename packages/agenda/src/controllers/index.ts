@@ -12,6 +12,9 @@ const JOB_HTTP_NAMESPACE =
 function nsname(name: string) {
   return `${JOB_HTTP_NAMESPACE}${name}`
 }
+function trimNs(name: string) {
+  return name.replace(JOB_HTTP_NAMESPACE, '')
+}
 /**
  * 执行任务
  *
@@ -123,11 +126,16 @@ export class Admin extends Ctrl {
     return counter
   }
   /**
+   * 任务名称
    *
    * @returns
    */
   _jobNsName() {
-    return nsname(this.posted.name)
+    let { name } = this.posted
+    if (!name) {
+      name = Date.now() + '_' + Math.floor(Math.random() * 10000)
+    }
+    return nsname(name)
   }
   /**
    *
@@ -157,16 +165,22 @@ export class Admin extends Ctrl {
    * 任务列表
    */
   async list() {
-    const name = this._jobNsName()
     const { disabled, finished, filter } = this.posted
     /**
      * 构造查询提交
      */
     const query: any = Object.assign(
       {},
-      filter && typeof filter === 'object' ? filter : {},
-      { name }
+      filter && typeof filter === 'object' ? filter : {}
     )
+    /**
+     * 如果没有指定任务名称条件，就添加名称匹配命名空间的条件
+     */
+    if (this.posted.name && typeof this.posted.name === 'string') {
+      query.name = nsname(this.posted.name)
+    } else {
+      query.name = { $regex: new RegExp(`^${JOB_HTTP_NAMESPACE}`) }
+    }
     /**
      * 任务是否已经完成
      * 根据nextRunAt字段判断
@@ -183,7 +197,13 @@ export class Admin extends Ctrl {
 
     const jobs = await this.agenda.jobs(query)
 
-    return new ResultData(jobs)
+    return new ResultData(
+      jobs.map((job) => {
+        let data = job.toJSON()
+        data.name = trimNs(data.name)
+        return data
+      })
+    )
   }
   /**
    * 定义任务
@@ -193,7 +213,7 @@ export class Admin extends Ctrl {
     // 定义任务
     this.agenda.define(name, runHttpJob)
 
-    return new ResultData('ok')
+    return new ResultData({ name: trimNs(name) })
   }
   /**
    * 立即执行一次
@@ -206,9 +226,9 @@ export class Admin extends Ctrl {
       this.agenda.define(name, runHttpJob)
     }
 
-    this.agenda.now(name, data)
+    const job = await this.agenda.now(name, data)
 
-    return new ResultData('ok')
+    return new ResultData({ id: job.attrs._id.toString(), name: trimNs(name) })
   }
   /**
    * 周期执行
@@ -222,9 +242,9 @@ export class Admin extends Ctrl {
       this.agenda.define(name, runHttpJob)
     }
 
-    this.agenda.every(interval, name, data)
+    const job = await this.agenda.every(interval, name, data)
 
-    return new ResultData('ok')
+    return new ResultData({ id: job.attrs._id.toString(), name: trimNs(name) })
   }
   /**
    * 指定时间执行
@@ -238,9 +258,9 @@ export class Admin extends Ctrl {
       this.agenda.define(name, runHttpJob)
     }
 
-    this.agenda.schedule(when, name, data)
+    const job = await this.agenda.schedule(when, name, data)
 
-    return new ResultData('ok')
+    return new ResultData({ id: job.attrs._id.toString(), name: trimNs(name) })
   }
   /**
    *
@@ -249,9 +269,9 @@ export class Admin extends Ctrl {
   async disable() {
     const name = this._jobNsName()
 
-    this.agenda.disable({ name })
+    await this.agenda.disable({ name })
 
-    return new ResultData('ok')
+    return new ResultData({ name: trimNs(name) })
   }
   /**
    *
@@ -260,9 +280,9 @@ export class Admin extends Ctrl {
   async enable() {
     const name = this._jobNsName()
 
-    this.agenda.enable({ name })
+    await this.agenda.enable({ name })
 
-    return new ResultData('ok')
+    return new ResultData({ name: trimNs(name) })
   }
   /**
    * 删除任务
@@ -270,7 +290,7 @@ export class Admin extends Ctrl {
   async cancel() {
     const name = this._jobNsName()
 
-    const numRemoved = this.agenda.cancel({ name })
+    const numRemoved = await this.agenda.cancel({ name })
 
     return new ResultData(numRemoved)
   }
