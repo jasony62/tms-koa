@@ -2,10 +2,8 @@ import log4js from '@log4js-node/log4js-api'
 import { Agenda } from 'agenda'
 import path from 'path'
 import { glob } from 'glob'
-import Debug from 'debug'
 
 const logger = log4js.getLogger('tms-koa-agenda')
-const debug = Debug('tms-koa:agenda:context')
 
 const MongoContext = (await import('./mongodb.js')).Context
 /**
@@ -72,7 +70,7 @@ export class Context {
 
     const jobs = []
     if (jobDir && typeof jobDir === 'string') {
-      debug(`指定了agenda任务文件目录：${jobDir}`)
+      logger.info(`指定了agenda任务文件目录：${jobDir}`)
       const dirAry = jobDir.split(',')
       logger.info(`读取插件配置[${dirAry}]`)
       for (let dir of dirAry) {
@@ -103,7 +101,7 @@ export class Context {
           }
           await createJob(agenda)
           // 记录要执行的调度任务
-          debug(`加载agenda任务【name=${name},interval=${interval}】`)
+          logger.info(`加载agenda任务【name=${name},interval=${interval}】`)
           jobs.push({ name, interval })
         }
       }
@@ -116,12 +114,10 @@ export class Context {
     })
     agenda.on('start', (job) => {
       let msg = `任务【${job.attrs.name}】开始执行`
-      debug(msg)
       logger.debug(msg)
     })
     agenda.on('complete', (job) => {
       let msg = `任务【${job.attrs.name}】完成执行`
-      debug(msg)
       logger.debug(msg)
     })
     agenda.start()
@@ -130,7 +126,9 @@ export class Context {
     if (jobs.length) {
       for (let job of jobs) {
         await agenda.every(job.interval, job.name)
-        debug(`启动agenda任务【name=${job.name},interval=${job.interval}】`)
+        logger.debug(
+          `启动agenda任务【name=${job.name},interval=${job.interval}】`
+        )
       }
     }
 

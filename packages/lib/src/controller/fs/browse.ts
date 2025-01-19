@@ -26,7 +26,7 @@ export class BrowseCtrl extends BaseCtrl {
    * 返回文件列表
    */
   async list() {
-    let { dir } = this.request.query
+    let { dir = '' } = this.request.query
     // 去掉开头的反斜杠
     dir = dir.replace(/^\//, '')
 
