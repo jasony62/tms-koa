@@ -158,14 +158,22 @@ export class Admin extends Ctrl {
    */
   async list() {
     const name = this._jobNsName()
-    const { disabled, nextRunAtIsNull } = this.posted
-
-    const query: any = { name }
-
-    // nextRunAt字段是否为null
-    if (nextRunAtIsNull !== null && nextRunAtIsNull !== undefined) {
-      if (nextRunAtIsNull === true) query.nextRunAt = null
-      else if (nextRunAtIsNull === false) query.nextRunAt = { $ne: null }
+    const { disabled, finished, filter } = this.posted
+    /**
+     * 构造查询提交
+     */
+    const query: any = Object.assign(
+      {},
+      filter && typeof filter === 'object' ? filter : {},
+      { name }
+    )
+    /**
+     * 任务是否已经完成
+     * 根据nextRunAt字段判断
+     */
+    if (finished !== null && finished !== undefined) {
+      if (finished === true) query.nextRunAt = null
+      else if (finished === false) query.nextRunAt = { $ne: null }
     }
 
     // 是否禁用
@@ -257,7 +265,7 @@ export class Admin extends Ctrl {
     return new ResultData('ok')
   }
   /**
-   * 取消任务
+   * 删除任务
    */
   async cancel() {
     const name = this._jobNsName()

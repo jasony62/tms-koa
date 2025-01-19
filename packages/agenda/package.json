@@ -1,7 +1,7 @@
 {
   "name": "tms-koa-agenda",
-  "version": "0.2.17",
-  "description": "tms-koa控制器插件，任务调度。",
+  "version": "0.2.18",
+  "description": "tms-koa控制器插件，提供任务调度API。",
   "type": "module",
   "main": "dist/index.js",
   "files": [
