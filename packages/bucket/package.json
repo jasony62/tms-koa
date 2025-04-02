@@ -2,13 +2,19 @@
   "name": "tms-koa-bucket",
   "type": "module",
   "version": "0.0.1",
-  "description": "",
+  "description": "tms-koa实现基于bucket的租户分离",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "rimraf ./dist && tsc && echo 'build done'"
   },
-  "keywords": [],
+  "keywords": [
+    "tms-koa",
+    "多租户"
+  ],
   "author": "jasony62",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@log4js-node/log4js-api": "^1.0.2",
     "dayjs": "1.11.13",
