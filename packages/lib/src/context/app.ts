@@ -134,19 +134,27 @@ async function checkClientBucket(ctx, client) {
       return passed ? [true, bucket] : [false]
     }
   }
-  /**没有指定检查方法，透穿bucket*/
-  if (!this.bucketValidator) return [true, bucket ? bucket : '']
+  /**
+   * 没有指定检查方法，透穿bucket
+   */
+  if (!this.bucketValidator || typeof this.bucketValidator !== 'function')
+    return [true, bucket ? bucket : '']
 
   /**
    * 用指定的方法检查bucket
    */
   const result = await this.bucketValidator(ctx, client)
 
-  if (!Array.isArray(result)) return [false]
+  if (!Array.isArray(result))
+    return [false, '指定的bucket检查函数返回结果不可用']
 
   let [passed, validBucket] = result
 
-  if (passed !== true || typeof validBucket !== 'string') return [false]
+  if (passed !== true)
+    return [
+      false,
+      typeof validBucket === 'string' ? validBucket : '未通过bucket检查',
+    ]
 
   return [passed, validBucket]
 }
@@ -504,11 +512,16 @@ async function initAuth(instance, appConfig) {
       authConfig.captcha = { disabled: true }
     }
   }
-  if (bucket && bucket.validator) {
-    if (typeof bucket.validator === 'string') {
+  if (bucket?.disabled !== false) {
+    if (typeof bucket?.validator === 'string' && bucket?.validator) {
       let validatorPath = modPath.resolve(bucket.validator)
       try {
-        const validator = await import(validatorPath)
+        const module = await import(validatorPath)
+        const validator = module.validator
+          ? module.validator
+          : module.default
+          ? module.default
+          : null
         if (typeof validator === 'function') {
           instance.bucketValidator = validator
           instance.checkClientBucket = checkClientBucket
@@ -519,7 +532,7 @@ async function initAuth(instance, appConfig) {
       } catch (e) {
         logger.warn(`指定的bucket验证模块[${bucket.validator}]不存在`)
       }
-    } else if (bucket.validator === true) {
+    } else if (bucket.exempt === true) {
       instance.checkClientBucket = checkClientBucket
       logger.info('指定了透穿bucket参数')
     }

@@ -5,7 +5,7 @@
   "type": "module",
   "description": "演示tms-koa框架使用方法。",
   "scripts": {
-    "start": "DEBUG=tms-koa* node ./dist/server.js",
+    "start": "node ./dist/server.js",
     "build": "rimraf ./dist && tsc && echo 'build done'"
   },
   "keywords": [],

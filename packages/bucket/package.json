@@ -1,0 +1,26 @@
+{
+  "name": "tms-koa-bucket",
+  "type": "module",
+  "version": "0.0.1",
+  "description": "",
+  "scripts": {
+    "build": "rimraf ./dist && tsc && echo 'build done'"
+  },
+  "keywords": [],
+  "author": "jasony62",
+  "license": "ISC",
+  "dependencies": {
+    "@log4js-node/log4js-api": "^1.0.2",
+    "dayjs": "1.11.13",
+    "debug": "4.4.0",
+    "dotenv-flow": "4.1.0",
+    "lodash": "^4.17.21",
+    "mongodb": "5.9.2",
+    "nanoid": "5.0.9",
+    "tms-koa": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "22.13.17",
+    "rimraf": "6.0.1"
+  }
+}

@@ -112,6 +112,7 @@ type NpmCtrl = {
   dir?: string
   alias?: string
   node_modules_root?: string
+  node_modules?: boolean
 }
 /**
  * 查找匹配的控制器
@@ -165,6 +166,15 @@ class FindCtrlClassAndMethodNameHandler extends BaseHandler {
           CtrlClass = await import(`${prefix}/${ctrlPath}.js`)
         else if (fs.existsSync(`${prefix}/${ctrlPath}/index.js`))
           CtrlClass = await import(`${prefix}/${ctrlPath}/index.js`)
+        else throw new Error(`根据[${ctrlPath}]查找npm控制器[${ctrlName}]失败`)
+      } else if (npmCtrl.node_modules === false) {
+        /**
+         * 按照绝对路径加载
+         */
+        if (fs.existsSync(`${ctrlPath}.js`))
+          CtrlClass = await import(`${ctrlPath}.js`)
+        else if (fs.existsSync(`${ctrlPath}/index.js`))
+          CtrlClass = await import(`${ctrlPath}/index.js`)
         else throw new Error(`根据[${ctrlPath}]查找npm控制器[${ctrlName}]失败`)
       } else {
         /**
@@ -401,7 +411,11 @@ class CheckAuthHandler extends BaseHandler {
       if (authConfig.keycloak) {
         // 运行时指定的领域
         const rtRealm = getKeycloakRealm(ctx)
-        const { baseURL, realm } = authConfig.keycloak
+        const {
+          baseURL,
+          realm,
+          idFieldName = 'preferred_username',
+        } = authConfig.keycloak
         const url = `${baseURL}/realms/${
           rtRealm ?? realm
         }/protocol/openid-connect/userinfo`
@@ -414,8 +428,14 @@ class CheckAuthHandler extends BaseHandler {
         }
         const data = await rsp.json()
         debug('通过keycloak认证，获得用户信息 %O', data)
+
+        if (!data[idFieldName] || typeof data[idFieldName] !== 'string')
+          return (response.body = new ResultFault(
+            `无法获得用户的ID[idFieldName=${idFieldName}]`
+          ))
+
         tmsClient = (await import('../auth/client.js')).createByData({
-          id: data.name,
+          id: data[idFieldName],
           data,
         })
       } else if (authConfig.jwt) {
@@ -539,19 +559,27 @@ class CheckBuckHandler extends BaseHandler {
      */
     const appContext = AppContext.insSync()
     let bucketValidateResult
-    if (Object.prototype.hasOwnProperty.call(CtrlClass, 'tmsBucketValidator')) {
+    if (typeof oCtrl.tmsBucketValidator === 'function') {
       // 控制提供了bucket检查方法
-      bucketValidateResult = await CtrlClass.tmsBucketValidator(tmsClient)
+      bucketValidateResult = await oCtrl.tmsBucketValidator(tmsClient)
     } else if (appContext.checkClientBucket) {
       // 应用配置了bucket检查方法
-      bucketValidateResult = await appContext.checkClientBucket(ctx, tmsClient)
+      bucketValidateResult = await appContext.checkClientBucket(
+        oCtrl,
+        tmsClient
+      )
     }
     if (bucketValidateResult) {
       const [passed, bucket] = bucketValidateResult
       if (passed !== true)
-        return (response.body = new ResultFault('没有访问指定bucket资源的权限'))
-      if (typeof bucket === 'string') oCtrl.bucket = bucket
+        return (response.body = new ResultFault(
+          `未通过bucket检查，原因：${bucket}`
+        ))
+      if (bucket && typeof bucket === 'string')
+        oCtrl.bucketObj = { name: bucket }
+      else if (bucket && typeof bucket === 'object') oCtrl.bucketObj = bucket
     }
+
     await next(state)
   }
 }

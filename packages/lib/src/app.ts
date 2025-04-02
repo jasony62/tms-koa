@@ -136,11 +136,14 @@ async function loadConfig(name, defaultConfig?) {
 }
 
 function normalizePluginNpm(pluginNpm) {
-  let { id, dir, alias } = pluginNpm
+  let { id, dir, alias, node_modules_root, node_modules } = pluginNpm
   if (typeof id === 'string' && id) {
     let np: any = { id }
     if (typeof dir === 'string' && dir) np.dir = dir
     if (typeof alias === 'string' && alias) np.alias = alias
+    if (typeof node_modules_root === 'string' && node_modules_root)
+      np.node_modules_root = node_modules_root
+    if (node_modules === false) np.node_modules = node_modules
     return np
   }
 
