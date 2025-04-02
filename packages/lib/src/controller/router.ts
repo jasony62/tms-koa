@@ -42,6 +42,23 @@ debug(`控制器目录：${CtrlDir}`)
 // 记录指标
 const { Metrics } = await import('./metrics.js')
 const metrics = new Metrics()
+
+/**
+ * 返回请求中携带的keycloak领域名称
+ * @param ctx
+ * @returns
+ */
+function getKeycloakRealm(ctx) {
+  let realm
+  let { request } = ctx
+  if (request.query.keycloak_realm) {
+    realm = request.query.keycloak_realm
+  } else if (ctx.header['x-keycloak-realm']) {
+    realm = ctx.header['x-keycloak-realm']
+  }
+  return realm
+}
+
 /**
  * 记录处理的数据
  */
@@ -349,13 +366,16 @@ class CheckAuthHandler extends BaseHandler {
     }
 
     const authConfig = AppContext.insSync().auth
-
     // 如果没有指定保存认证信息的机制就跳过
-    if (!authConfig?.jwt && !authConfig?.redis && !authConfig?.token) {
+    if (
+      !authConfig?.keycloak &&
+      !authConfig?.jwt &&
+      !authConfig?.redis &&
+      !authConfig?.token
+    ) {
       await next(state)
       return
     }
-
     let tmsClient
     let { response } = ctx
     // 进行用户鉴权
@@ -368,13 +388,37 @@ class CheckAuthHandler extends BaseHandler {
       typeof authConfig.token.local === 'object' &&
       Object.keys(authConfig.token.local).length
     ) {
+      /**
+       * 使用指定的token
+       * 通常用于内部应用间的api调用
+       */
       const matched = authConfig.token.local[access_token]
       if (matched && typeof matched === 'object') {
         tmsClient = (await import('../auth/client.js')).createByData(matched)
       }
     }
     if (!tmsClient) {
-      if (authConfig.jwt) {
+      if (authConfig.keycloak) {
+        // 运行时指定的领域
+        const rtRealm = getKeycloakRealm(ctx)
+        const { baseURL, realm } = authConfig.keycloak
+        const url = `${baseURL}/realms/${
+          rtRealm ?? realm
+        }/protocol/openid-connect/userinfo`
+        const headers = { authorization: `Bearer ${access_token}` }
+        const rsp = await fetch(url, { headers })
+        if (!rsp.ok) {
+          return (response.body = new ResultFault(
+            `调用keycloak认证失败[statusText=${rsp.statusText}]`
+          ))
+        }
+        const data = await rsp.json()
+        debug('通过keycloak认证，获得用户信息 %O', data)
+        tmsClient = (await import('../auth/client.js')).createByData({
+          id: data.name,
+          data,
+        })
+      } else if (authConfig.jwt) {
         try {
           let decoded = jwt.verify(access_token, authConfig.jwt.privateKey)
           tmsClient = (await import('../auth/client.js')).createByData(decoded)

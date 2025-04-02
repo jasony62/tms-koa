@@ -60,6 +60,7 @@ export interface AuthConfigCaptchaInf {
  */
 export interface AuthConfigInf {
   mode: string
+  keycloak?: { baseURL: string; realm?: string }
   jwt?: any
   redis?: any
   token?: Record<string, any>
