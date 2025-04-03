@@ -47,14 +47,19 @@ export class LocalFS {
     const appRootDir = fsContext.rootDir
 
     let prefix = domainName
+
+    if (!fs.existsSync(`${appRootDir}/${prefix}`))
+      throw new Error(`指定的文件系统起始路径(${appRootDir}/${prefix})不存在`)
+    /**
+     * 每个bucket有自己的目录
+     */
     if (bucket) {
       // 去掉开头和结尾的反斜杠
       bucket = bucket.replace(/^\/|\/$/g, '')
       prefix += `/${bucket}`
+      if (!fs.existsSync(`${appRootDir}/${prefix}`))
+        fs.mkdirSync(`${appRootDir}/${prefix}`)
     }
-
-    if (!fs.existsSync(`${appRootDir}/${prefix}`))
-      throw new Error(`指定的文件系统起始路径(${appRootDir}/${prefix})不存在`)
 
     this.tmsContext = TmsContext
     this[LFS_APPROOTDIR] = appRootDir
@@ -149,7 +154,10 @@ export class LocalFS {
   list(dir = '') {
     let dirRootpath = this.pathWithRoot(dir)
 
-    if (!fs.existsSync(dirRootpath)) throw Error(`指定的目录不存在`)
+    if (!fs.existsSync(dirRootpath)) {
+      console.warn(`指定的目录[${dirRootpath}]不存在`)
+      throw Error(`指定的目录不存在`)
+    }
     if (!fs.statSync(dirRootpath).isDirectory()) throw Error(`指定的不是目录`)
 
     let names = fs.readdirSync(path.resolve(dirRootpath))

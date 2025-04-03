@@ -512,7 +512,7 @@ async function initAuth(instance, appConfig) {
       authConfig.captcha = { disabled: true }
     }
   }
-  if (bucket?.disabled !== false) {
+  if (bucket?.disabled !== true) {
     if (typeof bucket?.validator === 'string' && bucket?.validator) {
       try {
         const module = await import(bucket.validator)

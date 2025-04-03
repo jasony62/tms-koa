@@ -79,7 +79,7 @@ export abstract class Ctrl {
   get bucketObj(): TmsBucket {
     return this[CTRL_FIELD_BUCKET_OBJ]
   }
-  set buckeObjt(obj: TmsBucket) {
+  set bucketObj(obj: TmsBucket) {
     this[CTRL_FIELD_BUCKET_OBJ] = obj
   }
   /**
