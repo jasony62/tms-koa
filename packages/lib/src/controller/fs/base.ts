@@ -14,8 +14,6 @@ const logger = log4js.getLogger('tms-koa-fs-base')
 export class BaseCtrl extends Ctrl {
   domain
 
-  bucketObj: { name: string }
-
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }

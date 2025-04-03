@@ -17,6 +17,13 @@ export type TmsFsDomain = {
   aclValidator?: any // function
 }
 /**
+ *
+ */
+export type TmsBucket = {
+  name: string
+  [k: string]: any
+}
+/**
  * 目录对象
  */
 export type TmsDir = {

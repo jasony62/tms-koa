@@ -96,7 +96,7 @@ class MongodbInfo {
         return docs
       })
 
-    result.total = await cl.find(query).count()
+    result.total = await cl.countDocuments(query)
 
     return result
   }

@@ -2,6 +2,7 @@
  * 处理http请求的接口
  */
 
+import { TmsBucket } from '@/types/fs/index.js'
 import { ResultFault } from '../response.js'
 
 // 应用上下文
@@ -19,7 +20,7 @@ const CTRL_FIELD_PUSH_CTX = Symbol('pushContext')
 // 文件服务上下文
 const CTRL_FIELD_FS_CTX = Symbol('fsContext')
 // 用户空间名称
-const CTRL_FIELD_BUCKET_NAME = Symbol('bucket')
+const CTRL_FIELD_BUCKET_OBJ = Symbol('bucketobj')
 // 全局上线文定义集合，可以获取其它上线文定义
 const CTRL_FIELD_TMS_CONTEXT = Symbol('tmscontext')
 /**
@@ -75,11 +76,11 @@ export abstract class Ctrl {
     }
     return null
   }
-  get bucket(): string {
-    return this[CTRL_FIELD_BUCKET_NAME]
+  get bucketObj(): TmsBucket {
+    return this[CTRL_FIELD_BUCKET_OBJ]
   }
-  set bucket(name: string) {
-    this[CTRL_FIELD_BUCKET_NAME] = name
+  set buckeObjt(obj: TmsBucket) {
+    this[CTRL_FIELD_BUCKET_OBJ] = obj
   }
   /**
    * 指定控制器方法白名单
