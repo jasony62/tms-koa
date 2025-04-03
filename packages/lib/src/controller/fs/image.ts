@@ -18,7 +18,7 @@ export class ImageCtrl extends UploadCtrl {
     const { dir, forceReplace, base64Field, thumb } = this.request.query
     const { body } = this.request
 
-    const tmsFs = new LocalFS(this.tmsContext, this.domain, this.bucket)
+    const tmsFs = new LocalFS(this.tmsContext, this.domain, this.bucketObj.name)
 
     let upload = new UploadImage(tmsFs)
 
@@ -50,7 +50,7 @@ export class ImageCtrl extends UploadCtrl {
           const info = this.request.body
           delete info[base64Field]
           info.userid = this.client ? this.client.id : ''
-          info.bucket = this.bucket
+          info.bucket = this.bucketObj.name
           if (thumbInfo) {
             info.thumbPath = thumbInfo.path
             info.thumbSize = thumbInfo.size

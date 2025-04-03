@@ -14,9 +14,9 @@ export class ManageCtrl extends BaseCtrl {
     const fsInfo = await Info.ins(this.domain)
     if (!fsInfo) return new ResultFault('不支持设置文件信息')
 
-    const { bucket } = this
+    const { bucketObj } = this
     const query: any = {}
-    if (bucket) query.bucket = bucket
+    if (bucketObj) query.bucket = bucketObj.name
     const { batch } = this.request.query
     const [page, size] = batch.split(',', 2)
     const skip = (parseInt(page) - 1) * parseInt(size)

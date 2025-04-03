@@ -296,7 +296,17 @@ export class Context {
   getDomain(name) {
     return this.domains[name]
   }
-  async checkClientACL(client, domain, bucket, path, request) {
+  /**
+   * 文件领访问控制检查
+   *
+   * @param client
+   * @param domain
+   * @param bucketObj
+   * @param path
+   * @param request
+   * @returns
+   */
+  async checkClientACL(client, domain, bucketObj, path, request) {
     if (!domain) throw Error(`指定的域（${domain.name}）不存在`)
 
     if (!domain.aclValidator) return true
@@ -306,7 +316,7 @@ export class Context {
     const result = await domain.aclValidator(
       client,
       domain.name,
-      bucket,
+      bucketObj,
       path,
       request
     )

@@ -552,7 +552,7 @@ class CheckBuckHandler extends BaseHandler {
    */
   async handle(ctx: any, next: ChainNext, state: ChainState) {
     const { response } = ctx
-    const { CtrlClass, tmsClient, oCtrl } = state
+    const { tmsClient, oCtrl } = state
     /**
      * 多租户模式，检查bucket
      * 白名单方法不检查bucket
@@ -573,7 +573,8 @@ class CheckBuckHandler extends BaseHandler {
       const [passed, bucket] = bucketValidateResult
       if (passed !== true)
         return (response.body = new ResultFault(
-          `未通过bucket检查，原因：${bucket}`
+          `未通过bucket检查，原因：${bucket}`,
+          40330
         ))
       if (bucket && typeof bucket === 'string')
         oCtrl.bucketObj = { name: bucket }

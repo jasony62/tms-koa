@@ -514,9 +514,8 @@ async function initAuth(instance, appConfig) {
   }
   if (bucket?.disabled !== false) {
     if (typeof bucket?.validator === 'string' && bucket?.validator) {
-      let validatorPath = modPath.resolve(bucket.validator)
       try {
-        const module = await import(validatorPath)
+        const module = await import(bucket.validator)
         const validator = module.validator
           ? module.validator
           : module.default

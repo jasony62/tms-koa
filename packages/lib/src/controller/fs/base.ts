@@ -14,6 +14,8 @@ const logger = log4js.getLogger('tms-koa-fs-base')
 export class BaseCtrl extends Ctrl {
   domain
 
+  bucketObj: { name: string }
+
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
   }
@@ -23,8 +25,8 @@ export class BaseCtrl extends Ctrl {
    */
   protected fsModel() {
     if (this.fsContext.minioClient)
-      return new MinioFS(this.tmsContext, this.domain, this.bucket)
-    else return new LocalFS(this.tmsContext, this.domain, this.bucket)
+      return new MinioFS(this.tmsContext, this.domain, this.bucketObj?.name)
+    else return new LocalFS(this.tmsContext, this.domain, this.bucketObj.name)
   }
   /**
    * 检查访问权限
@@ -48,7 +50,7 @@ export class BaseCtrl extends Ctrl {
       const result = await this.fsContext.checkClientACL(
         this.client,
         this.domain,
-        this.bucket,
+        this.bucketObj,
         path,
         this.request
       )
@@ -88,7 +90,7 @@ export class BaseCtrl extends Ctrl {
    * 设置上传文件信息
    */
   async setInfo() {
-    const { domain, bucket } = this
+    const { domain, bucketObj } = this
 
     const fsInfo = await Info.ins(domain)
     if (!fsInfo) return new ResultFault('不支持设置文件信息')
@@ -105,7 +107,7 @@ export class BaseCtrl extends Ctrl {
 
     const info = this.request.body
     info.userid = this.client ? this.client.id : ''
-    if (bucket) info.bucket = bucket
+    if (bucketObj) info.bucket = bucketObj.name
 
     this._setFileInfo(fsInfo, path, info, setMD5)
 
@@ -163,7 +165,7 @@ export class BaseCtrl extends Ctrl {
    * 批量设置上传文件信息
    */
   async setInfos() {
-    const { domain, bucket } = this
+    const { domain, bucketObj } = this
     const fsInfo = await Info.ins(domain)
     if (!fsInfo) return new ResultFault('不支持设置文件信息')
 
@@ -173,7 +175,7 @@ export class BaseCtrl extends Ctrl {
       return new ResultFault('未指定文件')
 
     let space = domain.name
-    if (bucket) space += `/${bucket}`
+    if (bucketObj) space += `/${bucketObj.name}`
     for (const file of files) {
       // 检查path是否在指定的空间下
       if (!new RegExp(space).test(file.path)) {
@@ -183,7 +185,7 @@ export class BaseCtrl extends Ctrl {
 
       let info = file.info || {}
       info.userid = this.client ? this.client.id : ''
-      if (bucket) info.bucket = bucket
+      if (bucketObj) info.bucket = bucketObj.name
 
       this._setFileInfo(fsInfo, file.path, info, setMD5)
     }

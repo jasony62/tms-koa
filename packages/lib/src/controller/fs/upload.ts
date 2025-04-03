@@ -76,7 +76,7 @@ export class UploadCtrl extends BaseCtrl {
         // 支持通过表单传递简单类型
         const info = this.request.body
         info.userid = this.client ? this.client.id : ''
-        info.bucket = this.bucket
+        info.bucket = this.bucketObj.name
         info.name = file.originalFilename
         info.type = file.mimetype
         info.size = file.size
