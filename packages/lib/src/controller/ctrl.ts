@@ -1,8 +1,7 @@
 /**
  * 处理http请求的接口
  */
-
-import { TmsBucket } from '@/types/fs/index.js'
+import { TmsBucket } from '../types/fs/index.js'
 import { ResultFault } from '../response.js'
 
 // 应用上下文

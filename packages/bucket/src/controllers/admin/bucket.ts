@@ -1,5 +1,6 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import BucketBase from './bucketBase.js'
+import { BucketConfig } from '../../config.js'
 
 /** 用于给用户分配存储空间 */
 class Bucket extends BucketBase {
@@ -200,6 +201,28 @@ class Bucket extends BucketBase {
       .toArray()
 
     return new ResultData(tmsBuckets)
+  }
+  /**
+   * 返回bucket扩展属性定义
+   *
+   * @returns
+   */
+  async schemas() {
+    if (BucketConfig.disabled !== true) {
+      const { bucket } = BucketConfig
+      if (bucket && typeof bucket === 'object') {
+        const { schemas, schemasRootName } = bucket
+        if (
+          schemasRootName &&
+          typeof schemasRootName === 'string' &&
+          Object.keys(schemas).length
+        ) {
+          return new ResultData({ schemas, schemasRootName })
+        }
+      }
+    }
+
+    return new ResultFault('没有设置扩展属性', 40420)
   }
 }
 

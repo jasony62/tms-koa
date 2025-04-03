@@ -135,3 +135,15 @@ curl 'http://localhost:3009/api/bucket/admin/coworker/accept?bucket=test01' -H '
 ```shell
 curl 'http://localhost:3009/api/bucket/admin/coworker/remove?bucket=test01&coworker=Alice%20Liddel' -H 'authorization: Bearer xxx'
 ```
+
+# 自定义属性
+
+配置文件`bucket.js`
+
+```js
+export default {
+  disabled: true,
+  schemas: {},
+  schemasRootName: '',
+}
+```

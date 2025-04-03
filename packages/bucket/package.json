@@ -1,7 +1,7 @@
 {
   "name": "tms-koa-bucket",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "tms-koa实现基于bucket的租户分离",
   "files": [
     "dist"

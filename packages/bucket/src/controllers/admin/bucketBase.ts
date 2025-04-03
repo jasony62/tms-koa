@@ -1,4 +1,4 @@
-import { Ctrl, ResultFault, ResultObjectNotFound } from 'tms-koa'
+import { Ctrl, ResultFault } from 'tms-koa'
 
 /**
  * 保存元数据的数据库
@@ -14,10 +14,6 @@ class BucketBase extends Ctrl {
    * 保存bucket数据的集合
    */
   protected clBucket
-  /**
-   *
-   */
-  protected bucketObj
 
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
