@@ -1,8 +1,11 @@
 import { ResultData, ResultFault } from 'tms-koa'
 import BucketBase from './bucketBase.js'
 import { BucketConfig } from '../../config.js'
+import { ObjectId } from 'mongodb'
 
-/** 用于给用户分配存储空间 */
+/**
+ * 管理空间
+ */
 class Bucket extends BucketBase {
   constructor(ctx, client, dbContext, mongoClient, pushContext, fsContext?) {
     super(ctx, client, dbContext, mongoClient, pushContext, fsContext)
@@ -68,17 +71,17 @@ class Bucket extends BucketBase {
   async create() {
     let info = this.request.body
 
-    const cl = this.clBucket
-
     // 查询是否存在同名存储空间
-    let buckets = await cl.find({ name: info.name }).toArray()
-    if (buckets.length > 0) {
-      return new ResultFault('已存在同名存储空间')
-    }
+    let buckets = await this.clBucket
+      .find({ name: info.name, removeAt: { $exists: false } })
+      .toArray()
+    if (buckets.length > 0)
+      return new ResultFault(`已存在同名空间[${info.name}]`)
 
     info.creator = this.client.id
+    info.createAt = new Date()
 
-    return cl.insertOne(info).then((result) => {
+    return this.clBucket.insertOne(info).then((result) => {
       info._id = result.insertedId
       return new ResultData(info)
     })
@@ -125,17 +128,20 @@ class Bucket extends BucketBase {
     if (!bucketName) return new ResultFault(`没有指定要更新的bucket`)
 
     let info = this.request.body
-    let { _id, name, ...updatedInfo } = info
+    let { _id, name, creator, ...updatedInfo } = info
 
-    const bucketInfo = await this.clBucket.findOne({ name: bucketName })
+    const bucketInfo = await this.clBucket.findOne({
+      name: bucketName,
+      removeAt: { $exists: false },
+    })
     if (!bucketInfo)
       return new ResultFault(`指定的[bucket=${bucketName}]不存在`)
 
     if (this.client.id !== bucketInfo.creator)
-      return new ResultFault('没有权限')
+      return new ResultFault('不是空间创建人，没有修改权限')
 
     return this.clBucket
-      .updateOne({ name: bucketName }, { $set: updatedInfo })
+      .updateOne({ _id: bucketInfo._id }, { $set: updatedInfo })
       .then((res) => {
         return new ResultData(info)
       })
@@ -164,16 +170,30 @@ class Bucket extends BucketBase {
     const { bucket: bucketName } = this.request.query
     if (!bucketName) return new ResultFault(`没有指定要删除的bucket`)
 
-    const bucketInfo = await this.clBucket.findOne({ name: bucketName })
+    const bucketInfo = await this.clBucket.findOne({
+      name: bucketName,
+      removeAt: { $exists: false },
+    })
     if (!bucketInfo)
       return new ResultFault(`指定的[bucket=${bucketName}]不存在`)
 
     if (this.client.id !== bucketInfo.creator)
       return new ResultFault('支持允许创建人删除bucket')
 
+    // return this.clBucket
+    //   .deleteOne({ name: bucketName, creator: this.client.id })
+    //   .then((result) => new ResultData(result.result))
+
     return this.clBucket
-      .deleteOne({ name: bucketName, creator: this.client.id })
-      .then((result) => new ResultData(result.result))
+      .updateOne(
+        {
+          _id: new ObjectId(bucketInfo._id),
+        },
+        {
+          $set: { removeAt: new Date() },
+        }
+      )
+      .then(() => new ResultData('ok'))
   }
   /**
    * @swagger
@@ -194,13 +214,93 @@ class Bucket extends BucketBase {
    *               "$ref": "#/components/schemas/ResponseDataArray"
    */
   async list() {
-    const tmsBuckets = await this.clBucket
-      .find({
-        $or: [{ creator: this.client.id }, { 'coworkers.id': this.client.id }],
-      })
+    const ownBuckets = await this.clBucket
+      .find({ creator: this.client.id, removeAt: { $exists: false } })
+      .toArray()
+    /**
+     * 已经作为协作人的空间
+     */
+    const coworkers = await this.clCoworker
+      .find(
+        {
+          'coworker.id': this.client.id,
+          acceptAt: { $exists: true },
+          removeAt: { $exists: false },
+        },
+        { projection: { bucket: 1, _id: 0 } }
+      )
       .toArray()
 
-    return new ResultData(tmsBuckets)
+    const coworkBuckets = await this.clBucket
+      .find(
+        {
+          removeAt: { $exists: false },
+          name: { $in: coworkers.map((c) => c.bucket) },
+        },
+        { projection: { _id: 0 } }
+      )
+      .toArray()
+
+    coworkBuckets.forEach((bucket) => {
+      ownBuckets.push(bucket)
+    })
+
+    return new ResultData(ownBuckets)
+  }
+  /**
+   * 根据名称获取存储空间
+   *
+   * @returns
+   */
+  async byName() {
+    const bucketName = this.request.query.bucket
+    if (!bucketName) return new ResultFault(`没有指定要查询的bucket`)
+
+    const bucketInfo = await this.clBucket.findOne({
+      name: bucketName,
+      creator: this.client.id,
+      removeAt: { $exists: false },
+    })
+    if (!bucketInfo)
+      return new ResultFault(
+        `指定的[bucket=${bucketName}]不存在或不属于当前用户`
+      )
+
+    return new ResultData(bucketInfo)
+  }
+  /**
+   * 设置默认存储空间
+   *
+   * @returns
+   */
+  async setdefault() {
+    const bucketName = this.request.query.bucket
+    if (!bucketName) return new ResultFault(`没有指定要设置默认的bucket`)
+
+    // Unset asdefault for all buckets belonging to the current user
+    await this.clBucket.updateMany(
+      { creator: this.client.id, removeAt: { $exists: false } },
+      { $set: { asdefault: false } }
+    )
+
+    // Set asdefault for the specified bucket belonging to the current user
+    const result = await this.clBucket.updateOne(
+      {
+        name: bucketName,
+        creator: this.client.id,
+        removeAt: { $exists: false },
+      },
+      { $set: { asdefault: true } }
+    )
+
+    if (result.matchedCount === 0)
+      return new ResultFault(
+        `指定的[bucket=${bucketName}]不存在或不属于当前用户`
+      )
+
+    return new ResultData({
+      message: `成功设置[bucket=${bucketName}]为默认存储空间`,
+    })
   }
   /**
    * 返回bucket扩展属性定义
