@@ -180,10 +180,6 @@ class Bucket extends BucketBase {
     if (this.client.id !== bucketInfo.creator)
       return new ResultFault('支持允许创建人删除bucket')
 
-    // return this.clBucket
-    //   .deleteOne({ name: bucketName, creator: this.client.id })
-    //   .then((result) => new ResultData(result.result))
-
     return this.clBucket
       .updateOne(
         {
@@ -256,15 +252,33 @@ class Bucket extends BucketBase {
     const bucketName = this.request.query.bucket
     if (!bucketName) return new ResultFault(`没有指定要查询的bucket`)
 
-    const bucketInfo = await this.clBucket.findOne({
+    let bucketInfo = await this.clBucket.findOne({
       name: bucketName,
       creator: this.client.id,
       removeAt: { $exists: false },
     })
-    if (!bucketInfo)
-      return new ResultFault(
-        `指定的[bucket=${bucketName}]不存在或不属于当前用户`
+    if (!bucketInfo) {
+      const coworker = this.clCoworker.findOne({
+        bucket: bucketName,
+        'coworker.id': this.client.id,
+        acceptAt: { $exists: true },
+        removeAt: { $exists: false },
+      })
+      if (!coworker)
+        return new ResultFault(
+          `指定的[bucket=${bucketName}]不存在或不属于当前用户`
+        )
+      /**
+       * 不提供空间的内部ID
+       */
+      bucketInfo = await this.clBucket.findOne(
+        {
+          name: bucketName,
+          removeAt: { $exists: false },
+        },
+        { projection: { _id: 0 } }
       )
+    }
 
     return new ResultData(bucketInfo)
   }

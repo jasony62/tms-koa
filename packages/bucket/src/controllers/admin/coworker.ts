@@ -198,19 +198,9 @@ class Coworker extends BucketBase {
    *               "$ref": "#/components/schemas/ResponseData"
    */
   async accept() {
-    const { bucket } = this.request.query
+    const { bucket, code, nickname } = this.request.query
     if (!bucket) return new ResultFault('没有指定邀请的空间')
-
-    const { code, nickname } = this.request.body
     if (!code || !nickname) return new ResultFault('没有提供有效参数')
-
-    // @TODO 如何检查nickname是否与当前用户匹配？
-    // if (nickname !== this.client?.id) {
-    //   console.warn(
-    //     `[tms-koa-bucket][coworker:accept] 用户信息不匹配 nickname=${nickname}, client.id=${this.client.id}`
-    //   )
-    //   return new ResultFault('用户信息不匹配')
-    // }
 
     /**
      * 有匹配的邀请？
@@ -219,14 +209,13 @@ class Coworker extends BucketBase {
       bucket,
       code,
       'coworker.nickname': nickname,
-      expireAt: { $gt: new Date() },
       removeAt: { $exists: false },
     })
-
     if (!invitation)
-      return new ResultFault(
-        '没有匹配的邀请，请确认邀请码、昵称是否正确，邀请是否已过期'
-      )
+      return new ResultFault('请确认空间名称、用户昵称和邀请码是否正确？')
+
+    if (invitation.expireAt.getTime() < Date.now())
+      return new ResultFault('邀请已经过期，请联系邀请人重新发起邀请')
 
     if (invitation.acceptAt)
       return new ResultFault('邀请码已经使用，不允许重复使用')

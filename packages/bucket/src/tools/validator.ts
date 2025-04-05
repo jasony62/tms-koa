@@ -1,22 +1,24 @@
-import { ResultObjectNotFound } from 'tms-koa'
+import {
+  META_ADMIN_DB,
+  META_CL_BUCKET,
+  META_CL_BUCKET_COWORKER,
+} from '../const.js'
 
-/**
- * 保存元数据的数据库
- */
-const META_ADMIN_DB = process.env.TMS_KOA_META_ADMIN_DB || 'tms_admin'
-/**
- * 保存元数据的集合
- */
-const META_ADMIN_CL_BUCKET = 'bucket'
-
-function allowAccessBucket(bucket, clientId) {
+function allowAccessBucket(oCtrl, bucket, clientId) {
   if (bucket.creator === clientId) return true
 
-  const { coworkers } = bucket
+  const clCoworker = oCtrl.mongoClient
+    .db(META_ADMIN_DB)
+    .collection(META_CL_BUCKET_COWORKER)
 
-  if (!Array.isArray(coworkers)) return false
+  const coworker = clCoworker.findOne({
+    bucket,
+    'coworker.id': clientId,
+    acceptAt: { $exists: true },
+    removeAt: { $exists: false },
+  })
 
-  return coworkers.some((c) => c.id === clientId)
+  return !!coworker
 }
 /**
  *
@@ -31,7 +33,7 @@ export default async function (oCtrl, tmsClient) {
 
   const clBucket = oCtrl.mongoClient
     .db(META_ADMIN_DB)
-    .collection(META_ADMIN_CL_BUCKET)
+    .collection(META_CL_BUCKET)
 
   // 检查bucket是否存在
   const bucketObj = await clBucket.findOne({
@@ -41,7 +43,7 @@ export default async function (oCtrl, tmsClient) {
     return [false, `指定的[bucket=${bucketName}]不存在`]
   }
   // 检查当前用户是否对bucket有权限
-  if (!allowAccessBucket(bucketObj, tmsClient.id)) {
+  if (!allowAccessBucket(oCtrl, bucketObj, tmsClient.id)) {
     // 检查是否做过授权
     return [false, `没有访问[bucket=${bucketName}]的权限`]
   }
