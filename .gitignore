@@ -68,3 +68,8 @@ typings/
 dump.rdb
 # pnpm
 pnpm-lock.yaml
+
+# AI Codikng
+
+.codegraph
+.zread

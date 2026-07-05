@@ -25,7 +25,6 @@ let AppContext,
   PushContext,
   SwaggerContext,
   MetricsContext,
-  Neo4jContext,
   AgendaContext
 
 /**全局上下文对象*/
@@ -44,12 +43,10 @@ process.on('exit', (code) => {
 })
 process.on('SIGINT', async () => {
   logger.info(`退出应用[ctrl+c]`)
-  if (Neo4jContext) await Neo4jContext.close()
   process.exit()
 })
 process.on('SIGTERM', async () => {
   logger.info(`退出应用[kill]`)
-  if (Neo4jContext) await Neo4jContext.close()
   process.exit()
 })
 
@@ -384,24 +381,6 @@ class TmsKoa extends Koa {
     }
     debug.extend('redis')(
       '完成【redis】服务配置\n' + JSON.stringify(redisConfig, null, 2)
-    )
-
-    /**
-     * 初始化neo4j
-     */
-    const neo4jConfig = await loadConfig('neo4j')
-    if (neo4jConfig && neo4jConfig.disabled !== true) {
-      Neo4jContext = (await import('./context/neo4j.js')).Context
-      try {
-        await Neo4jContext.init(neo4jConfig)
-        Context.Neo4jContext = Neo4jContext
-      } catch (e) {
-        let logMsg = `初始化[neo4j]配置失败`
-        logger.isDebugEnabled() ? logger.debug(logMsg, e) : logger.warn(logMsg)
-      }
-    }
-    debug.extend('neo4j')(
-      '完成【neo4j】服务配置\n' + JSON.stringify(neo4jConfig, null, 2)
     )
 
     /**
