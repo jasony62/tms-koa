@@ -25,7 +25,7 @@
     "debug": "4.4.0",
     "dotenv-flow": "4.1.0",
     "lodash": "^4.17.21",
-    "mongodb": "5.9.2",
+    "mongodb": "^7.0.0",
     "nanoid": "5.0.9",
     "password-validator": "^5.3.0",
     "svg-captcha": "^1.4.0",

@@ -1,5 +1,5 @@
 import log4js from '@log4js-node/log4js-api'
-import { MongoClient, MongoError } from 'mongodb'
+import { MongoClient } from 'mongodb'
 import Debug from 'debug'
 
 const logger = log4js.getLogger('tms-koa-mongodb')
@@ -27,7 +27,7 @@ class TmsMongoDb {
     } catch (e) {
       const msg = `连接[${url}]失败：${e.message}`
       logger.error(msg)
-      throw new MongoError(msg)
+      throw new Error(msg)
     }
   }
 }
@@ -46,13 +46,13 @@ export class Context {
     if (!config || typeof config !== 'object') {
       let msg = '没有指定连接mongodb配置信息'
       logger.error(msg)
-      throw new MongoError(msg)
+      throw new Error(msg)
     }
     const names = Object.keys(config)
     if (names.length === 0) {
       let msg = '指定连接mongodb配置信息为空'
       logger.error(msg)
-      throw new MongoError(msg)
+      throw new Error(msg)
     }
     let instances
     if (names.includes('host') && names.includes('port')) {
@@ -96,7 +96,7 @@ export class Context {
     if (replicaSet && typeof replicaSet !== 'string') {
       let msg = '参数replicaSet类型错误'
       logger.error(msg)
-      throw new MongoError(msg)
+      throw new Error(msg)
     }
     if (replicaSet) {
       if (typeof host === 'string') {
@@ -105,7 +105,7 @@ export class Context {
       if (!Array.isArray(host) || host.length === 0) {
         let msg = '没有指定mongodb的主机地址'
         logger.error(msg)
-        throw new MongoError(msg)
+        throw new Error(msg)
       }
       if (typeof port === 'string') {
         port = port.split(',').map((p) => parseInt(p))
@@ -115,12 +115,12 @@ export class Context {
       if (!Array.isArray(port) || port.length === 0) {
         let msg = '没有指定mongodb连接的端口'
         logger.error(msg)
-        throw new MongoError(msg)
+        throw new Error(msg)
       }
       if (host.length !== port.length) {
         let msg = '指定的mongodb连接参数host和port数量不匹配'
         logger.error(msg)
-        throw new MongoError(msg)
+        throw new Error(msg)
       }
     } else if (
       typeof host !== 'string' &&
@@ -128,7 +128,7 @@ export class Context {
     ) {
       let msg = `没有指定mongodb的主机地址[host=${host} | connectionString=${connectionString}]`
       logger.error(msg)
-      throw new MongoError(msg)
+      throw new Error(msg)
     }
 
     let url = ''
