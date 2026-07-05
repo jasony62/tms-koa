@@ -50,7 +50,7 @@ const runHttpJob = async (job) => {
     logger.debug(
       `执行任务【${name}】响应状态status=${status}, statusText=${statusText}`
     )
-    const contentType = rspHeaders.get('content-type')
+    const contentType = rspHeaders.get('content-type') || ''
     const result = /^application\/json/i.test(contentType)
       ? await response.json()
       : await response.text()

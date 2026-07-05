@@ -14,7 +14,7 @@ const META_CL_BUCKET_COWORKER = 'bucket_coworker'
  * 邀请过期时间
  */
 const COWORKER_INVITE_EXPIRE_MS =
-  parseInt(process.env.TMS_KOA_BUCKET_COWORKER_INVITE_EXPIRE_MS) ||
+  parseInt(process.env.TMS_KOA_BUCKET_COWORKER_INVITE_EXPIRE_MS || '') ||
   60 * 30 * 1000
 
 export {

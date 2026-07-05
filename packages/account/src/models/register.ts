@@ -30,7 +30,8 @@ export async function registerTmsClient(
       try {
         let userInfo2 = await func(ctx)
         Object.assign(userInfo, userInfo2)
-      } catch (error) {
+      } catch (e) {
+        const error = e as Error
         logger.error(error)
         return [false, error.message ? error.message : error.toString()]
       }

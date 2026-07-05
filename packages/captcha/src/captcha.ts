@@ -100,7 +100,7 @@ class InRedis {
    *
    * @param {*} clientId
    */
-  async scan(appid, captchaid, keys = []) {
+  async scan(appid, captchaid, keys: string[] = []) {
     for await (const key of this.redisClient.scanIterator({
       MATCH: this.key(appid, captchaid),
       COUNT: 500,
@@ -153,7 +153,7 @@ class Captcha {
   expire: number
   limit: number
   alphabet: string
-  code: string
+  code: string = ''
   lowClient: any
   redisClient: any
 

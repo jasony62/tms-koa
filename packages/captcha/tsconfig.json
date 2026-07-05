@@ -11,6 +11,7 @@
     "rootDir": "./src",
     "declaration": true,
     "sourceMap": false,
+    "skipLibCheck": true,
     "types": ["node"]
   },
   "include": ["src/**/*.ts"],

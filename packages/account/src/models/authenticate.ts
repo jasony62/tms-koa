@@ -34,7 +34,8 @@ export async function createTmsClient(
         let rst = await func(ctx)
         username = rst.username
         password = rst.password
-      } catch (error) {
+      } catch (e) {
+        const error = e as Error
         logger.error(error)
         return [false, error.message ? error.message : error.toString()]
       }

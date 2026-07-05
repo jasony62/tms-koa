@@ -64,7 +64,7 @@ export class Context {
     const agenda = new Agenda({
       mongo: mongoClient.db(database),
       disableAutoIndex: true,
-    })
+    } as any)
 
     _instance = new Context(agenda)
 

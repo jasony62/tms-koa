@@ -32,7 +32,7 @@ export class Main extends Ctrl {
    */
   tryGet() {
     let { value } = this.request.query
-    const { bucket } = this
+    const bucket = this.bucketObj?.name
     console.log(`tryGet: bucket=${bucket},value=${value}`)
 
     return new ResultData(`收到：${value}`)
@@ -68,7 +68,7 @@ export class Main extends Ctrl {
   tryPost() {
     let posted = this.request.body
 
-    const { bucket } = this
+    const bucket = this.bucketObj?.name
     console.log(`tryPost: bucket=${bucket},posted=${JSON.stringify(posted)}`)
 
     return new ResultData(posted)

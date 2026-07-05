@@ -42,9 +42,7 @@ const getSpec = (() => {
 
 router.get(prefix, (ctx) => {
   let { request, response } = ctx
-  let { refresh } = request.query
-
-  refresh = /Y/i.test(refresh)
+  let refresh = /Y/i.test(request.query.refresh as string)
 
   response.body = getSpec(refresh)
 })

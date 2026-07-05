@@ -8,6 +8,8 @@ export class Admin extends Ctrl {
   async tmsBeforeEach(): Promise<ResultFault | true> {
     if (!this.client || this.client.isAdmin !== true)
       return new ResultFault('只有管理员账号可进行该操作')
+
+    return true
   }
   /**
    * 账号列表
