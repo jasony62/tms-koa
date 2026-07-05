@@ -1,6 +1,5 @@
 import fs from 'fs'
 import path from 'path'
-import * as Minio from 'minio'
 import Debug from 'debug'
 import { TmsFsDomain } from '../types/fs/index.js'
 
@@ -241,7 +240,7 @@ async function initACL(domain, lfsDomain) {
  * @param instance
  * @param fsConfig
  */
-function initMinio(instance, fsConfig) {
+async function initMinio(instance, fsConfig) {
   let { endPoint, port, useSSL, accessKey, secretKey } = fsConfig
 
   if (!endPoint || typeof endPoint !== 'string') {
@@ -260,6 +259,14 @@ function initMinio(instance, fsConfig) {
   }
   if (!secretKey || typeof secretKey !== 'string') {
     logger.warn(`文件服务minio初始化失败，没有指定secretKey`)
+    return false
+  }
+
+  let Minio
+  try {
+    Minio = await import('minio')
+  } catch (e) {
+    logger.error('加载minio模块失败，请检查是否已安装minio包')
     return false
   }
 
@@ -341,7 +348,7 @@ export class Context {
 
       debug('文件服务指定了【minio】')
 
-      if (!initMinio(_instance, minio)) {
+      if (!(await initMinio(_instance, minio))) {
         logger.warn(`文件服务minio初始化失败`)
         debug(`文件服务minio初始化失败`)
         return false
