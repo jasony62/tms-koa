@@ -53,6 +53,6 @@ async function findDiskFile(ctx, next) {
   }
 }
 
-router.all('/(.*)', findDiskFile)
+router.all(/\/(.*)/, findDiskFile)
 
 export { router }

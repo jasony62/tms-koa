@@ -416,9 +416,8 @@ class CheckAuthHandler extends BaseHandler {
           realm,
           idFieldName = 'preferred_username',
         } = authConfig.keycloak
-        const url = `${baseURL}/realms/${
-          rtRealm ?? realm
-        }/protocol/openid-connect/userinfo`
+        const url = `${baseURL}/realms/${rtRealm ?? realm
+          }/protocol/openid-connect/userinfo`
         const headers = { authorization: `Bearer ${access_token}` }
         const rsp = await fetch(url, { headers })
         if (!rsp.ok) {
@@ -710,6 +709,6 @@ const prefix = AppContext.insSync().routerControllersPrefix
 logger.info(`API控制器目录：${CtrlDir}，指定API控制器前缀：${prefix}`)
 
 const router = new Router({ prefix })
-router.all('/(.*)', fnCtrlWrapper)
+router.all(/\/(.*)/, fnCtrlWrapper)
 
 export { router }

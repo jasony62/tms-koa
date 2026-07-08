@@ -78,7 +78,7 @@ async function localRegisterTmsClient(ctx, accounts) {
  * @param ctx
  * @param accounts
  */
-async function localLogoutTmsClient() {}
+async function localLogoutTmsClient() { }
 /**
  * 使用配置文件指定的验证码用于生产验证码
  * @param {*} ctx
@@ -251,7 +251,7 @@ async function initAuth(instance, appConfig) {
     let { host } = redis
     if (typeof host === 'string' || Array.isArray(host)) {
       try {
-        ;(await import('./redis.js')).Context.init(redis)
+        ; (await import('./redis.js')).Context.init(redis)
         authConfig.mode = 'redis'
         authConfig.redis = redis
         let logMsg = `启用API调用认证机制[redis]`
@@ -519,8 +519,8 @@ async function initAuth(instance, appConfig) {
         const validator = module.validator
           ? module.validator
           : module.default
-          ? module.default
-          : null
+            ? module.default
+            : null
         if (typeof validator === 'function') {
           instance.bucketValidator = validator
           instance.checkClientBucket = checkClientBucket
@@ -531,7 +531,7 @@ async function initAuth(instance, appConfig) {
       } catch (e) {
         logger.warn(`指定的bucket验证模块[${bucket.validator}]不存在`)
       }
-    } else if (bucket.exempt === true) {
+    } else if (bucket?.exempt === true) {
       instance.checkClientBucket = checkClientBucket
       logger.info('指定了透穿bucket参数')
     }
