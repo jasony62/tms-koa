@@ -43,6 +43,10 @@ export class Context {
    * 按照配置文件进行初始化
    */
   static async init(config) {
+    if (config?.disabled === true) {
+      logger.warn('MongoDB 已被配置禁用')
+      return []
+    }
     if (!config || typeof config !== 'object') {
       let msg = '没有指定连接mongodb配置信息'
       logger.error(msg)
@@ -194,11 +198,18 @@ export class Context {
    */
   static async mongoClient(name = 'master') {
     const ins = await Context.ins(name)
-    if (!ins) throw new Error(`无法获得mongodb[${name}]连接实例`)
+    if (!ins) {
+      logger.warn(`无法获得mongodb[${name}]连接实例`)
+      return null
+    }
     return ins.mongoClient
   }
   static mongoClientSync(name = 'master') {
     const ins = Context.insSync(name)
+    if (!ins) {
+      logger.warn(`无法获得mongodb[${name}]连接实例`)
+      return null
+    }
     return ins.mongoClient
   }
 }

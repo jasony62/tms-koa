@@ -34,7 +34,7 @@ export class Context {
       logger.error(msg)
       throw Error(msg)
     }
-    if (config.diabled === true) {
+    if (config.disabled === true) {
       return {}
     }
     const { mongodb, jobDir } = config
@@ -46,9 +46,8 @@ export class Context {
     const { source, database, collection } = mongodb
     const mongoClient = await MongoContext.mongoClient(source)
     if (!mongoClient) {
-      let msg = `agenda服务指定的mongodb数据源【${source}】不存在`
-      logger.error(msg)
-      throw Error(msg)
+      logger.warn(`agenda服务指定的mongodb数据源【${source}】不存在，跳过 agenda 初始化`)
+      return {}
     }
     if (!database || typeof database !== 'string') {
       let msg = `没有给agenda服务指定有效的数据库名称`
