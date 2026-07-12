@@ -12,6 +12,7 @@ import log4js from '@log4js-node/log4js-api'
 import Debug from 'debug'
 
 dotenvFlow.config()
+if (process.env.DEBUG) Debug.enable(process.env.DEBUG)
 
 const logger = log4js.getLogger('tms-koa')
 
